@@ -320,7 +320,7 @@ let S={u:null,adm:false,tasks:[],pend:[],hist:[],
 admNames:['Lê Huy Hoằng','Hoàng Tuấn Long'],
 passwords:{},  // {name: password} for ALL users
 recEmails:{},
-ne:[],emailReminder:false,
+ne:[],emailReminder:false,tempPw:{},
 mem:[
 {id:1,name:'Lê Huy Hoằng',role:'Trưởng phòng',email:'',note:''},
 {id:2,name:'Hoàng Tuấn Long',role:'Phó Trưởng phòng',email:'',note:''},
@@ -344,7 +344,7 @@ let rpChart=null,editIdx=-1,fbRef=null,fbInited=false,fbSyncing=false;
 function migrateTasks(){S.tasks.forEach(t=>{if(t.product===undefined)t.product='';if(t.coefficient===undefined||t.coefficient===0)t.coefficient=200;
 if(t.assignedDate===undefined){if(t.deadline){try{const dd=new Date(t.deadline);dd.setDate(dd.getDate()-1);t.assignedDate=dd.toISOString().slice(0,10);}catch(e){t.assignedDate=t.date||'';}}else if(t.completedAt){try{const dd=new Date(t.completedAt);dd.setDate(dd.getDate()-1);t.assignedDate=dd.toISOString().slice(0,10);}catch(e){t.assignedDate=t.date||'';}}else{t.assignedDate=t.date||'';}}});}
 function cleanForSave(){const{u,adm,...r}=S;const clean=JSON.parse(JSON.stringify(r));if(clean.tasks)clean.tasks.forEach(t=>{delete t._warned;delete t._overWarn;});return clean;}
-function cleanForFirebase(){const c=cleanForSave();delete c.passwords;delete c.fb;delete c.ejs;delete c.recEmails;return c;}
+function cleanForFirebase(){const c=cleanForSave();delete c.fb;delete c.ejs;delete c.recEmails;return c;}
 function initFb(){
 if(fbInited)return;
 const c=S.fb;if(!c||!c.apiKey||!c.databaseURL)return;
@@ -352,7 +352,7 @@ try{const app=firebase.initializeApp({apiKey:c.apiKey,authDomain:c.authDomain||'
 fbRef=firebase.database().ref('appData');fbInited=true;
 // Realtime listener
 fbRef.on('value',snap=>{if(fbSyncing)return;const d=snap.val();if(d){
-const keep={u:S.u,adm:S.adm,passwords:S.passwords,fb:S.fb,ejs:S.ejs,recEmails:S.recEmails};if(S.gk)keep.gk=S.gk;if(S.gmodel)keep.gmodel=S.gmodel;
+const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs,recEmails:S.recEmails};if(S.gk)keep.gk=S.gk;if(S.gmodel)keep.gmodel=S.gmodel;
 Object.assign(S,d,keep);migrateTasks();
 if(S.u){rAll();}
 console.log('[Firebase] Đồng bộ dữ liệu (không ghi đè dữ liệu nhạy cảm)');}});
@@ -367,7 +367,7 @@ migrateTasks();emailjs.init(S.ejs.pk);
 // Kết nối Firebase nếu có config
 initFb();
 // Nếu có Firebase, tải dữ liệu 1 lần
-if(fbRef){fbRef.once('value').then(snap=>{const d=snap.val();if(d){const keep={u:S.u,adm:S.adm,passwords:S.passwords,fb:S.fb,ejs:S.ejs,recEmails:S.recEmails};if(S.gk)keep.gk=S.gk;if(S.gmodel)keep.gmodel=S.gmodel;Object.assign(S,d,keep);migrateTasks();if(S.u)rAll();}}).catch(e=>console.warn('[Firebase] Tải lần đầu lỗi:',e));}}
+if(fbRef){fbRef.once('value').then(snap=>{const d=snap.val();if(d){const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs,recEmails:S.recEmails};if(S.gk)keep.gk=S.gk;if(S.gmodel)keep.gmodel=S.gmodel;Object.assign(S,d,keep);migrateTasks();if(S.u)rAll();}}).catch(e=>console.warn('[Firebase] Tải lần đầu lỗi:',e));}}
 function sv(){const clean=cleanForSave();
 // Luôn lưu localStorage đầy đủ (bao gồm passwords, gk, fb...)
 try{localStorage.setItem('tt7',JSON.stringify(clean));}catch(e){}
@@ -435,10 +435,23 @@ document.getElementById('authScreen').style.display='none';document.getElementBy
 const rt=document.getElementById('rT');rt.textContent=S.adm?'QTV':'TV';rt.className=S.adm?'rt a':'rt m';
 document.getElementById('aF').style.display=S.adm?'grid':'none';
 document.getElementById('stBtn').style.display='flex';
-initRpt();popF();rAll();}
+initRpt();popF();rAll();
+if(S.tempPw&&S.tempPw[n]){forceChangePw(n);}}
 function logout(){S.u=null;S.adm=false;document.getElementById('authScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('ns').value='';}
-function chPw(){const v=document.getElementById('nPw').value.trim();if(!v||v.length<4){toast('≥4 ký tự','er');return;}S.passwords[S.u]=v;sv();document.getElementById('nPw').value='';toast('Đã đổi MK!','ok');}
+function chPw(){const v=document.getElementById('nPw').value.trim();if(!v||v.length<4){toast('≥4 ký tự','er');return;}S.passwords[S.u]=v;if(S.tempPw)delete S.tempPw[S.u];sv();document.getElementById('nPw').value='';toast('Đã đổi MK!','ok');}
+function forceChangePw(n){const box=document.createElement('div');box.className='pnl-ov show';box.id='forcePwOv';
+box.innerHTML='<div class="pnl" style="max-width:360px"><h2>🔐 Đổi mật khẩu bắt buộc</h2><p style="font-size:11px;color:var(--t2);margin-bottom:8px">Bạn đang dùng mật khẩu tạm. Vui lòng đặt mật khẩu mới để tiếp tục.</p><input type="password" id="forcePw1" placeholder="Mật khẩu mới (≥4 ký tự)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:6px"/><input type="password" id="forcePw2" placeholder="Nhập lại mật khẩu" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:6px"/><p id="forcePwErr" style="font-size:10px;color:#ef4444;display:none;margin-bottom:6px"></p><button class="btn btn-p" style="width:100%" onclick="doForceChPw()">Đổi mật khẩu</button></div>';
+document.body.appendChild(box);setTimeout(()=>document.getElementById('forcePw1').focus(),100);}
+function doForceChPw(){const p1=document.getElementById('forcePw1').value.trim(),p2=document.getElementById('forcePw2').value.trim();const err=document.getElementById('forcePwErr');
+if(!p1||p1.length<4){err.textContent='Mật khẩu phải ≥4 ký tự';err.style.display='block';return;}
+if(p1!==p2){err.textContent='Mật khẩu không khớp';err.style.display='block';return;}
+S.passwords[S.u]=p1;if(S.tempPw)delete S.tempPw[S.u];sv();
+document.getElementById('forcePwOv').remove();toast('Đã đổi mật khẩu thành công!','ok');}
 function chMyEmail(){const v=document.getElementById('myEmail').value.trim();if(!v||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){toast('Email không hợp lệ','er');return;}const mem=S.mem.find(x=>x.name===S.u);if(mem)mem.email=v;S.recEmails[S.u]=v;sv();document.getElementById('myEmail').value='';document.getElementById('curEmail').textContent='Email hiện tại: '+v;toast('Đã đổi email!','ok');}
+function genTempPw(name){if(!S.adm)return;const pw=genPw();S.passwords[name]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[name]=true;sv();
+const box=document.createElement('div');box.className='pnl-ov show';box.onclick=function(e){if(e.target===box)box.remove();};
+box.innerHTML='<div class="pnl" style="max-width:360px"><h2>🔑 Mật khẩu tạm <span class="xp" onclick="this.closest(\'.pnl-ov\').remove()">✕</span></h2><p style="font-size:11px;color:var(--t2);margin-bottom:8px">Mật khẩu tạm cho <strong>'+esc(name)+'</strong>:</p><div style="background:var(--c3);padding:12px;border-radius:6px;text-align:center;font-size:18px;font-weight:700;font-family:JetBrains Mono,monospace;color:var(--blue);letter-spacing:2px;user-select:all">'+esc(pw)+'</div><p style="font-size:10px;color:var(--t3);margin-top:8px">Hãy gửi trực tiếp mật khẩu này cho thành viên (nhắn tin, gọi điện...).<br>Sau khi đăng nhập, hệ thống sẽ yêu cầu đổi mật khẩu ngay.</p></div>';
+document.body.appendChild(box);toast('Đã tạo MK tạm cho '+name,'ok');}
 // Panels
 function openSt(){document.getElementById('stOv').classList.add('show');document.querySelectorAll('.admOnly').forEach(el=>el.style.display=S.adm?'':'none');const mem=S.mem.find(x=>x.name===S.u);const curE=S.recEmails[S.u]||mem?.email||'';document.getElementById('curEmail').textContent=curE?'Email hiện tại: '+curE:'Chưa có email';document.getElementById('myEmail').value='';rSet();}
 function closeSt(){document.getElementById('stOv').classList.remove('show');}
@@ -473,7 +486,7 @@ function updMemEmail(id,v){const m=S.mem.find(x=>x.id===id);if(m){m.email=v.trim
 function rMem(){const w=document.getElementById('mW');if(!S.mem.length){w.innerHTML='<p style="color:var(--t3);font-size:9px">Chưa có</p>';return;}
 const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};const sorted=[...S.mem].sort((a,b)=>(ro[a.role]||9)-(ro[b.role]||9));
 w.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:4px">'+sorted.map(m=>{const rc=m.role==='Trưởng phòng'?'tp':m.role==='Phó Trưởng phòng'?'ptp':'tv';
-return`<div class="mc">${S.adm?`<span class="mx" onclick="rmM(${m.id})">✕</span>`:''}<span class="mr ${rc}">${esc(m.role)}</span><span class="mn">${esc(m.name)}</span>${S.adm?`<input class="me-edit" value="${esc(m.email)}" placeholder="email..." onchange="updMemEmail(${m.id},this.value)"/>`:(m.email?`<span class="me">📧 ${esc(m.email)}</span>`:'')}</div>`;}).join('')+'</div>';}
+return`<div class="mc">${S.adm?`<span class="mx" onclick="rmM(${m.id})">✕</span>`:''}<span class="mr ${rc}">${esc(m.role)}</span><span class="mn">${esc(m.name)}</span>${S.adm?`<input class="me-edit" value="${esc(m.email)}" placeholder="email..." onchange="updMemEmail(${m.id},this.value)"/><button class="btn btn-s btn-o" onclick="genTempPw('${esc(m.name)}')" style="font-size:8px;padding:2px 6px;white-space:nowrap" title="Tạo mật khẩu tạm">🔑 MK tạm</button>`:(m.email?`<span class="me">📧 ${esc(m.email)}</span>`:'')}</div>`;}).join('')+'</div>';}
 function sortByRole(names){const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};
 return names.sort((a,b)=>{const ma=S.mem.find(m=>m.name===a),mb=S.mem.find(m=>m.name===b);
 const ra=ro[ma?.role]??2,rb=ro[mb?.role]??2;if(ra!==rb)return ra-rb;return a.localeCompare(b,'vi');});}
