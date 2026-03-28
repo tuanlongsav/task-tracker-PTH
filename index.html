@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Báo cáo theo dõi tiến độ công việc - Phòng Tổng hợp KTNN khu vực I</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e1a;--bg2:#111827;--c:#1a2235;--ch:#1e2840;--inp:#0d1321;--b:#2a3654;--t1:#e8ecf4;--t2:#8b9dc3;--t3:#5a6d8a;--blue:#3b82f6;--bg2l:rgba(59,130,246,.15);--green:#10b981;--gg:rgba(16,185,129,.15);--amber:#f59e0b;--ag:rgba(245,158,11,.15);--red:#ef4444;--rg:rgba(239,68,68,.15);--purple:#8b5cf6;--pg:rgba(139,92,246,.15)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 10% 20%,rgba(59,130,246,.06),transparent 60%),radial-gradient(ellipse 60% 50% at 90% 80%,rgba(139,92,246,.05),transparent 60%);pointer-events:none}
+a{color:var(--blue);text-decoration:none}
+/* Header */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(10,14,26,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--b);padding:0 20px}
+.hdr-in{max-width:1440px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+.logo-i{width:34px;height:34px;background:linear-gradient(135deg,var(--blue),var(--purple));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.ubadge{display:flex;align-items:center;gap:7px;background:var(--c);border:1px solid var(--b);border-radius:18px;padding:5px 12px 5px 8px;font-size:12px;font-weight:500}
+.ubadge .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green)}
+.rtag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:2px 7px;border-radius:4px}
+.rtag.a{background:var(--bg2l);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+.rtag.m{background:var(--ag);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
+/* Auth */
+.auth{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;position:relative;z-index:1}
+.acard{background:var(--c);border:1px solid var(--b);border-radius:16px;padding:40px 36px;max-width:440px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.5);text-align:center}
+.acard h1{font-size:21px;font-weight:700;margin:16px 0 6px}
+.acard .sub{color:var(--t2);font-size:13px;margin-bottom:24px;line-height:1.6}
+.acard .logo-i{width:52px;height:52px;margin:0 auto;font-size:24px}
+/* Search input */
+.search-wrap{position:relative;text-align:left;margin-bottom:16px}
+.search-wrap label{display:block;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.search-wrap input{width:100%;background:var(--inp);border:1px solid var(--b);border-radius:8px;padding:12px 14px;font-size:14px;color:var(--t1);font-family:inherit;outline:none;transition:border .2s}
+.search-wrap input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--bg2l)}
+.dropdown{position:absolute;top:100%;left:0;right:0;background:var(--c);border:1px solid var(--b);border-radius:8px;margin-top:4px;max-height:260px;overflow-y:auto;z-index:50;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.dropdown.show{display:block}
+.dd-item{padding:10px 14px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;transition:background .15s;border-bottom:1px solid rgba(42,54,84,.3)}
+.dd-item:last-child{border:none}
+.dd-item:hover{background:var(--ch)}
+.dd-item .dd-role{font-size:10px;color:var(--t3);font-weight:600}
+.dd-item.is-admin{color:var(--blue)}
+/* PW overlay */
+.pw-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;padding:20px}
+.pw-ov.show{display:flex}
+.pw-box{background:var(--c);border:1px solid var(--b);border-radius:16px;padding:32px 28px;max-width:380px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.5);text-align:center;animation:fi .25s ease}
+.pw-box h2{font-size:17px;margin-bottom:6px}
+.pw-box .pwsub{font-size:12px;color:var(--t2);margin-bottom:16px}
+.pw-box input[type=password]{width:100%;background:var(--inp);border:1px solid var(--b);border-radius:8px;padding:11px;font-size:15px;color:var(--t1);font-family:inherit;outline:none;text-align:center;letter-spacing:2px;margin-bottom:10px}
+.pw-box input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--bg2l)}
+.pw-err{color:var(--red);font-size:12px;margin-bottom:8px;display:none}
+.pw-acts{display:flex;gap:8px;margin-top:4px}
+.pw-acts .btn{flex:1}
+.forgot{display:inline-block;margin-top:10px;font-size:11px;color:var(--t3);cursor:pointer;text-decoration:underline}
+.forgot:hover{color:var(--blue)}
+.forgot-ok{font-size:11px;color:var(--green);margin-top:6px;display:none}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-p{background:linear-gradient(135deg,var(--blue),#2563eb);color:#fff;box-shadow:0 2px 8px rgba(59,130,246,.3)}
+.btn-p:hover{transform:translateY(-1px)}
+.btn-s{padding:7px 14px;font-size:12px}
+.btn-o{background:transparent;border:1px solid var(--b);color:var(--t1)}
+.btn-o:hover{background:var(--ch);border-color:var(--blue)}
+.btn-g{background:var(--green);color:#fff}
+.btn-d{background:var(--red);color:#fff}
+/* Main */
+.main{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:20px;display:none}
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}
+.sc{background:var(--c);border:1px solid var(--b);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px}
+.si{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.si.bl{background:var(--bg2l)}.si.gr{background:var(--gg)}.si.am{background:var(--ag)}.si.re{background:var(--rg)}
+.sv h3{font-size:24px;font-weight:800;letter-spacing:-1px;line-height:1}
+.sv p{font-size:11px;color:var(--t2);margin-top:3px}
+/* AI */
+.ai{background:var(--c);border:1px solid var(--b);border-radius:12px;padding:20px;margin-bottom:20px;position:relative;overflow:hidden}
+.ai::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--purple),var(--blue));background-size:200%;animation:sh 3s linear infinite}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.ai-l{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;margin-bottom:12px}
+.gb{font-size:9px;font-weight:700;background:linear-gradient(135deg,#4285f4,#ea4335,#fbbc04,#34a853);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px;text-transform:uppercase}
+.cw{display:flex;gap:8px}
+.cw textarea{flex:1;background:var(--inp);border:1px solid var(--b);border-radius:8px;padding:12px;font-size:13px;color:var(--t1);font-family:inherit;resize:none;outline:none;min-height:48px;max-height:100px;line-height:1.5}
+.cw textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--bg2l)}
+.cw textarea::placeholder{color:var(--t3)}
+.bs{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;border:none;border-radius:8px;padding:12px 18px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.bs:hover{transform:translateY(-1px)}
+.bs:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.ar{margin-top:14px;display:none}.ar.show{display:block}
+.am{background:var(--inp);border:1px solid var(--b);border-radius:8px;padding:12px 16px;font-size:12px;line-height:1.7;color:var(--t2);animation:fi .3s ease}
+.am.ok{border-left:3px solid var(--green)}.am.er{border-left:3px solid var(--red)}.am.inf{border-left:3px solid var(--blue)}.am.pn{border-left:3px solid var(--amber)}.am.cl{border-left:3px solid var(--purple)}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* Tabs */
+.tabs{display:flex;gap:3px;margin-bottom:16px;background:var(--c);border:1px solid var(--b);border-radius:8px;padding:3px;overflow-x:auto}
+.tb{padding:9px 16px;border:none;border-radius:5px;background:transparent;color:var(--t2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px;transition:all .15s}
+.tb:hover{color:var(--t1);background:var(--ch)}
+.tb.on{background:var(--blue);color:#fff}
+.tb .cn{font-size:10px;background:rgba(255,255,255,.15);padding:1px 6px;border-radius:8px;font-weight:700}
+.tb.on .cn{background:rgba(255,255,255,.25)}
+.tc{display:none}.tc.on{display:block}
+/* Table */
+.tw{background:var(--c);border:1px solid var(--b);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.th{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--b);flex-wrap:wrap;gap:8px}
+.th h3{font-size:14px;font-weight:600}
+.ts{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--bg2);padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--t3);border-bottom:1px solid var(--b);white-space:nowrap}
+tbody tr{border-bottom:1px solid rgba(42,54,84,.4);transition:background .1s}
+tbody tr:hover{background:var(--ch)}
+tbody td{padding:12px 14px;vertical-align:top;line-height:1.4}
+.tid{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:12px;color:var(--blue)}
+.tn{font-weight:500;max-width:320px}
+.pt{display:inline-flex;align-items:center;gap:3px;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:2px 8px;font-size:11px;margin:1px;white-space:nowrap}
+.pt.ld{border-color:var(--blue);color:var(--blue)}
+.sb{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:16px;font-size:11px;font-weight:600;white-space:nowrap}
+.sb.doing{background:var(--bg2l);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+.sb.done{background:var(--gg);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.sb.overdue{background:var(--rg);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.dl{font-family:'JetBrains Mono',monospace;font-size:11px}
+.dl.urg{color:var(--red);font-weight:600}
+.dl.soon{color:var(--amber);font-weight:600}
+.empty{text-align:center;padding:40px 16px;color:var(--t3)}
+.empty .icon{font-size:32px;margin-bottom:8px}
+.empty p{font-size:13px}
+/* Inline edit deadline */
+.dl-edit{background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:4px 6px;font-size:11px;color:var(--t1);font-family:'JetBrains Mono',monospace;width:130px;outline:none;cursor:pointer}
+.dl-edit:focus{border-color:var(--blue)}
+/* Request */
+.rc{background:var(--inp);border:1px solid var(--b);border-radius:8px;padding:14px;margin:10px 18px;animation:fi .3s ease}
+.rc .rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px;color:var(--t2)}
+.rc .rcc{font-size:12px;margin-bottom:10px;padding:8px;background:var(--c);border-radius:5px;border-left:3px solid var(--amber)}
+.rc .ra{display:flex;gap:6px}
+/* Settings */
+.sx{background:var(--c);border:1px solid var(--b);border-radius:12px;padding:20px;margin-bottom:14px}
+.sx h3{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.cl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{display:flex;align-items:center;gap:5px;background:var(--inp);border:1px solid var(--b);border-radius:16px;padding:5px 10px;font-size:11px;font-family:'JetBrains Mono',monospace}
+.chip .x{cursor:pointer;color:var(--t3);font-size:13px}.chip .x:hover{color:var(--red)}
+.mc{background:var(--inp);border:1px solid var(--b);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:4px;min-width:200px;flex:1;max-width:280px;position:relative}
+.mc .mn{font-weight:600;font-size:13px}
+.mc .mr{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;padding:2px 6px;border-radius:3px;display:inline-block;width:fit-content}
+.mr.tp{background:var(--rg);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.mr.ptp{background:var(--ag);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
+.mr.tv{background:var(--bg2l);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+.mc .me{font-size:11px;color:var(--t2);font-family:'JetBrains Mono',monospace}
+.mc .mno{font-size:11px;color:var(--t3);font-style:italic}
+.mc .mx{position:absolute;top:6px;right:6px;cursor:pointer;color:var(--t3);font-size:14px;border-radius:3px;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+.mc .mx:hover{background:var(--rg);color:var(--red)}
+.af{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--b)}
+.af input,.af select{background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:12px;color:var(--t1);font-family:inherit;outline:none}
+.af .fs{grid-column:1/-1}
+.rf{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.rf select,.rf input{background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:12px;color:var(--t1);font-family:inherit;outline:none}
+.rs{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.rb{background:var(--inp);border:1px solid var(--b);border-radius:8px;padding:12px;text-align:center}
+.rb .rn{font-size:24px;font-weight:800;letter-spacing:-1px}
+.rb .rl{font-size:10px;color:var(--t2);margin-top:3px}
+.nb{position:relative;background:var(--c);border:1px solid var(--b);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+.nc{position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}.nc.hd{display:none}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--c);border:1px solid var(--b);border-radius:8px;padding:12px 18px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:999;animation:su .3s ease;max-width:360px}
+.toast.ok{border-left:3px solid var(--green)}.toast.er{border-left:3px solid var(--red)}.toast.wn{border-left:3px solid var(--amber)}
+@keyframes su{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.le{padding:8px 18px;border-bottom:1px solid rgba(42,54,84,.3);font-size:12px;display:flex;gap:10px}
+.le .lt{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--t3);white-space:nowrap;min-width:80px}
+.le .lx{color:var(--t2);line-height:1.4}
+.co{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.cb{padding:5px 12px;border:1px solid var(--purple);border-radius:5px;background:var(--pg);color:var(--purple);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit}
+.cb:hover{background:var(--purple);color:#fff}
+@media(max-width:768px){.stats{grid-template-columns:repeat(2,1fr)}.cw{flex-direction:column}.bs{width:100%;justify-content:center}.main{padding:14px}.acard{padding:28px 20px}.af{grid-template-columns:1fr}.rf{flex-direction:column;align-items:stretch}}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b);border-radius:3px}
+</style>
+</head>
+<body>
+<div id="authScreen" class="auth">
+<div class="acard">
+<div class="logo-i">📋</div>
+<h1>Báo cáo theo dõi tiến độ công việc</h1>
+<p class="sub">Phòng Tổng hợp - Kiểm toán Nhà nước khu vực I</p>
+<div class="search-wrap">
+<label>👤 Nhập tên của bạn</label>
+<input type="text" id="nameSearch" placeholder="Gõ tên để tìm..." autocomplete="off" oninput="filterNames()" onfocus="filterNames()" />
+<div class="dropdown" id="nameDropdown"></div>
+</div>
+</div>
+</div>
+<div class="pw-ov" id="pwOv">
+<div class="pw-box">
+<h2>🔐 Xác thực Quản trị viên</h2>
+<p class="pwsub">Nhập mật khẩu cho <strong id="pwName"></strong></p>
+<input type="password" id="pwIn" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')submitPw()" />
+<div class="pw-err" id="pwErr">❌ Sai mật khẩu</div>
+<div class="pw-acts"><button class="btn btn-o btn-s" onclick="closePw()">Huỷ</button><button class="btn btn-p btn-s" onclick="submitPw()">Đăng nhập</button></div>
+<span class="forgot" onclick="forgotPw()">Quên mật khẩu?</span>
+<div class="forgot-ok" id="fgOk">✅ Đã mở email khôi phục</div>
+</div>
+</div>
+<div id="app" style="display:none">
+<div class="hdr"><div class="hdr-in">
+<div class="logo"><div class="logo-i">📋</div><span>Phòng TH - KTNN KV1</span></div>
+<div class="hdr-r">
+<div class="nb" onclick="switchTab('pending')">🔔<span id="nCnt" class="nc hd">0</span></div>
+<div class="ubadge"><span class="dot"></span><span id="dName">user</span><span id="rTag" class="rtag a">Admin</span></div>
+<button class="btn btn-s btn-o" onclick="logout()">Thoát</button>
+</div>
+</div></div>
+<div class="main" id="mainC">
+<div class="stats">
+<div class="sc"><div class="si bl">📊</div><div class="sv"><h3 id="sT">0</h3><p>Tổng</p></div></div>
+<div class="sc"><div class="si am">⏳</div><div class="sv"><h3 id="sD">0</h3><p>Đang làm</p></div></div>
+<div class="sc"><div class="si gr">✅</div><div class="sv"><h3 id="sC">0</h3><p>Xong</p></div></div>
+<div class="sc"><div class="si re">🚨</div><div class="sv"><h3 id="sO">0</h3><p>Quá hạn</p></div></div>
+</div>
+<div class="ai"><div class="ai-l">🤖 Ra lệnh tự nhiên <span class="gb">Gemini</span></div>
+<div class="cw"><textarea id="cmdIn" rows="2" placeholder='VD: Tham gia ý kiến VB XYZ do ông Long chủ trì, hạn 12h 30/3...'></textarea><button class="bs" id="sBtn" onclick="handleCmd()"><span id="sTxt">Gửi ✨</span></button></div>
+<div id="aR" class="ar"></div></div>
+<div class="tabs">
+<button class="tb on" data-t="tasks" onclick="sT('tasks')">📋 Công việc <span class="cn" id="cT">0</span></button>
+<button class="tb" data-t="report" onclick="sT('report')">📊 Tổng hợp</button>
+<button class="tb" data-t="pending" onclick="sT('pending')">⏳ Chờ duyệt <span class="cn" id="cP">0</span></button>
+<button class="tb" data-t="history" onclick="sT('history')">📜 Lịch sử</button>
+<button class="tb" data-t="settings" onclick="sT('settings')">⚙️ Cài đặt</button>
+</div>
+<div id="t-tasks" class="tc on">
+<div class="tw"><div class="th"><h3>⏳ Chưa hoàn thành</h3><select id="fP" onchange="rTasks()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:5px 8px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"><option value="all">Tất cả</option></select></div><div class="ts"><table><thead><tr><th>STT</th><th>Nội dung</th><th>Phụ trách</th><th>Phối hợp</th><th>Hạn</th><th>Trạng thái</th><th>Ghi chú</th></tr></thead><tbody id="tbI"></tbody></table></div></div>
+<div class="tw"><div class="th"><h3>✅ Đã hoàn thành</h3></div><div class="ts"><table><thead><tr><th>STT</th><th>Nội dung</th><th>Phụ trách</th><th>Phối hợp</th><th>Ngày nhập</th><th>Trạng thái</th><th>Ghi chú</th></tr></thead><tbody id="tbD"></tbody></table></div></div>
+</div>
+<div id="t-report" class="tc">
+<div class="tw"><div class="th"><h3>📊 Tổng hợp</h3></div><div style="padding:18px">
+<div class="rf"><select id="rpP" onchange="rRpt()"><option value="week" selected>Tuần</option><option value="month">Tháng</option><option value="year">Năm</option></select><input type="date" id="rpF" onchange="rRpt()"/><span style="color:var(--t3)">→</span><input type="date" id="rpT" onchange="rRpt()"/><select id="rpPr" onchange="rRpt()"><option value="all">Tất cả</option></select></div>
+<div class="rs" id="rpS"></div>
+<div class="ts"><table><thead><tr><th>STT</th><th>Nội dung</th><th>Phụ trách</th><th>Ngày</th><th>Trạng thái</th></tr></thead><tbody id="rpB"></tbody></table></div>
+</div></div></div>
+<div id="t-pending" class="tc"><div class="tw"><div class="th"><h3>⏳ Chờ duyệt</h3></div><div id="pList"></div></div></div>
+<div id="t-history" class="tc"><div class="tw"><div class="th"><h3>📜 Lịch sử</h3><button class="btn btn-s btn-o" onclick="clrH()">Xóa</button></div><div id="hLog"></div></div></div>
+<div id="t-settings" class="tc">
+<div class="sx"><h3>🔐 Đổi mật khẩu</h3><input type="password" id="nPw" placeholder="Mật khẩu mới (tối thiểu 4 ký tự)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:9px 12px;font-size:13px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:8px"/><button class="btn btn-s btn-p" style="width:auto" onclick="chPw()">Đổi</button></div>
+<div class="sx"><h3>🏢 Thành viên phòng</h3><p style="font-size:11px;color:var(--t3);margin-bottom:10px">AI tự nhận tên viết tắt. Email tuỳ chọn để nhận thông báo.</p><div id="mW" class="cl" style="flex-direction:column;align-items:stretch"></div>
+<div class="af" id="aF"><input type="text" id="mN" placeholder="Họ tên *"/><select id="mR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option></select><input type="email" id="mE" placeholder="Email (tuỳ chọn)"/><input type="text" id="mNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm</button></div></div>
+<div class="sx"><h3>📧 Email thông báo</h3><div id="nL" class="cl"></div><div style="display:flex;gap:6px;margin-top:6px"><input type="email" id="nNE" placeholder="Thêm email..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" style="width:auto" onclick="addNE()">+</button></div></div>
+<div class="sx"><h3>🔑 Gemini API Key</h3><input type="password" id="gK" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:9px 12px;font-size:12px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none"/></div>
+<button class="btn btn-p" style="width:auto;margin-top:6px" onclick="saveCfg()">💾 Lưu</button>
+</div>
+</div></div>
+<script>
+// Seed data will be loaded inline - no external file needed
+</script>
+<script>
+let S={u:null,adm:false,tasks:[],pend:[],hist:[],
+admNames:['Lê Huy Hoằng','Hoàng Tuấn Long'],
+pw:'',recEmail:'tuanlong.sav@gmail.com',
+ne:['kv1@sav.gov.vn'],
+mem:[
+{id:1,name:'Lê Huy Hoằng',role:'Trưởng phòng',email:'',note:''},
+{id:2,name:'Hoàng Tuấn Long',role:'Phó Trưởng phòng',email:'tuanlong.sav@gmail.com',note:''},
+{id:3,name:'Nguyễn Thị Loan',role:'Phó Trưởng phòng',email:'',note:''},
+{id:4,name:'Vũ Đức Dũng',role:'Phó Trưởng phòng',email:'',note:''},
+{id:5,name:'Phạm Văn Sơn',role:'Phó Trưởng phòng',email:'',note:''},
+{id:6,name:'Phạm Quốc Toản',role:'Thành viên',email:'',note:''},
+{id:7,name:'Nguyễn Mạnh Thắng',role:'Thành viên',email:'',note:''},
+{id:8,name:'Phan Thanh Tân',role:'Thành viên',email:'',note:''},
+{id:9,name:'Nguyễn Khắc Tuấn',role:'Thành viên',email:'',note:''},
+{id:10,name:'Trần Văn Linh',role:'Thành viên',email:'',note:''},
+{id:11,name:'Nguyễn Thị Thủy',role:'Thành viên',email:'',note:''},
+{id:12,name:'Đoàn Thanh Nhàn',role:'Thành viên',email:'',note:''},
+{id:13,name:'Dương Tuấn Linh',role:'Thành viên',email:'',note:''},
+{id:14,name:'Trần Việt Hà',role:'Thành viên',email:'',note:''},
+{id:15,name:'Vũ Khánh Linh',role:'Thành viên',email:'',note:''},
+],
+gk:''};
+
+const SEED_DATA=[{"id":1,"name":"Tham gia làm BC kiến nghị năm 2025, tổng hợp và làm phụ lục 07, 07a (gửi PTP Nguyễn Thị Loan)","leader":"Đoàn Thanh Nhàn","collaborators":[],"date":"2026-01-01","deadline":"","status":"done","completedAt":"2026-01-01 17:00","notes":""},{"id":2,"name":"Đôn đốc các cán bộ Phòng Tổng hợp nộp Bản nhận xét đánh giá đảng viên 2 chiều; tập hợp hồ sơ lưu theo quy định","leader":"Phan Thanh Tân","collaborators":[],"date":"2026-01-01","deadline":"","status":"done","completedAt":"2026-01-01 17:00","notes":""},{"id":3,"name":"Thực hiện kiểm kê toàn bộ tài sản, công cụ, dụng cụ thuộc phạm vi quản lý của Phòng TH; lập báo cáo gửi Văn phòng KTNN khu vực I theo quy định","leader":"Vũ Đức Dũng","collaborators":["Phan Thanh Tân"],"date":"2026-01-01","deadline":"","status":"done","completedAt":"2026-01-01 17:00","notes":""},{"id":4,"name":"Tham gia làm BC kiến nghị năm 2025","leader":"Nguyễn Thị Thủy","collaborators":[],"date":"2026-01-01","deadline":"","status":"done","completedAt":"2026-01-01 17:00","notes":""},{"id":5,"name":"Tham gia tổng hợp BCKT Hoạt động xây dựng và việc quản lý, sử dụng vốn đầu tư dự án thành phần Bùng - Vạn Ninh thuộc Dự án xây dựng công trình đường bộ cao tốc Bắc - Nam phía Đông giai đoạn 2021 - 2025","leader":"Lê Huy Hoằng","collaborators":["Trần Văn Linh"],"date":"2026-01-05","deadline":"","status":"done","completedAt":"2026-01-05 17:00","notes":""},{"id":6,"name":"Tham mưu ý kiến đối với dự thảo Thông tư hướng dẫn lập BCTC nhà nước tại Công văn số 2680/BTC-KBNN ngày 06/3/2026 của Bộ Tài chính và Phiếu trao đổi công việc số 139/PTĐCV-NSTW ngày 12/3/2026 của Vụ Tổng hợp","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-01-05","deadline":"","status":"done","completedAt":"2026-01-05 17:00","notes":""},{"id":7,"name":"Thẩm định Dự thảo Báo cáo kiểm toán \"Hoạt động xây dựng và việc quản lý, sử dụng vốn đầu tư dự án thành phần Bùng - Vạn Ninh thuộc Dự án xây dựng công trình đường bộ cao tốc Bắc - Nam phía Đông giai đoạn 2021-2025","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-01-05","deadline":"","status":"done","completedAt":"2026-01-05 17:00","notes":""},{"id":8,"name":"Lập Báo cáo tiến độ Đoàn dự án cao tốc Bùng - Vạn Ninh","leader":"Vũ Đức Dũng","collaborators":["Phạm Thanh Luận"],"date":"2026-01-06","deadline":"","status":"done","completedAt":"2026-01-06 17:00","notes":""},{"id":9,"name":"Nhận bàn giao trang phục phụ kiện đồng phục của Phòng TH và bàn giao đồng phục cho các thành viên trong phòng","leader":"Phan Thanh Tân","collaborators":["Hoàng Ngọc Tín"],"date":"2026-01-07","deadline":"","status":"done","completedAt":"2026-01-07 17:00","notes":""},{"id":10,"name":"Tổng hợp, soạn thảo CV ý kiến tham gia đối với Dự thảo Kế hoạch và dự thảo Phụ lục tại CV số 10536-CV/BTCTW","leader":"Nguyễn Mạnh Thắng","collaborators":[],"date":"2026-01-07","deadline":"","status":"done","completedAt":"2026-01-07 17:00","notes":""},{"id":11,"name":"Xây dựng kế hoạch hành động chống lãng phí năm 2026 của Khu vực I","leader":"Phạm Văn Sơn","collaborators":["Phạm Thanh Luận"],"date":"2026-01-08","deadline":"","status":"done","completedAt":"2026-01-08 17:00","notes":""},{"id":12,"name":"Tham mưu ban hành Quyết định phân công nhiệm vụ xây dựng đề cương hướng dẫn kiểm toán Chuyên đề “Việc thực hiện chính sách phát triển nhà ở xã hội giai đoạn 2021-2025 tại các tỉnh, thành phố Hà Nội, Quảng Ninh, Lạng Sơn, Phú Thọ, Lào Cai","leader":"Phạm Văn Sơn","collaborators":[],"date":"2026-01-08","deadline":"","status":"done","completedAt":"2026-01-08 17:00","notes":""},{"id":13,"name":"Tham mưu tham gia ý kiến đối với hồ sơ chính sách dự án Luật Xử lý vi phạm hành chính (sửa đổi) theo đề nghị của Bộ Công an tại Công văn số 21/BCA-V03 ngày 05/1/2026 và Phiếu trao đổi số 18/PTDDCV-PC ngày 08/1/2026 của Vụ Pháp chế","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-01-08","deadline":"","status":"done","completedAt":"2026-01-08 17:00","notes":""},{"id":14,"name":"Soạn thảo Công văn triển khai khảo sát tại tỉnh Sơn La","leader":"Lê Huy Hoằng","collaborators":["Phạm Thanh Luận"],"date":"2026-01-09","deadline":"","status":"done","completedAt":"2026-01-09 17:00","notes":""},{"id":15,"name":"Tham gia Tổ rà soát, cập nhật vào phần mềm kiến nghị của Ngành về tình hình thực hiện kết luận, kiến nghị kiểm toán của các cuộc kiểm toán thuộc lĩnh vực doanh nghiệp do KTNN khu vực I chủ trì thực hiện (trừ các doanh nghiệp của tỉnh Sơn La) theo QĐ 30/QĐ-KV1 ngày 10/01/2026","leader":"Nguyễn Thị Thủy","collaborators":[],"date":"2026-01-10","deadline":"","status":"done","completedAt":"2026-01-10 17:00","notes":""},{"id":16,"name":"Tham gia rà soát,  cập nhật vào phần mềm kiến nghị của Ngành về tình hình thực hiện kết luận, kiến nghị kiểm toán của các cuộc kiểm toán thuộc lĩnh vực lĩnh vực đầu tư phát triển do Kiểm toán nhà nước khu vực I thực hiện trên địa bàn thành phố Hà Nội: QĐ số 31/QĐ-KV I ngày 10/1/2026","leader":"Trần Văn Linh","collaborators":[],"date":"2026-01-12","deadline":"","status":"done","completedAt":"2026-01-12 17:00","notes":""},{"id":17,"name":"Thẩm định, thư ký hội đồng cấp vụ xét duyệt KHKT cuộc kiểm toán CNTT Hà Nội","leader":"Phạm Quốc Toản","collaborators":[],"date":"2026-01-12","deadline":"","status":"done","completedAt":"2026-01-12 17:00","notes":""},{"id":18,"name":"Tổng hợp ý kiến tham gia đối với Dự thảo đề cương chuyên đề kinh phí mua sắm và đầu tư cho cơ sở y tế công lập","leader":"Nguyễn Mạnh Thắng","collaborators":["Đoàn Trần Quỳnh Mai"],"date":"2026-01-12","deadline":"","status":"done","completedAt":"2026-01-12 17:00","notes":""},{"id":19,"name":"Tham gia khảo sát thu thập thông tin và lập KHKT Đoàn kiểm toán Việc quản lý và sử dụng kinh phí các hoạt động: Mua sắm thiết bị công nghệ thông tin cho 126 xã, phường; Chỉnh lý, số hóa tài liệu các cơ quan Đảng cấp Thành phố và cơ quan Đảng, chính quyền cấp xã; Thuê dịch vụ công nghệ thông tin triển khai Hệ thống thông tin giải quyết thủ tục hành chính; Triển khai hệ thống mạng nội bộ phục vụ hoạt động của các chi nhánh trực thuộc Trung tâm phục vụ hành chính công; Mua sắm máy móc, thiết bị cho 126 điểm hành chính công xã, phường trên địa bàn thành phố Hà Nội","leader":"Nguyễn Khắc Tuấn","collaborators":[],"date":"2026-01-12","deadline":"","status":"done","completedAt":"2026-01-12 17:00","notes":""},{"id":20,"name":"Tham mưu trả lời Công văn số 06/CNIII-TH ngày 06/01/2026 của Kiểm toán nhà nước (KTNN) chuyên ngành III về việc thành lập Tổ soạn thảo và tham gia ý kiến lần 1 đối với dự thảo Đề cương chuyên đề kinh phí mua sắm và đầu tư cho cơ sở y tế công lập","leader":"Phạm Văn Sơn","collaborators":[],"date":"2026-01-13","deadline":"","status":"done","completedAt":"2026-01-13 17:00","notes":""},{"id":21,"name":"Tham mưu Văn bản gửi TP Hà Nội và tỉnh Sơn La về trao đổi thông tin các đầu mối, đơn vị, dự án trong kế hoạch kiểm toán năm 2026","leader":"Phạm Văn Sơn","collaborators":[],"date":"2026-01-14","deadline":"","status":"done","completedAt":"2026-01-14 17:00","notes":""},{"id":22,"name":"Lập báo cáo tình hình thực hiện công tác kiểm toán tháng 01 năm 2026 và kế hoạch công tác tháng 02 năm 2026 của KTNN khu vực I","leader":"Nguyễn Khắc Tuấn","collaborators":[],"date":"2026-01-14","deadline":"","status":"done","completedAt":"2026-01-14 17:00","notes":""},{"id":23,"name":"Thành viên khảo sát, lập KHKT Đoàn kiểm toán NSĐP và báo cáo quyết toán NSĐP năm 2025 của thành phố Hà Nội và các Chuyên đề lồng ghép","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-01-15","deadline":"","status":"done","completedAt":"2026-01-15 17:00","notes":""},{"id":24,"name":"Tiếp thu, hoàn thiện, tham mưu trình ban hành quyết định kiểm toán, ban hành KHKT Đoàn kiểm toán Việc quản lý và sử dụng kinh phí các hoạt động: Mua sắm thiết bị công nghệ thông tin cho 126 xã, phường; Chỉnh lý, số hóa tài liệu các cơ quan Đảng cấp Thành phố và cơ quan Đảng, chính quyền cấp xã; Thuê dịch vụ công nghệ thông tin triển khai Hệ thống thông tin giải quyết thủ tục hành chính; Triển khai hệ thống mạng nội bộ phục vụ hoạt động của các chi nhánh trực thuộc Trung tâm phục vụ hành chính công; Mua sắm máy móc, thiết bị cho 126 điểm hành chính công xã, phường trên địa bàn thành phố Hà Nội","leader":"Nguyễn Khắc Tuấn","collaborators":[],"date":"2026-01-16","deadline":"","status":"done","completedAt":"2026-01-16 17:00","notes":""},{"id":25,"name":"Tham mưu ý kiến đối với Tờ trình về việc bổ sung một số cơ chế, chính sách đặc biệt xây dựng Dự án điện hạt nhân Ninh Thuận và hồ sơ kèm theo tại Phiếu giải quyết Văn bản đến số 338 ngày 16/1/2026 của Lãnh đạo KTNN","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-01-16","deadline":"","status":"done","completedAt":"2026-01-16 17:00","notes":""},{"id":26,"name":"Tham mưu ý kiến đối với góp ý Hồ sơ chính sách Luật Đấu giá tài sản (sửa đổi) tại Văn bản số 51/ĐĐBQH-VP ngày 16/3/2026 của Đoàn Đại biểu Quốc hội thành phố Hà Nội","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-01-16","deadline":"","status":"done","completedAt":"2026-01-16 17:00","notes":""},{"id":27,"name":"Đôn đốc, triển khai thực hiện bình dân học vụ số","leader":"Dương Tuấn Linh","collaborators":[],"date":"2026-01-19","deadline":"","status":"done","completedAt":"2026-01-19 17:00","notes":""},{"id":28,"name":"Tham mưu phát hành BCKT Hoạt động xây dựng và việc quản lý, sử dụng vốn đầu tư dự án thành phần Bùng - Vạn Ninh thuộc Dự án xây dựng công trình đường bộ cao tốc Bắc - Nam phía Đông giai đoạn 2021 - 2025","leader":"Lê Huy Hoằng","collaborators":["Trần Văn Linh"],"date":"2026-01-20","deadline":"","status":"done","completedAt":"2026-01-20 17:00","notes":""},{"id":29,"name":"Tham gia đóng góp ý kiến chuyên đề: Chuyên đề công tác thanh tra, kiểm tra thuế; miễn giảm, gia hạn thời hạn nộp thuế; hoàn thuế GTGT giai đoạn 2023-2025 tại Thuế thành phố Hà Nội (gửi PTP Hoàng Tuấn Long)","leader":"Đoàn Thanh Nhàn","collaborators":[],"date":"2026-01-23","deadline":"","status":"done","completedAt":"2026-01-23 17:00","notes":""},{"id":30,"name":"Thu nộp kê khai tài sản của phòng","leader":"Dương Tuấn Linh","collaborators":[],"date":"2026-01-23","deadline":"","status":"done","completedAt":"2026-01-23 17:00","notes":""},{"id":31,"name":"CV gửi lấy ý kiến toàn ngành dự thảo đề cương hướng dẫn kiểm toán NOXH","leader":"Phạm Quốc Toản","collaborators":[],"date":"2026-01-23","deadline":"","status":"done","completedAt":"2026-01-23 17:00","notes":""},{"id":32,"name":"Tham gia xây dựng Dự thảo Đề cương kiểm toán: Chuyên đề việc thực hiện chính sách phát triển nhà ở xã hội giai đoạn 2021-2025 tại các thành phố Hà Nội và các tỉnh: Quảng Ninh, Lạng Sơn, Phú Thọ, Lào Cai","leader":"Nguyễn Khắc Tuấn","collaborators":[],"date":"2026-01-23","deadline":"","status":"done","completedAt":"2026-01-23 17:00","notes":""},{"id":33,"name":"Lấy ý kiến hồ sơ Dự án Luật","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-01-24","deadline":"","status":"done","completedAt":"2026-01-24 17:00","notes":"Công văn số 63/KVI-TH ngày 21/01/2026"},{"id":34,"name":"Đôn đốc, rà soát số thẻ và phát thẻ KTVNN","leader":"Dương Tuấn Linh","collaborators":[],"date":"2026-01-26","deadline":"","status":"done","completedAt":"2026-01-26 17:00","notes":""},{"id":35,"name":"Tham mưu trả lời Công văn số 253 Công văn số 253/UBND-ĐT ngày 19/01/2026 của UBND thành phố Hà Nội về việc mời tham gia kiểm toán song hành trong quá trình tổ chức triển khai thực hiện Dự án đầu tư xây dựng Trục Đại lộ cảnh quan sông Hồng","leader":"Phạm Văn Sơn","collaborators":[],"date":"2026-01-26","deadline":"","status":"done","completedAt":"2026-01-26 17:00","notes":""},{"id":36,"name":"Báo cáo tình hình CNTT tháng 01/2026","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-01-26","deadline":"","status":"done","completedAt":"2026-01-26 17:00","notes":"Đã rà soát lại tình hình số hóa của các Đoàn KT"},{"id":37,"name":"Tham mưu, tham gia khảo sát, lập Kế hoạch kiểm toán ngân sách địa phương năm 2025 của tỉnh Sơn La và các chuyên đề lồng ghép","leader":"Lê Huy Hoằng","collaborators":["Trần Văn Linh","Phạm Thanh Luận"],"date":"2026-01-27","deadline":"","status":"done","completedAt":"2026-01-27 17:00","notes":""},{"id":38,"name":"Tập hợp hồ sơ kiểm điểm cá nhân, phiếu đánh giá công chức trong 05 năm gần nhất của các công chức nghỉ hưu trong năm 2025 của KTNN khu vực I và bàn giao cho Văn phòng theo quy định","leader":"Lê Huy Hoằng","collaborators":["Phan Thanh Tân"],"date":"2026-01-27","deadline":"","status":"done","completedAt":"2026-01-27 17:00","notes":""},{"id":39,"name":"Tham mưu xây dựng Kế hoạch tuyên truyền, phổ biến pháp luật năm 2026 của KTNN khu vực I theo Văn bản số 72/PC-PL ngày 27/1/2026 của Vụ Pháp chế","leader":"Nguyễn Thị Loan","collaborators":["Phạm Quốc Toản"],"date":"2026-01-27","deadline":"","status":"done","completedAt":"2026-01-27 17:00","notes":""},{"id":40,"name":"Rà soát danh mục đầu mối và dự án kiểm toán năm 2026 của tỉnh Sơn La","leader":"Hoàng Tuấn Long","collaborators":["Phạm Thanh Luận"],"date":"2026-01-28","deadline":"","status":"done","completedAt":"2026-01-28 17:00","notes":""},{"id":41,"name":"Thông báo kết quả Thanh tra, kiểm soát","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-01-29","deadline":"2026-02-03 17:00","status":"doing","completedAt":"","notes":"đang phối hợp với các Đoàn KT"},{"id":42,"name":"Tham gia góp ý KHKT đoàn kiểm toán Sơn La","leader":"Phạm Văn Sơn","collaborators":["Phạm Thanh Luận"],"date":"2026-01-30","deadline":"","status":"done","completedAt":"2026-01-30 17:00","notes":""},{"id":43,"name":"Soạn thảo, phát hành Tờ trình ban hành Hướng dẫn KT NSĐP","leader":"Nguyễn Mạnh Thắng","collaborators":[],"date":"2026-01-30","deadline":"","status":"done","completedAt":"2026-01-30 17:00","notes":""},{"id":44,"name":"Thẩm định KHKT đoàn NSDP Hà Nội (gửi TP Lê Huy Hoằng)","leader":"Đoàn Thanh Nhàn","collaborators":[],"date":"2026-02-03","deadline":"","status":"done","completedAt":"2026-02-03 17:00","notes":""},{"id":45,"name":"Thẩm định KHKT đoàn NSDP Hà Nội","leader":"Lê Huy Hoằng","collaborators":["Dương Tuấn Linh"],"date":"2026-02-03","deadline":"","status":"done","completedAt":"2026-02-03 17:00","notes":""},{"id":46,"name":"Tham mưu trả lời PTĐCV số 43/PTĐCV-TH ngày 27/01/2026 của Vụ Tổng hợp về xác định nợ thuế năm 2024 do cơ quan thuế quản lý và số liệu quyết toán thu NSNN năm 2024","leader":"Phạm Văn Sơn","collaborators":[],"date":"2026-02-03","deadline":"","status":"done","completedAt":"2026-02-03 17:00","notes":""},{"id":47,"name":"Lấy ý kiến (VB QH)","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-02-03","deadline":"2026-02-08 17:00","status":"doing","completedAt":"","notes":"Đang rà soát lại tình hình thực hiện"},{"id":48,"name":"Lấy ý kiến (phúc đáp KTNN CN III)","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-02-03","deadline":"","status":"done","completedAt":"2026-02-03 17:00","notes":"Công văn số 104/KVI-TH ngày 06/02/2026"},{"id":49,"name":"Tham mưu, tham gia hoàn thiện, trình phát hành Kế hoạch kiểm toán ngân sách địa phương năm 2025 của tỉnh Sơn La và các chuyên đề lồng ghép","leader":"Lê Huy Hoằng","collaborators":["Trần Văn Linh"],"date":"2026-02-04","deadline":"","status":"done","completedAt":"2026-02-04 17:00","notes":""},{"id":50,"name":"Tổng hợp kiến nghị khác không còn tính khả thi do sáp nhập, hợp nhất và thực hiện chính quyền địa phương 2 cấp (Phụ biểu số 1/KTĐ)","leader":"Trần Văn Linh","collaborators":["Trần Việt Hà","Nguyễn Tấn Phong"],"date":"2026-02-04","deadline":"","status":"done","completedAt":"2026-02-04 17:00","notes":""},{"id":51,"name":"Tổng hợp, soạn thảo CV tham gia ý kiến góp ý Hồ sơ chính sách dự án Luật Sửa đổi, bổ sung một số điều của Luật Thương mại, Luật Cạnh tranh, Luật Quản lý ngoại thương, Luật Bảo vệ quyền lợi người tiêu dùng","leader":"Nguyễn Mạnh Thắng","collaborators":[],"date":"2026-02-04","deadline":"","status":"done","completedAt":"2026-02-04 17:00","notes":""},{"id":52,"name":"Thẩm định, thư ký hội đồng cấp vụ xét duyệt KHKT cuộc kiểm toán Sơn La","leader":"Phạm Văn Sơn","collaborators":["Phạm Thanh Luận"],"date":"2026-02-05","deadline":"","status":"done","completedAt":"2026-02-05 17:00","notes":""},{"id":53,"name":"Tổng hợp ý kiến thẩm định, rà soát, trình phát hành Hướng dẫn kiểm toán NSĐP (185/QĐ-KTNN)","leader":"Nguyễn Mạnh Thắng","collaborators":[],"date":"2026-02-05","deadline":"","status":"done","completedAt":"2026-02-05 17:00","notes":""},{"id":54,"name":"Tham mưu, trình ban hành Kế hoạch tuyên truyền pháp luật năm 2026 của KTNN khu vực I","leader":"Phạm Quốc Toản","collaborators":[],"date":"2026-02-09","deadline":"","status":"done","completedAt":"2026-02-09 17:00","notes":""},{"id":55,"name":"Lập Kế hoạch kiến nghị năm 2026 của KTNN khu vực I","leader":"Nguyễn Thị Loan","collaborators":["Nguyễn Thị Thủy","Đoàn Thanh Nhàn"],"date":"2026-02-10","deadline":"","status":"done","completedAt":"2026-02-10 17:00","notes":""},{"id":56,"name":"Thẩm định Thông báo KQKT Đoàn dự án cao tốc Bùng - Vạn Ninh","leader":"Vũ Đức Dũng","collaborators":["Phạm Thanh Luận"],"date":"2026-02-11","deadline":"","status":"done","completedAt":"2026-02-11 17:00","notes":""},{"id":57,"name":"CV xin ý kiến chỉ đạo của các Phó Tổng KTNN về dự thảo đề cương hướng dẫn kiểm toán NOXH","leader":"Phạm Quốc Toản","collaborators":[],"date":"2026-02-12","deadline":"","status":"done","completedAt":"2026-02-12 17:00","notes":""},{"id":58,"name":"CV gửi Vụ Chế độ & KSCLKT thẩm định đề cương hướng dẫn kiểm toán NOXH","leader":"Phạm Quốc Toản","collaborators":[],"date":"2026-02-12","deadline":"","status":"done","completedAt":"2026-02-12 17:00","notes":""},{"id":59,"name":"Lấy ý kiến dự thảo VB (Phúc đáp CV Bộ Tài chính)","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-02-12","deadline":"","status":"done","completedAt":"2026-02-12 17:00","notes":"PTĐCV số 146/PTĐCV-KVI ngày 02/3/2026"},{"id":60,"name":"Tham mưu phát hành các Thông báo KQKT Đoàn dự án cao tốc Bùng- Vạn Ninh","leader":"Lê Huy Hoằng","collaborators":["Trần Văn Linh"],"date":"2026-02-13","deadline":"","status":"done","completedAt":"2026-02-13 17:00","notes":""},{"id":61,"name":"Tham mưu tham gia ý kiến đối với dự thảo Nghị định của Chính phủ quy định về quyết tóa vốn đầu tư kèm theo Văn bản số 1709/BTC-PTHT ngày 10/2/2026 của Bộ Tài chính tại Phiếu Giải quyết văn bản đến ngày 12/2/2026 của Lãnh đạo KTNN và Phiếu trao đổi số 97/PTĐ-CN II ngày 13/2/2026","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-02-13","deadline":"","status":"done","completedAt":"2026-02-13 17:00","notes":""},{"id":62,"name":"Tổng hợp kết quả kiểm toán, kiến nghị BCKT Hoạt động xây dựng và việc quản lý, sử dụng vốn đầu tư dự án thành phần Bùng - Vạn Ninh thuộc Dự án xây dựng công trình đường bộ cao tốc Bắc - Nam phía Đông giai đoạn 2021 – 2025 lên phần mềm","leader":"Trần Văn Linh","collaborators":[],"date":"2026-02-14","deadline":"","status":"done","completedAt":"2026-02-14 17:00","notes":""},{"id":63,"name":"Lập báo cáo tình hình thực hiện công tác kiểm toán tháng 02 năm 2026 và kế hoạch công tác tháng 03 năm 2026 của KTNN khu vực I","leader":"Nguyễn Khắc Tuấn","collaborators":[],"date":"2026-02-14","deadline":"","status":"done","completedAt":"2026-02-14 17:00","notes":""},{"id":64,"name":"Tham gia lập phụ biểu báo cáo phục vụ công tác thực hiện Kế hoạch giám sát số 2039/KH-UBKTTC15 ngày 13/02/2026 của UB kinh tế và tài chính","leader":"Nguyễn Thị Thủy","collaborators":[],"date":"2026-02-24","deadline":"","status":"done","completedAt":"2026-02-24 17:00","notes":""},{"id":65,"name":"Phối hợp tham gia CV cho ý kiến nhân sự bà Nguyễn Thị Tuyến, Ông Nguyễn Anh Tuấn","leader":"Nguyễn Thị Thủy","collaborators":[],"date":"2026-02-25","deadline":"","status":"done","completedAt":"2026-02-25 17:00","notes":""},{"id":66,"name":"Lấy ý kiến văn bản (Phối hợp góp ý với Phòng KTNS2)","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-02-26","deadline":"","status":"done","completedAt":"2026-02-26 17:00","notes":"PTH phối hợp, có ý kiến thống nhất dự thảo"},{"id":67,"name":"Lấy ý kiến văn bản (phúc đáp PTĐCV Vụ PC)","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-02-26","deadline":"","status":"done","completedAt":"2026-02-26 17:00","notes":"PTĐCV số 146/PTĐCV-KVI ngày 02/3/2026"},{"id":68,"name":"Tham gia khảo sát, lập KHKT Ngân sách địa phương và báo cáo quyết toán ngân sách địa phương năm 2025 của thành phố Hà Nội; Chuyên đề công tác thanh tra, kiểm tra thuế; miễn giảm, gia hạn thời hạn nộp thuế; hoàn thuế GTGT giai đoạn 2023-2025 tại Thuế thành phố Hà Nội","leader":"Trần Văn Linh","collaborators":[],"date":"2026-02-27","deadline":"","status":"done","completedAt":"2026-02-27 17:00","notes":""},{"id":69,"name":"Tham mưu các QĐ thành lập Tổ rà soát, cập nhật kiến nghị kiểm toán năm 2026; QĐ thành lập Tổ thẩm định kết quả rà soát, cập nhật kiến nghị kiểm toán năm 2026","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-03-01","deadline":"","status":"done","completedAt":"2026-03-01 17:00","notes":""},{"id":70,"name":"Rà soát thành viên Đoàn kiểm toán (Phúc đáp CV của Bộ KH&CN)","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-02","deadline":"","status":"done","completedAt":"2026-03-02 17:00","notes":"Đã có báo cáo gửi KTT"},{"id":71,"name":"Tham gia ý kiến đối với VB số: 2245/BTC-NSNN /v xin ý kiên tham gia hồ s ơ trình Chính phủ về các nguyên tắc, tiêu chí, định mức phân bổ dự toán chi thường xuyên NSNN á p dụng từ năm 2027","leader":"Phạm Văn Sơn","collaborators":[],"date":"2026-03-03","deadline":"","status":"done","completedAt":"2026-03-03 17:00","notes":""},{"id":72,"name":"Tham mưu rà soát nhân sự theo CV Số: 67/TH-KH-TH V/v rà soát thành viên Đoàn kiểm toán nhà nước","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-03","deadline":"","status":"done","completedAt":"2026-03-03 17:00","notes":""},{"id":73,"name":"Chủ trì tham mưu lập Phiếu trao đổi và các phụ biểu báo cáo phục vụ công tác thực hiện Kế hoạch giám sát số 2039/KH-UBKTTC15 ngày 13/2/2026 của Ủy ban Kinh tế và Tài chính theo chỉ đạo của Lãnh đạo KTNN tại Phiếu Giải quyết văn bản đến số 795 ngày 24/2/2026 theo Phiếu trao đổi số 99/PTĐ-PCTN ngày 27/2/2026 của Vụ Tổng hợp","leader":"Nguyễn Thị Loan","collaborators":["Phan Thanh Tân","Nguyễn Thị Thuỷ","Phạm Thanh Luận","Đoàn Thanh Nhàn","Dương Tuấn Linh"],"date":"2026-03-03","deadline":"","status":"done","completedAt":"2026-03-03 17:00","notes":""},{"id":74,"name":"Hoàn thành lập các phụ biểu (phụ lục 4 và phụ lục 5) báo cáo phục vụ công tác thực hiện Kế hoạch giám sát số 2039/KH-UBKTTC15 ngày 13/02/2026 của Ủy ban Kinh tế và Tài chính theo ý kiến chỉ đạo của Lãnh đạo KTNN tại Phiếu giải quyết văn bản đến số 795 ngày 24/2/2026.","leader":"Đoàn Thanh Nhàn","collaborators":[],"date":"2026-03-03","deadline":"","status":"done","completedAt":"2026-03-03 17:00","notes":""},{"id":75,"name":"Chủ trì tham mưu lập Phiếu trao đổi và các phụ biểu báo cáo phục vụ công tác thực hiện Kế hoạch giám sát số 2039/KH-UBKTTC15 ngày 13/2/2026 của Ủy ban Kinh tế và Tài chính theo chỉ đạo của Lãnh đạo KTNN tại Phiếu Giải quyết văn bản đến số 795 ngày 24/2/2026 theo Phiếu trao đổi số 99/PTĐ-PCTN ngày 27/2/2026 của Vụ Tổng hợp","leader":"Nguyễn Thị Loan","collaborators":["Phan Thanh Tân","Nguyễn Thị Thuỷ","Phạm Thanh Luận","Đoàn Thanh Nhàn","Dương Tuấn Linh"],"date":"2026-03-03","deadline":"","status":"done","completedAt":"2026-03-03 17:00","notes":""},{"id":76,"name":"Tổng hợp tất cả các Báo cáo (files) thực hiện kiến nghị của các đơn vị gửi về KTNN KVI (từ 01/01/2025 tới 01/03/2026)","leader":"Nguyễn Mạnh Thắng","collaborators":[],"date":"2026-03-03","deadline":"","status":"done","completedAt":"2026-03-03 17:00","notes":""},{"id":77,"name":"Số : 1098 /BKHCN-C Đ SQG V/v xin ý kiên lần 2 cho dự thảo Quyết định ban hành Khung tiêu chi va phương phap. đánh giá, xét công nhận mức độ chuyển đổi số cấp xã (Phiên bản 2.0)","leader":"Hoàng Tuấn Long","collaborators":[],"date":"2026-03-05","deadline":"","status":"done","completedAt":"2026-03-05 17:00","notes":""},{"id":78,"name":"Thẩm định KHKTCT; BBKT của một số Tổ kiểm toán- Đoàn kiểm toán ngân sách địa phương năm 2025 của tỉnh Sơn La và các chuyên đề lồng ghép","leader":"Lê Huy Hoằng","collaborators":["Trần Văn Linh","Trần Việt Hà","Nguyễn Tấn Phong"],"date":"2026-03-06","deadline":"","status":"done","completedAt":"2026-03-06 17:00","notes":""},{"id":79,"name":"Lấy ý kiên Văn bản (Phúc đáp CV của Bộ KH&CN)","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-08","deadline":"","status":"done","completedAt":"2026-03-08 17:00","notes":"Công văn số 168/KVI-TH ngày 10/3/2026"},{"id":80,"name":"Tổng hợp theo dõi danh sách lớp học năm 2027 của phòng TH gửi VP","leader":"Vũ Khánh Linh","collaborators":[],"date":"2026-03-09","deadline":"","status":"done","completedAt":"2026-03-09 17:00","notes":""},{"id":81,"name":"Lập báo cáo tiến độ tình hình hoạt động các đoàn KT đến hết ngày 05/3","leader":"Nguyễn Thị Loan","collaborators":["Trần Việt Hà"],"date":"2026-03-09","deadline":"","status":"done","completedAt":"2026-03-09 17:00","notes":""},{"id":82,"name":"cho ý kiến Dự thảo Quyết định của Thủ tướng ban hành Danh mục bộ dữ liệu phục vụ phát triển trí tuệ nhân tạo trong các lĩnh vực thiết yếu","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-10","deadline":"","status":"done","completedAt":"2026-03-10 17:00","notes":""},{"id":83,"name":"Lấy ý kiên Văn bản (phối hợp góp ý với Cục CNTT)","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-10","deadline":"","status":"done","completedAt":"2026-03-10 17:00","notes":"Công văn số 168/KVI-TH ngày 10/3/2026"},{"id":84,"name":"Tham mưu ý kiến Hồ sơ Nghị định quy định chi tiết một số điều Luật Chuyển đổi số tại Phiếu trao đổi công việc số 161/PTĐ-CNTT ngày 10/3/2026 của Cục CNTT","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-03-10","deadline":"","status":"done","completedAt":"2026-03-10 17:00","notes":""},{"id":85,"name":"Tham mưu ý kiến đối với dự thảo Nghị định sửa đổi, bổ sung một số điều của Nghị định số 123/2024/NĐ-CP ngày 04/10/2024 của Chính phủ tại Phiếu trao đổi công việc số 207/PTĐCV-PC ngày 12/3/2026 của Vụ Pháp chế","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-03-10","deadline":"","status":"done","completedAt":"2026-03-10 17:00","notes":""},{"id":86,"name":"tham gia ý kiến dự thảo hướng dẫn  đánh giá công chức Quý I/2026","leader":"Nguyễn Thị Loan","collaborators":["Hoàng Tuấn Long"],"date":"2026-03-11","deadline":"","status":"done","completedAt":"2026-03-11 17:00","notes":""},{"id":87,"name":"Tham mưu ý kiến về Kế hoạch giám sát trực tiếp việc thực hiện quyền, trách nhiệm của Cơ quan đại diện chủ sở hữu trong hoạt động quản lý và đầu tư vốn nhà nước tại doanh nghiệp năm 2026 và Kế hoạch giám sát trực tiếp năm 2026 tại Văn bản số 2688/BTC-DNNN ngày 06/3/2026 của Bộ Tài chính và Phiếu trao đổi công việc số 136/PTĐCV-DN ngày 11/3/2026 của Vụ Tổng hợp","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-03-11","deadline":"","status":"done","completedAt":"2026-03-11 17:00","notes":""},{"id":88,"name":"Đôn đốc các cán bộ Phòng Tổng hợp Rà soát và hoàn thiện dữ liệu lịch sử đào tạo; Điều chỉnh nhu cầu đào tạo năm 2027 theo hướng dẫn của Văn Phòng","leader":"Trần Văn Linh","collaborators":[],"date":"2026-03-12","deadline":"","status":"done","completedAt":"2026-03-12 17:00","notes":""},{"id":89,"name":"Tham mưu trả lời CV số 161/TCCB-NS ngày 11/3/2026 vv cho ý kiến nhân sự (ô Trịnh Mạnh Quyền)","leader":"Nguyễn Thị Thủy","collaborators":[],"date":"2026-03-12","deadline":"","status":"done","completedAt":"2026-03-12 17:00","notes":""},{"id":90,"name":"CV gửi Vụ Pháp chế thẩm định đề cương hướng dẫn kiểm toán NOXH","leader":"Phạm Quốc Toản","collaborators":[],"date":"2026-03-12","deadline":"","status":"done","completedAt":"2026-03-12 17:00","notes":""},{"id":91,"name":"Tham mưu ý kiến đối với dự thảo Nghị định sửa đổi, bổ sung một số điều của Nghị định số 150/2020/NĐ-CP ngày 25/12/2020 của Chính phủ tại Bút phê của Lãnh đạo KTNN về việc xử lý văn bản số 2615/BTC-DNNN ngày 05/3/2026 của Bộ Tài chính và Văn bản số 147/CNII-TH ngày 10/3/2026 của KTNN chuyên ngành II","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-03-12","deadline":"","status":"done","completedAt":"2026-03-12 17:00","notes":""},{"id":92,"name":"Thực hiện nhập số liệu, tổng hợp kinh nghiệm kiểm toán các Đoàn kiểm toán liên quan NSĐP từ năm 2022- 2025 theo yêu cầu tại Công văn số 1340/KTNN-TH ngày 03/10/2025 về việc nhập liệu  các sai sót, phát hiện kiểm toán","leader":"Lê Huy Hoằng","collaborators":["Trần Văn Linh","Phạm Quốc Toản","Nguyễn Mạnh Thắng"],"date":"2026-03-13","deadline":"","status":"done","completedAt":"2026-03-13 17:00","notes":""},{"id":93,"name":"Lập báo cáo tình hình thực hiện công tác kiểm toán tháng 03 năm 2026 và kế hoạch công tác tháng 04 năm 2026 của KTNN khu vực I","leader":"Nguyễn Khắc Tuấn","collaborators":[],"date":"2026-03-14","deadline":"","status":"done","completedAt":"2026-03-14 17:00","notes":""},{"id":94,"name":"Lấy ý kiến Văn bản  (phối hợp góp ý với VP KVI)","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-14","deadline":"","status":"done","completedAt":"2026-03-14 17:00","notes":"PTH phối hợp, có ý kiến thống nhất dự thảo"},{"id":95,"name":"Lập báo cáo tiến độ tình hình hoạt động các đoàn KT đến hết ngày 12/3","leader":"Nguyễn Thị Loan","collaborators":["Trần Việt Hà"],"date":"2026-03-16","deadline":"","status":"done","completedAt":"2026-03-16 17:00","notes":""},{"id":96,"name":"Tham mưu ý kiến đối với ý kiến về hồ sơ chính sách dự án Luật Xử lý vi phạm hành chính (sửa đổi) tại Văn bản số 21/BCA-V03 ngày 05/1/2026 của Bộ Công an","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-03-16","deadline":"","status":"done","completedAt":"2026-03-16 17:00","notes":""},{"id":97,"name":"Tham mưu thành lập Quyết định Tổ kiểm soát đột suất của KTNN khu vực I đối với Đoàn kiểm toán NSĐP năm 2025 tỉnh Sơn La và các Chuyên đề lồng ghép","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-03-16","deadline":"","status":"done","completedAt":"2026-03-16 17:00","notes":""},{"id":98,"name":"Thực hiện đánh giá Chi uỷ Quý I","leader":"Hoàng Tuấn Long","collaborators":[],"date":"2026-03-18","deadline":"","status":"done","completedAt":"2026-03-18 17:00","notes":""},{"id":99,"name":"Về việc trả lời kiến nghị của KTNN","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-18","deadline":"","status":"done","completedAt":"2026-03-18 17:00","notes":"PTĐCV số 197/PTĐCV-KVI ngày 20/302026"},{"id":100,"name":"Tham mưu ý kiến tham gia đối với văn bản 3095/BTC-KTN về rà soát, đánh giá và đề xuất giải pháp tháo gỡ về cơ chế tài chính đối với lĩnh vực KHCN, ĐMST và CĐS","leader":"Hoàng Tuấn Long","collaborators":[],"date":"2026-03-19","deadline":"","status":"done","completedAt":"2026-03-19 17:00","notes":""},{"id":101,"name":"Tham gia cuộc thi tìm hiểu về Bầu cử QH và HĐND các cấp","leader":"Trần Việt Hà","collaborators":[],"date":"2026-03-10","deadline":"","status":"done","completedAt":"2026-03-10 17:00","notes":""},{"id":102,"name":"Tham gia viết bài về bảo vệ nền tảng tư tưởng của Đảng (Trần Việt Hà)","leader":"Trần Việt Hà","collaborators":[],"date":"2026-03-19","deadline":"","status":"done","completedAt":"2026-03-19 17:00","notes":""},{"id":103,"name":"Tham gia viết bài về bảo vệ nền tảng tư tưởng của Đảng (Nguyễn Mạnh Thắng)","leader":"Nguyễn Mạnh Thắng","collaborators":[],"date":"2026-03-19","deadline":"","status":"done","completedAt":"2026-03-19 17:00","notes":""},{"id":104,"name":"Tham gia viết bài về bảo vệ nền tảng tư tưởng của Đảng (Vũ Đức Dũng)","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-19","deadline":"","status":"done","completedAt":"2026-03-19 17:00","notes":""},{"id":105,"name":"Lập Báo cáo kiến nghị quý 1 năm 2026 của KTNN khu vực I","leader":"Nguyễn Thị Loan","collaborators":["Nguyễn Thị Thủy","Đoàn Thanh Nhàn"],"date":"2026-03-19","deadline":"","status":"done","completedAt":"2026-03-19 17:00","notes":""},{"id":106,"name":"Lấy YK dự thảo báo cáo Thủ tướng Chính phủ thực hiện Thông báo Kết luận số 254/TB-VPCP","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-20","deadline":"","status":"done","completedAt":"2026-03-20 17:00","notes":"Đã có ý kiến gửi Phòng KTNS2 ngày 24/3/2026"},{"id":107,"name":"Lấy ý kiến Văn bản (Phối hợp góp ý với VP KVI)","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-20","deadline":"","status":"done","completedAt":"2026-03-20 17:00","notes":"PTH phối hợp, có ý kiến thống nhất dự thảo"},{"id":108,"name":"Tham gia Dự thảo văn bản","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-20","deadline":"","status":"done","completedAt":"2026-03-20 17:00","notes":"Trích yếu nội dung ghi \"Hủy"},{"id":109,"name":"Tham gia Đoàn kiểm toán, hoàn thành nhiệm vụ kiểm toán tại Đoàn kiểm toán Việc quản lý và sử dụng kinh phí các hoạt động: Mua sắm thiết bị công nghệ thông tin cho 126 xã, phường; Chỉnh lý, số hóa tài liệu các cơ quan Đảng cấp Thành phố và cơ quan Đảng, chính quyền cấp xã; Thuê dịch vụ công nghệ thông tin triển khai Hệ thống thông tin giải quyết thủ tục hành chính; Triển khai hệ thống mạng nội bộ phục vụ hoạt động của các chi nhánh trực thuộc Trung tâm phục vụ hành chính công; Mua sắm máy móc, thiết bị cho 126 điểm hành chính công xã, phường trên địa bàn thành phố Hà Nội","leader":"Nguyễn Khắc Tuấn","collaborators":[],"date":"2026-03-21","deadline":"","status":"done","completedAt":"2026-03-21 17:00","notes":""},{"id":110,"name":"Rà soát hồ sơ, tiếp thu ý kiến thẩm định phát hành của Vụ Pháp chế, tham mưu trình phát hành Đề cương kiểm toán: Chuyên đề việc thực hiện chính sách phát triển nhà ở xã hội giai đoạn 2021-2025 tại các thành phố Hà Nội và các tỉnh: Quảng Ninh, Lạng Sơn, Phú Thọ, Lào Cai","leader":"Nguyễn Khắc Tuấn","collaborators":[],"date":"2026-03-23","deadline":"","status":"done","completedAt":"2026-03-23 17:00","notes":""},{"id":111,"name":"Về việc trả lời kiến nghị của KTNN (Công ty Cổ phần Đầu tư phát triển N&G","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-23","deadline":"","status":"done","completedAt":"2026-03-23 17:00","notes":"PTĐCV số 197/PTĐCV-KVI ngày 20/302026"},{"id":112,"name":"Lập báo cáo tiến độ tình hình hoạt động các đoàn KT đến hết ngày 19/3","leader":"Nguyễn Thị Loan","collaborators":["Trần Việt Hà"],"date":"2026-03-23","deadline":"","status":"done","completedAt":"2026-03-23 17:00","notes":""},{"id":113,"name":"Tham mưu ý kiến đối với Hồ sơ chính sách của dự án Luật Kinh doanh bất động sản (sửa đổi) theo Văn bản số 3992/BXD-QLN ngày 13/3/2026 của Bộ Xây dựng tại Phiếu Giải quyết văn bản đến số 1063 ngày 17/3/2026 của Lãnh đạo KTNN và tại Phiếu trao đổi số 189/CNII-TH ngày 23/3/2026 của KTNN CNII","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-03-23","deadline":"","status":"done","completedAt":"2026-03-23 17:00","notes":""},{"id":114,"name":"tham gia ý kiến đối với dự thảo Báo cáo kết quả đánh giá khung đo lường hoạt động cơ quan kiểm toán tối cao (SAI PMF) tại KTNN Việt Nam năm 2024.","leader":"Hoàng Tuấn Long","collaborators":[],"date":"2026-03-24","deadline":"","status":"done","completedAt":"2026-03-24 17:00","notes":""},{"id":115,"name":"rà soát nhu cầu sử dụng sản phẩm mật mã theo CV  217/CNTT-HTATTT","leader":"Vũ Đức Dũng","collaborators":[],"date":"2026-03-24","deadline":"","status":"done","completedAt":"2026-03-24 17:00","notes":""},{"id":116,"name":"Phối hợp tham gia CV Công văn số 206/TCCB-NS ngày 24/3/2026 của Vụ Tổ chức cán bộ (TCCB) về việc cho ý kiến đối với nhân sự (08 nhân sự thành phố Hà Nội)","leader":"Nguyễn Thị Thủy","collaborators":[],"date":"2026-03-24","deadline":"","status":"done","completedAt":"2026-03-24 17:00","notes":""},{"id":117,"name":"Làm báo cáo KSCL khu vực I tháng 3/2026","leader":"Nguyễn Thị Thủy","collaborators":[],"date":"2026-03-25","deadline":"","status":"done","completedAt":"2026-03-25 17:00","notes":""},{"id":118,"name":"Rà soát Báo cáo tổng hợp kết quả kiểm toán của KTNN năm 2025 nội dung liên quan đến Đoàn kiểm toán Chuyên đề việc chấp hành các quy định pháp luật về quản lý, sử dụng đất trên địa bàn một số quận, huyện thuộc thành phố Hà Nội","leader":"Nguyễn Khắc Tuấn","collaborators":[],"date":"2026-03-25","deadline":"","status":"done","completedAt":"2026-03-25 17:00","notes":"Phó KTT Phạm Tiến Dũng phân công"},{"id":119,"name":"Gửi ý kiến về Cục CNTT đối với V/v cung cấp tài khoản trải nghiệm AI Luật - Trợ lý pháp lý","leader":"Hoàng Tuấn Long","collaborators":[],"date":"2026-03-25","deadline":"","status":"done","completedAt":"2026-03-25 17:00","notes":"Hạn 30/3/2026"},{"id":120,"name":"Tham mưu ý kiến đối với Nghị định của Chính phủ quy định chi tiết 1 số nội dung về quản lý chất lượng thi công xây dựng và bảo trì công trình xây dựng tại Văn bản số 4322/BXD-GĐ ngày 20/3/2026 của Bộ Xây dựng và Phiếu trao đổi số 130/PTĐCV-CN IV ngày 25/3/2025 của KTNN CN IV","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-03-26","deadline":"2026-03-31 17:00","status":"doing","completedAt":"","notes":""},{"id":121,"name":"Tham mưu Phiếu trao đổi của KTNN khu vực I gửi Vụ TH về việc tham gia dự thảo Báo cáo tổng hợp kết quả kiểm toán năm 2025 của KTNN tại Phiếu trao đổi số 165/PTĐCV-KHTH ngày 23/3/2026 của Vụ Tổng hợp","leader":"Nguyễn Thị Loan","collaborators":[],"date":"2026-03-25","deadline":"","status":"done","completedAt":"2026-03-25 17:00","notes":""}];
+function ld(){try{const s=localStorage.getItem('tt5');if(s){const p=JSON.parse(s);if(p.tasks&&p.tasks.length>0)Object.assign(S,p);else{S.tasks=[...SEED_DATA];sv();}}else{S.tasks=[...SEED_DATA];sv();}}catch(e){S.tasks=[...SEED_DATA];sv();}}
+function resetData(){localStorage.removeItem('tt5');S.tasks=[...SEED_DATA];sv();rAll();toast('Đã reset dữ liệu!','ok');}
+function sv(){try{const{u,adm,...r}=S;localStorage.setItem('tt5',JSON.stringify(r));}catch(e){}}
+let pendLogin=null;
+// Auth
+function filterNames(){const v=document.getElementById('nameSearch').value.trim().toLowerCase();const dd=document.getElementById('nameDropdown');
+if(!v){dd.classList.remove('show');return;}
+const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};
+const matches=S.mem.filter(m=>m.name.toLowerCase().includes(v)).sort((a,b)=>(ro[a.role]||9)-(ro[b.role]||9));
+if(!matches.length){dd.innerHTML='<div class="dd-item" style="color:var(--t3)">Không tìm thấy</div>';dd.classList.add('show');return;}
+dd.innerHTML=matches.map(m=>{const isA=S.admNames.includes(m.name);const icon=m.role==='Trưởng phòng'?'⭐':m.role==='Phó Trưởng phòng'?'🔹':'👤';
+return`<div class="dd-item${isA?' is-admin':''}" onclick="pickM('${esc(m.name).replace(/'/g,"\\'")}')">${icon} <span><strong>${esc(m.name)}</strong><br><span class="dd-role">${esc(m.role)}${isA?' • QTV':''}</span></span></div>`;}).join('');
+dd.classList.add('show');}
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))document.getElementById('nameDropdown').classList.remove('show');});
+function pickM(name){document.getElementById('nameDropdown').classList.remove('show');document.getElementById('nameSearch').value=name;
+if(S.admNames.includes(name)){pendLogin=name;document.getElementById('pwName').textContent=name;document.getElementById('pwIn').value='';document.getElementById('pwErr').style.display='none';document.getElementById('fgOk').style.display='none';document.getElementById('pwOv').classList.add('show');setTimeout(()=>document.getElementById('pwIn').focus(),100);}
+else loginAs(name,false);}
+function submitPw(){if(document.getElementById('pwIn').value===S.pw){document.getElementById('pwOv').classList.remove('show');loginAs(pendLogin,true);}else{document.getElementById('pwErr').style.display='block';document.getElementById('pwIn').value='';document.getElementById('pwIn').focus();}}
+function closePw(){document.getElementById('pwOv').classList.remove('show');pendLogin=null;}
+function forgotPw(){const s=encodeURIComponent('Mật khẩu quản trị - Phòng TH KTNN KV1'),b=encodeURIComponent('Mật khẩu hiện tại: '+S.pw+'\n\nĐổi mật khẩu sau khi đăng nhập.');window.open('mailto:'+S.recEmail+'?subject='+s+'&body='+b);document.getElementById('fgOk').style.display='block';log('[🔐] Yêu cầu khôi phục MK');}
+function loginAs(n,a){
+if(a&&!S.pw){const np=prompt('Lần đầu đăng nhập. Vui lòng đặt mật khẩu quản trị:');if(!np||np.length<4){toast('Cần đặt MK tối thiểu 4 ký tự','er');return;}S.pw=np;sv();toast('Đã đặt MK quản trị!','ok');}
+S.u=n;S.adm=a;document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';document.getElementById('dName').textContent=n;const rt=document.getElementById('rTag');rt.textContent=a?'QTV':'TV';rt.className=a?'rtag a':'rtag m';
+document.getElementById('aF').style.display=a?'grid':'none';
+document.querySelectorAll('.tb').forEach(b=>{if(b.dataset.t==='settings')b.style.display=a?'flex':'none';});
+initRpt();rAll();log(n+' đăng nhập '+(a?'(Admin)':''));}
+function logout(){S.u=null;S.adm=false;document.getElementById('authScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('nameSearch').value='';}
+function chPw(){const v=document.getElementById('nPw').value.trim();if(!v||v.length<4){toast('Tối thiểu 4 ký tự','er');return;}S.pw=v;sv();document.getElementById('nPw').value='';toast('Đã đổi MK!','ok');log('[🔐] Đổi MK');}
+// Tabs
+function sT(t){document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('.tc').forEach(c=>c.classList.toggle('on',c.id==='t-'+t));if(t==='report')rRpt();}
+function switchTab(t){sT(t);}
+// Members
+function addM(){if(!S.adm)return;const n=document.getElementById('mN').value.trim();if(!n){toast('Nhập tên','er');return;}S.mem.push({id:Date.now(),name:n,role:document.getElementById('mR').value,email:document.getElementById('mE').value.trim(),note:document.getElementById('mNo').value.trim()});sv();['mN','mE','mNo'].forEach(i=>document.getElementById(i).value='');rMem();popF();log('[+TV] '+n);toast('Thêm '+n,'ok');}
+function rmM(id){if(!S.adm)return;const m=S.mem.find(x=>x.id===id);S.mem=S.mem.filter(x=>x.id!==id);sv();rMem();popF();if(m)log('[-TV] '+m.name);}
+function rMem(){const w=document.getElementById('mW');if(!S.mem.length){w.innerHTML='<p style="color:var(--t3);font-size:12px">Chưa có thành viên</p>';return;}
+const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};const sorted=[...S.mem].sort((a,b)=>(ro[a.role]||9)-(ro[b.role]||9));
+w.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px">'+sorted.map(m=>{const rc=m.role==='Trưởng phòng'?'tp':m.role==='Phó Trưởng phòng'?'ptp':'tv';const isA=S.admNames.includes(m.name);
+return`<div class="mc">${S.adm?`<span class="mx" onclick="rmM(${m.id})">✕</span>`:''}<span class="mr ${rc}">${esc(m.role)}${isA?' • QTV':''}</span><span class="mn">${esc(m.name)}</span>${m.email?`<span class="me">📧 ${esc(m.email)}</span>`:''}${m.note?`<span class="mno">📝 ${esc(m.note)}</span>`:''}</div>`;}).join('')+'</div>';}
+function mEmail(n){const m=S.mem.find(x=>x.name.toLowerCase()===n.toLowerCase());return m?.email||null;}
+// Gemini
+async function callG(p){const ml=S.mem.map(m=>m.name+' ('+m.role+')').join(', ');const now=new Date();
+const sys=`Bạn là trợ lý AI quản lý công việc phòng Tổng hợp KTNN khu vực I.
+THÀNH VIÊN: ${ml}
+NGÀY: ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}
+QUY TẮC:
+1. Tên viết tắt (ông Long)→đối chiếu→tên đầy đủ
+2. 1 khớp→dùng, nhiều khớp→clarify, 0→giữ nguyên
+3. Không năm→>=hôm nay năm nay, <năm sau. Giờ mặc định 17:00
+4. "hạn 12h 30/3"="2026-03-30 12:00"
+JSON thuần, KHÔNG markdown.
+Actions:
+add_task→{"action":"add_task","data":{"name":"..","leader":"tên đủ","collaborators":[".."],"deadline":"YYYY-MM-DD HH:mm","notes":""}}
+complete_task→{"action":"complete_task","data":{"taskIndex":N}}
+update_deadline→{"action":"update_deadline","data":{"taskIndex":N,"newDeadline":"YYYY-MM-DD HH:mm"}}
+clarify→{"action":"clarify","data":{"message":"..","candidates":["A","B"],"originalCommand":".."}}
+query→{"action":"query","data":{"answer":".."}}
+unknown→{"action":"unknown","data":{"message":".."}}
+CÔNG VIỆC:
+${JSON.stringify(S.tasks.filter(t=>t.status!=='done').map((t,i)=>({stt:S.tasks.indexOf(t)+1,name:t.name,status:t.status,deadline:t.deadline,leader:t.leader})))}`;
+const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+S.gk,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:p}]}],systemInstruction:{parts:[{text:sys}]},generationConfig:{temperature:.1,maxOutputTokens:1024}})});
+const d=await r.json();if(d.error)throw new Error(d.error.message);let t=d.candidates?.[0]?.content?.parts?.[0]?.text||'';t=t.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();return JSON.parse(t);}
+// Command
+async function handleCmd(){const inp=document.getElementById('cmdIn');const cmd=inp.value.trim();if(!cmd)return;const btn=document.getElementById('sBtn'),txt=document.getElementById('sTxt');btn.disabled=true;txt.innerHTML='<span class="spinner"></span>';const rd=document.getElementById('aR');rd.classList.add('show');rd.innerHTML='<div class="am inf">🤖 Đang xử lý...</div>';
+if(!S.gk){const rd2=document.getElementById('aR');rd2.classList.add('show');rd2.innerHTML='<div class="am er">⚠️ Chưa cấu hình Gemini API Key. Vào <strong>Cài đặt → Gemini API Key</strong> để thêm.<br><a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--blue)">👉 Tạo API Key miễn phí tại đây</a></div>';btn.disabled=false;txt.textContent='Gửi ✨';return;}
+try{const res=await callG(cmd);if(res.action==='clarify'){let h='<div class="am cl">❓ '+esc(res.data.message)+'<div class="co">';(res.data.candidates||[]).forEach(c=>{h+='<button class="cb" onclick="doC(`'+c+'`,`'+(res.data.originalCommand||'').replace(/`/g,'')+'`)">'+esc(c)+'</button>';});rd.innerHTML=h+'</div></div>';}
+else if(!S.adm){S.pend.push({id:Date.now(),from:S.u,cmd:cmd,parsed:res,time:new Date().toISOString()});sv();rPend();uSt();rd.innerHTML='<div class="am pn">⏳ Đã gửi chờ duyệt</div>';log('[YC] '+S.u+': '+cmd);}
+else exec(res,cmd,rd);
+}catch(e){rd.innerHTML='<div class="am er">❌ '+esc(e.message)+'</div>';}
+btn.disabled=false;txt.textContent='Gửi ✨';inp.value='';}
+async function doC(name,orig){const rd=document.getElementById('aR');rd.innerHTML='<div class="am inf">🤖 Xử lý...</div>';try{const res=await callG(orig+'\nTên viết tắt="'+name+'".');if(S.adm)exec(res,orig,rd);else{S.pend.push({id:Date.now(),from:S.u,cmd:orig+' [→'+name+']',parsed:res,time:new Date().toISOString()});sv();rPend();uSt();rd.innerHTML='<div class="am pn">⏳ Đã gửi chờ duyệt</div>';}}catch(e){rd.innerHTML='<div class="am er">❌ '+esc(e.message)+'</div>';}}
+function exec(res,cmd,rd){switch(res.action){
+case'add_task':{const d=res.data;const t={id:Date.now(),name:d.name||cmd,leader:d.leader||'',collaborators:d.collaborators||[],date:new Date().toISOString().slice(0,10),deadline:d.deadline||'',status:'doing',completedAt:'',notes:d.notes||''};S.tasks.push(t);sv();rAll();const n=S.tasks.length;
+rd.innerHTML='<div class="am ok">✅ <strong>CV #'+n+'</strong> đã thêm!<br>📌 '+esc(t.name)+'<br>👤 '+esc(t.leader)+'<br>⏰ '+fDL(t.deadline)+'</div>';log('[+] CV #'+n);toast('CV #'+n+' thêm!','ok');break;}
+case'complete_task':{const i=(res.data.taskIndex||1)-1;if(i>=0&&i<S.tasks.length){S.tasks[i].status='done';S.tasks[i].completedAt=new Date().toISOString();sv();rAll();rd.innerHTML='<div class="am ok">✅ CV #'+(i+1)+' Hoàn thành!</div>';log('[✓] CV #'+(i+1));toast('CV #'+(i+1)+' xong!','ok');}else rd.innerHTML='<div class="am er">❌ Không có CV #'+res.data.taskIndex+'</div>';break;}
+case'update_deadline':{const i=(res.data.taskIndex||1)-1;if(i>=0&&i<S.tasks.length){S.tasks[i].deadline=res.data.newDeadline;if(S.tasks[i].status==='overdue'&&new Date(res.data.newDeadline)>new Date())S.tasks[i].status='doing';sv();rAll();rd.innerHTML='<div class="am ok">✅ Đổi hạn CV #'+(i+1)+'→'+fDL(res.data.newDeadline)+'</div>';log('[⏰] CV #'+(i+1));toast('Đổi hạn','ok');}else rd.innerHTML='<div class="am er">❌ Không có</div>';break;}
+case'query':rd.innerHTML='<div class="am inf">💡 '+esc(res.data.answer)+'</div>';break;
+default:rd.innerHTML='<div class="am er">❓ '+esc(res.data?.message||'Không hiểu')+'</div>';}}
+// Render
+function rTasks(){const fp=document.getElementById('fP').value;const now=new Date();
+S.tasks.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
+let all=[...S.tasks];if(fp!=='all')all=all.filter(t=>t.leader===fp||(t.collaborators||[]).includes(fp));
+const inc=all.filter(t=>t.status!=='done').sort((a,b)=>{if(a.status==='overdue'&&b.status!=='overdue')return-1;if(b.status==='overdue'&&a.status!=='overdue')return 1;return new Date(a.deadline||'9999')-new Date(b.deadline||'9999');});
+const done=all.filter(t=>t.status==='done').sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+document.getElementById('cT').textContent=S.tasks.length;
+document.getElementById('tbI').innerHTML=tR(inc,false);document.getElementById('tbD').innerHTML=tR(done,true);}
+function tR(list,isDone){if(!list.length)return'<tr><td colspan="7"><div class="empty"><div class="icon">'+(isDone?'🎉':'📭')+'</div><p>'+(isDone?'Chưa có':'Không có CV phù hợp')+'</p></div></td></tr>';
+return list.map(t=>{const gi=S.tasks.indexOf(t)+1;const sc=t.status==='done'?'done':t.status==='overdue'?'overdue':'doing';const sl=t.status==='done'?'✅ Xong':t.status==='overdue'?'🚨 Quá hạn':'⏳ Đang làm';const dc=dlC(t.deadline,t.status);
+const dlCol=isDone?fD(t.date):(S.adm&&t.status!=='done'?'<input type="datetime-local" class="dl-edit" value="'+(t.deadline?t.deadline.replace(' ','T'):'')+'" onchange="chDL('+gi+',this.value)" title="Nhấn để đổi hạn"/>':'<span class="dl '+dc+'">'+fDL(t.deadline)+'</span>');
+return'<tr><td><span class="tid">#'+gi+'</span></td><td><div class="tn">'+esc(t.name)+'</div></td><td>'+(t.leader?'<span class="pt ld">👤 '+esc(t.leader)+'</span>':'-')+'</td><td>'+((t.collaborators||[]).map(c=>'<span class="pt">'+esc(c)+'</span>').join('')||'-')+'</td><td>'+dlCol+'</td><td><span class="sb '+sc+'">'+sl+'</span></td><td style="font-size:11px;color:var(--t2)">'+esc(t.notes||'')+'</td></tr>';}).join('');}
+function chDL(gi,v){const i=gi-1;if(i<0||i>=S.tasks.length)return;S.tasks[i].deadline=v.replace('T',' ');if(S.tasks[i].status==='overdue'&&new Date(v)>new Date())S.tasks[i].status='doing';sv();rAll();log('[⏰] CV #'+gi+' → '+fDL(v));toast('Đổi hạn CV #'+gi,'ok');}
+function uSt(){const now=new Date();let d=0,dn=0,ov=0;S.tasks.forEach(t=>{if(t.status==='done')dn++;else if(t.deadline&&new Date(t.deadline)<now)ov++;else d++;});
+document.getElementById('sT').textContent=S.tasks.length;document.getElementById('sD').textContent=d;document.getElementById('sC').textContent=dn;document.getElementById('sO').textContent=ov;
+const pc=S.pend.length;document.getElementById('cP').textContent=pc;const nc=document.getElementById('nCnt');nc.textContent=pc;nc.classList.toggle('hd',pc===0);}
+function popF(){const ns=new Set();S.mem.forEach(m=>ns.add(m.name));S.tasks.forEach(t=>{if(t.leader)ns.add(t.leader);(t.collaborators||[]).forEach(c=>ns.add(c));});
+const o=['<option value="all">Tất cả</option>',...[...ns].sort().map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>')].join('');
+document.getElementById('fP').innerHTML=o;document.getElementById('rpPr').innerHTML=o;}
+// Report
+function initRpt(){const n=new Date();document.getElementById('rpF').value=new Date(n.getFullYear(),n.getMonth(),1).toISOString().slice(0,10);document.getElementById('rpT').value=new Date(n.getFullYear(),n.getMonth()+1,0).toISOString().slice(0,10);}
+function rRpt(){const f=new Date(document.getElementById('rpF').value||'2000-01-01'),t=new Date(document.getElementById('rpT').value||'2099-12-31');t.setHours(23,59,59);const p=document.getElementById('rpPr').value;
+let fl=S.tasks.filter(x=>{const c=new Date(x.date);if(c<f||c>t)return false;if(p!=='all'&&x.leader!==p&&!(x.collaborators||[]).includes(p))return false;return true;});
+const tot=fl.length,dn=fl.filter(x=>x.status==='done').length,dg=fl.filter(x=>x.status==='doing').length,ov=fl.filter(x=>x.status==='overdue').length,rate=tot?Math.round(dn/tot*100):0;
+document.getElementById('rpS').innerHTML='<div class="rb"><div class="rn" style="color:var(--blue)">'+tot+'</div><div class="rl">Tổng</div></div><div class="rb"><div class="rn" style="color:var(--green)">'+dn+'</div><div class="rl">Xong</div></div><div class="rb"><div class="rn" style="color:var(--amber)">'+dg+'</div><div class="rl">Đang</div></div><div class="rb"><div class="rn" style="color:var(--red)">'+ov+'</div><div class="rl">Quá hạn</div></div><div class="rb"><div class="rn" style="color:var(--purple)">'+rate+'%</div><div class="rl">Tỷ lệ</div></div>';
+fl.sort((a,b)=>{if(a.status==='done'&&b.status!=='done')return 1;if(b.status==='done'&&a.status!=='done')return-1;return new Date(b.date)-new Date(a.date);});
+const tb=document.getElementById('rpB');if(!fl.length){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="icon">📊</div><p>Không có dữ liệu</p></div></td></tr>';return;}
+tb.innerHTML=fl.map(x=>{const gi=S.tasks.indexOf(x)+1;const sc=x.status==='done'?'done':x.status==='overdue'?'overdue':'doing';const sl=x.status==='done'?'✅':x.status==='overdue'?'🚨':'⏳';
+return'<tr><td><span class="tid">#'+gi+'</span></td><td>'+esc(x.name)+'</td><td>'+esc(x.leader)+'</td><td class="dl">'+fD(x.date)+'</td><td><span class="sb '+sc+'">'+sl+'</span></td></tr>';}).join('');}
+// Pending
+function rPend(){const c=document.getElementById('pList');if(!S.pend.length){c.innerHTML='<div class="empty"><div class="icon">✨</div><p>Không có</p></div>';return;}
+c.innerHTML=S.pend.map(r=>'<div class="rc"><div class="rh"><span>📨 '+esc(r.from)+'</span><span>'+fT(r.time)+'</span></div><div class="rcc">'+esc(r.cmd)+'</div>'+(S.adm?'<div class="ra"><button class="btn btn-s btn-g" onclick="appR('+r.id+')">✅</button><button class="btn btn-s btn-d" onclick="rejR('+r.id+')">❌</button></div>':'<span style="font-size:11px;color:var(--amber)">⏳</span>')+'</div>').join('');}
+function appR(id){const i=S.pend.findIndex(r=>r.id===id);if(i===-1)return;const r=S.pend[i];const rd=document.getElementById('aR');rd.classList.add('show');exec(r.parsed,r.cmd,rd);S.pend.splice(i,1);sv();rAll();log('[✓] Duyệt: '+r.cmd.slice(0,50));toast('Đã duyệt','ok');}
+function rejR(id){const i=S.pend.findIndex(r=>r.id===id);if(i===-1)return;S.pend.splice(i,1);sv();rAll();toast('Từ chối','wn');}
+// Settings
+function rSet(){document.getElementById('nL').innerHTML=S.ne.map((e,i)=>'<div class="chip">📧 '+e+(S.adm?'<span class="x" onclick="rmNE('+i+')">✕</span>':'')+'</div>').join('');document.getElementById('gK').value=S.gk;rMem();}
+function addNE(){const inp=document.getElementById('nNE');const e=inp.value.trim().toLowerCase();if(!e||!e.includes('@'))return;if(S.ne.includes(e))return;S.ne.push(e);inp.value='';sv();rSet();}
+function rmNE(i){S.ne.splice(i,1);sv();rSet();}
+function saveCfg(){S.gk=document.getElementById('gK').value.trim();sv();toast('Đã lưu!','ok');}
+// History
+function log(m){S.hist.unshift({t:new Date().toISOString(),x:m});if(S.hist.length>150)S.hist=S.hist.slice(0,150);sv();rH();}
+function rH(){const c=document.getElementById('hLog');if(!S.hist.length){c.innerHTML='<div class="empty"><div class="icon">📜</div><p>Trống</p></div>';return;}c.innerHTML=S.hist.slice(0,50).map(h=>'<div class="le"><span class="lt">'+fT(h.t)+'</span><span class="lx">'+esc(h.x)+'</span></div>').join('');}
+function clrH(){S.hist=[];sv();rH();}
+// Helpers
+function fDL(s){if(!s)return'-';try{const d=new Date(s);if(isNaN(d))return s;return p2(d.getHours())+':'+p2(d.getMinutes())+' '+p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear();}catch(e){return s;}}
+function fD(s){if(!s)return'-';try{const d=new Date(s);return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear();}catch(e){return s;}}
+function fT(s){try{const d=new Date(s);return p2(d.getHours())+':'+p2(d.getMinutes())+' '+p2(d.getDate())+'/'+p2(d.getMonth()+1);}catch(e){return'';}}
+function p2(n){return String(n).padStart(2,'0');}
+function dlC(dl,st){if(!dl||st==='done')return'';const h=(new Date(dl)-new Date())/36e5;return h<=0?'urg':h<=12?'soon':'';}
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function toast(m,t){document.querySelectorAll('.toast').forEach(x=>x.remove());const el=document.createElement('div');el.className='toast '+t;el.innerHTML=m;document.body.appendChild(el);setTimeout(()=>el.remove(),3500);}
+function rAll(){rTasks();uSt();rPend();rH();rSet();popF();}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&document.activeElement===document.getElementById('cmdIn')){e.preventDefault();handleCmd();}});
+ld();
+</script>
+</body>
+</html>
