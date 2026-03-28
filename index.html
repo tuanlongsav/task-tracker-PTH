@@ -294,7 +294,15 @@ tbody td{padding:10px 10px;vertical-align:top;line-height:1.4}
 <button class="tb" data-t="pending" onclick="sTab('pending')">⏳ Chờ duyệt <span class="cn" id="cP">0</span></button>
 </div>
 <div id="t-tasks" class="tc on">
-<div class="tw"><div class="thb"><h3>⏳ Chưa hoàn thành</h3><select id="fP" onchange="syncFilter('fP');rAll()" style="background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:5px 8px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"><option value="all">Tất cả</option></select></div><div class="tsc"><table><thead><tr><th>STT</th><th>Nội dung</th><th>Sản phẩm</th><th>Hệ số</th><th>Phụ trách</th><th>Phối hợp</th><th>Ngày giao</th><th>Hạn HT</th><th>TT</th><th>Ghi chú</th><th>✏️</th></tr></thead><tbody id="tbI"></tbody></table></div></div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;padding:8px 10px;background:var(--c2);border-radius:8px;border:1px solid var(--b)">
+<input type="text" id="fSearch" placeholder="Tìm nội dung CV..." oninput="rAll()" style="flex:1;min-width:150px;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 10px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"/>
+<select id="fP" onchange="syncFilter('fP');rAll()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"><option value="all">Tất cả người</option></select>
+<input type="date" id="fDateFrom" onchange="rAll()" title="Từ ngày" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:5px 8px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"/>
+<span style="font-size:11px;color:var(--t3)">→</span>
+<input type="date" id="fDateTo" onchange="rAll()" title="Đến ngày" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:5px 8px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"/>
+<button class="btn btn-s btn-o" onclick="document.getElementById('fSearch').value='';document.getElementById('fP').value='all';document.getElementById('fDateFrom').value='';document.getElementById('fDateTo').value='';rAll();" style="font-size:10px;padding:5px 8px">Xóa lọc</button>
+</div>
+<div class="tw"><div class="thb"><h3>⏳ Chưa hoàn thành</h3></div><div class="tsc"><table><thead><tr><th>STT</th><th>Nội dung</th><th>Sản phẩm</th><th>Hệ số</th><th>Phụ trách</th><th>Phối hợp</th><th>Ngày giao</th><th>Hạn HT</th><th>TT</th><th>Ghi chú</th><th>✏️</th></tr></thead><tbody id="tbI"></tbody></table></div></div>
 <div class="tw"><div class="thb"><h3>✅ Đã hoàn thành</h3></div><div class="tsc"><table><thead><tr><th>STT</th><th>Nội dung</th><th>Sản phẩm</th><th>Hệ số</th><th>Phụ trách</th><th>Phối hợp</th><th>Ngày giao</th><th>Ngày HT</th><th>TT</th><th>Ghi chú</th><th>✏️</th></tr></thead><tbody id="tbD"></tbody></table></div></div>
 </div>
 <div id="t-pending" class="tc"><div class="tw"><div class="thb"><h3>⏳ Chờ duyệt</h3></div><div id="pList"></div></div></div>
@@ -445,7 +453,7 @@ return names.sort((a,b)=>{const ma=S.mem.find(m=>m.name===a),mb=S.mem.find(m=>m.
 const ra=ro[ma?.role]??2,rb=ro[mb?.role]??2;if(ra!==rb)return ra-rb;return a.localeCompare(b,'vi');});}
 function popF(){const ns=new Set();S.mem.forEach(m=>ns.add(m.name));S.tasks.forEach(t=>{if(t.leader)ns.add(t.leader);(t.collaborators||[]).forEach(c=>ns.add(c));});
 const sorted=sortByRole([...ns]);const o='<option value="all">Tất cả</option>'+sorted.map(n=>`<option>${esc(n)}</option>`).join('');
-document.getElementById('fP').innerHTML=o;document.getElementById('rpPr').innerHTML=o;
+document.getElementById('fP').innerHTML='<option value="all">Tất cả người</option>'+sorted.map(n=>`<option>${esc(n)}</option>`).join('');document.getElementById('rpPr').innerHTML=o;
 const mo=sorted.map(n=>`<option>${esc(n)}</option>`).join('');
 document.getElementById('mi_l').innerHTML='<option value="">-- Chọn --</option>'+mo;
 updMiCollab();}
@@ -579,8 +587,13 @@ if(rpChart)rpChart.destroy();
 rpChart=new Chart(document.getElementById('rpC'),{type:'doughnut',data:{labels:['Xong','Đang làm','Quá hạn'],datasets:[{data:[dn,dg,ov],backgroundColor:['#10b981','#3b82f6','#ef4444'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8b9dc3',font:{size:11},padding:8,boxWidth:12}}}}});}
 // Render tasks
 function rTasks(){const fp=document.getElementById('fP').value;const now=new Date();
+const kw=(document.getElementById('fSearch').value||'').trim().toLowerCase();
+const dFrom=document.getElementById('fDateFrom').value;const dTo=document.getElementById('fDateTo').value;
 S.tasks.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
 let all=[...S.tasks];if(fp!=='all')all=all.filter(t=>t.leader===fp||(t.collaborators||[]).includes(fp));
+if(kw)all=all.filter(t=>(t.name||'').toLowerCase().includes(kw)||(t.notes||'').toLowerCase().includes(kw)||(t.product||'').toLowerCase().includes(kw));
+if(dFrom)all=all.filter(t=>{const d=t.assignedDate||t.date||'';return d>=dFrom;});
+if(dTo)all=all.filter(t=>{const d=t.assignedDate||t.date||'';return d<=dTo;});
 const inc=all.filter(t=>t.status!=='done').sort((a,b)=>{if(a.status==='overdue'&&b.status!=='overdue')return-1;if(b.status==='overdue'&&a.status!=='overdue')return 1;return new Date(a.deadline||'9999')-new Date(b.deadline||'9999');});
 const done=all.filter(t=>t.status==='done').sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
 document.getElementById('cT').textContent=S.tasks.length;
