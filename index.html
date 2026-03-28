@@ -612,7 +612,8 @@ function rejR(id){const i=S.pend.findIndex(r=>r.id===id);if(i===-1)return;S.pend
 // Deadline check + email
 function chkDL(){const now=new Date();S.tasks.forEach((t,i)=>{if(t.status==='done'||!t.deadline)return;
 const dl=new Date(t.deadline),h=(dl-now)/36e5;
-if(h<=12&&h>2&&!t._warned){t._warned=true;const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nCòn '+Math.round(h)+' giờ.'));}
+if(h<=12&&h>2&&!t._warned12){t._warned12=true;const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nCòn '+Math.round(h)+' giờ.'));}
+if(h<=2&&h>0&&!t._warned2){t._warned2=true;const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[GẤP - SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!'));}
 if(h<=0){if(t.status!=='overdue'){t.status='overdue';sv();}
 if(!t._overWarn||Date.now()-t._overWarn>864e5){t._overWarn=Date.now();const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[QUÁ HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.'));}}});
 rAll();setTimeout(chkDL,15*60*1000);}
