@@ -218,11 +218,16 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <h2>⚙️ Cài đặt <span class="xp" onclick="closeSt()">✕</span></h2>
 <div class="sx"><h3>🔐 Đổi mật khẩu</h3><input type="password" id="nPw" placeholder="MK mới (≥4 ký tự)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:4px"/><button class="btn btn-s btn-p" onclick="chPw()">Đổi</button></div>
 <div class="sx"><h3>📧 Đổi email cá nhân</h3><div style="display:flex;gap:4px;align-items:center"><input type="email" id="myEmail" placeholder="Email mới..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="chMyEmail()">Đổi</button></div><p id="curEmail" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
+<div class="sx"><h3>📱 Telegram Chat ID</h3><p style="font-size:9px;color:var(--t3);margin-bottom:4px">Nhắn <b>/start</b> cho bot rồi nhắn cho <b>@userinfobot</b> để lấy Chat ID.</p><div style="display:flex;gap:4px;align-items:center"><input type="text" id="myTgId" placeholder="Chat ID (vd: 123456789)" style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none"/><button class="btn btn-s btn-p" onclick="chMyTg()">Lưu</button></div><p id="curTgId" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
 <div class="sx admOnly"><h3>🏢 Thành viên</h3><p style="font-size:8px;color:var(--t3);margin-bottom:6px">Nhấn vào email để sửa. AI tự nhận tên viết tắt.</p><div id="mW" class="cl" style="flex-direction:column;align-items:stretch"></div>
 <div class="af" id="aF"><input type="text" id="mfN" placeholder="Họ tên *"/><select id="mfR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option></select><input type="email" id="mfE" placeholder="Email"/><input type="text" id="mfNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm</button></div></div>
 <div class="sx admOnly"><h3>📧 Email thông báo chung</h3>
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t2);cursor:pointer"><input type="checkbox" id="emailReminder" onchange="S.emailReminder=this.checked;sv();" style="cursor:pointer"/>Bật nhắc việc qua email (tốn quota EmailJS)</label></div>
 <div id="nL" class="cl"></div><div style="display:flex;gap:4px;margin-top:4px"><input type="email" id="nNE" placeholder="Thêm..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:9px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="addNE()">+</button></div></div>
+<div class="sx admOnly"><h3>📱 Telegram Bot</h3>
+<p style="font-size:10px;color:var(--t3);margin-bottom:6px">Gửi mật khẩu & nhắc việc qua Telegram (miễn phí, không giới hạn). Tạo bot tại @BotFather.</p>
+<input type="text" id="tgBotToken" placeholder="Bot Token (từ @BotFather)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:11px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none"/>
+</div>
 <div class="sx admOnly"><h3>🔑 Gemini API</h3><input type="password" id="gK" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none;margin-bottom:6px"/>
 <h3>🤖 Model</h3><select id="gM" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none"><option value="gemini-2.5-flash">2.5 Flash</option><option value="gemini-2.5-flash-lite">2.5 Flash Lite</option><option value="gemini-2.5-pro">2.5 Pro</option><option value="gemini-3-flash">3 Flash</option></select></div>
 <div class="sx admOnly"><h3>🔥 Firebase Database</h3>
@@ -320,7 +325,7 @@ let S={u:null,adm:false,tasks:[],pend:[],hist:[],
 admNames:['Lê Huy Hoằng','Hoàng Tuấn Long'],
 passwords:{},  // {name: password} for ALL users
 recEmails:{},
-ne:[],emailReminder:false,tempPw:{},
+ne:[],emailReminder:false,tempPw:{},tgBot:'',tgChats:{},
 mem:[
 {id:1,name:'Lê Huy Hoằng',role:'Trưởng phòng',email:'',note:''},
 {id:2,name:'Hoàng Tuấn Long',role:'Phó Trưởng phòng',email:'',note:''},
@@ -376,6 +381,11 @@ if(fbRef){fbSyncing=true;fbRef.set(cleanForFirebase()).then(()=>{fbSyncing=false
 // Email
 function sendEmail(to,subject,message){if(!to)return;
 emailjs.send(S.ejs.sid,S.ejs.tid,{to_email:to,subject:subject,message:message}).then(()=>log('[📧] →'+to+': '+subject.substring(0,40)),e=>console.error('Email err:',e));}
+// Notify: Telegram first, fallback email
+function notifyUser(name,subject,message){const tgId=getPersonTgId(name);
+if(tgId&&S.tgBot){sendTg(tgId,'<b>'+subject+'</b>\n\n'+message);return;}
+const mem=S.mem.find(x=>x.name===name);const email=S.recEmails[name]||mem?.email;
+if(email)sendEmail(email,subject,message);}
 // Auth - ALL users need password
 let pendL=null;
 function fN(){const v=document.getElementById('ns').value.trim().toLowerCase();const d=document.getElementById('ndd');if(!v){d.classList.remove('show');return;}
@@ -397,9 +407,8 @@ document.getElementById('emO').classList.add('show');setTimeout(()=>document.get
 // Lần đầu: chưa có MK nhưng đã có email → tự tạo MK gửi email
 if(!hasPw&&hasEmail){
 const pw=genPw();S.passwords[n]=pw;sv();
-const email=S.recEmails[n]||mem?.email;
-sendEmail(email,'[MẬT KHẨU MỚI] Phòng TH KTNN KV1','Xin chào '+n+',\n\nMật khẩu đăng nhập của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu sau khi đăng nhập.');
-toast('Đã tạo MK và gửi tới '+email,'ok');}
+notifyUser(n,'[MẬT KHẨU MỚI] Phòng TH KTNN KV1','Xin chào '+n+',\n\nMật khẩu đăng nhập của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu sau khi đăng nhập.');
+toast('Đã tạo MK và gửi thông báo','ok');}
 // Đã có MK → hiện form đăng nhập
 document.getElementById('pwI').value='';document.getElementById('pwE').style.display='none';document.getElementById('fgO').style.display='none';
 document.getElementById('pwTitle').textContent='🔐 Đăng nhập';document.getElementById('pwSub').innerHTML='Nhập mật khẩu cho <strong>'+esc(n)+'</strong>';document.getElementById('pwI').placeholder='Mật khẩu...';
@@ -412,11 +421,11 @@ function sEm(){const v=document.getElementById('emI').value.trim();if(!v||!/^[^\
 const mem=S.mem.find(x=>x.name===pendL);if(mem)mem.email=v;S.recEmails[pendL]=v;
 const hasPw=S.passwords[pendL];
 if(!hasPw){const pw=genPw();S.passwords[pendL]=pw;sv();
-sendEmail(v,'[MẬT KHẨU MỚI] Phòng TH KTNN KV1','Xin chào '+pendL+',\n\nMật khẩu đăng nhập của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu sau khi đăng nhập.');
-document.getElementById('emO').classList.remove('show');toast('Đã gửi mật khẩu tới '+v,'ok');
+notifyUser(pendL,'[MẬT KHẨU MỚI] Phòng TH KTNN KV1','Xin chào '+pendL+',\n\nMật khẩu đăng nhập của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu sau khi đăng nhập.');
+document.getElementById('emO').classList.remove('show');toast('Đã gửi mật khẩu','ok');
 // Hiện form đăng nhập để nhập MK vừa nhận
 document.getElementById('pwI').value='';document.getElementById('pwE').style.display='none';document.getElementById('fgO').style.display='none';
-document.getElementById('pwTitle').textContent='🔐 Đăng nhập';document.getElementById('pwSub').innerHTML='Mật khẩu đã gửi tới <strong>'+esc(v)+'</strong><br>Vui lòng kiểm tra email và nhập mật khẩu';document.getElementById('pwI').placeholder='Mật khẩu...';
+document.getElementById('pwTitle').textContent='🔐 Đăng nhập';document.getElementById('pwSub').innerHTML='Mật khẩu đã gửi qua Telegram/Email<br>Vui lòng kiểm tra và nhập mật khẩu';document.getElementById('pwI').placeholder='Mật khẩu...';
 document.getElementById('pfgLink').style.display='inline-block';
 document.getElementById('pwO').classList.add('show');setTimeout(()=>document.getElementById('pwI').focus(),80);
 }else{sv();document.getElementById('emO').classList.remove('show');toast('Đã lưu email!','ok');loginAs(pendL);}}
@@ -425,11 +434,11 @@ function sPw(){const pw=document.getElementById('pwI').value;if(!pw){document.ge
 if(pw===S.passwords[pendL]){document.getElementById('pwO').classList.remove('show');loginAs(pendL);}
 else{document.getElementById('pwE').textContent='❌ Sai mật khẩu';document.getElementById('pwE').style.display='block';document.getElementById('pwI').value='';document.getElementById('pwI').focus();}}
 function cPw(){document.getElementById('pwO').classList.remove('show');pendL=null;}
-function fgPw(){if(!pendL)return;const mem=S.mem.find(x=>x.name===pendL);const recE=S.recEmails[pendL]||mem?.email;
-if(!recE){toast('Không có email khôi phục','er');return;}
+function fgPw(){if(!pendL)return;const tgId=getPersonTgId(pendL);const mem=S.mem.find(x=>x.name===pendL);const recE=S.recEmails[pendL]||mem?.email;
+if(!tgId&&!recE){toast('Không có Telegram/email khôi phục','er');return;}
 const pw=S.passwords[pendL]||'(chưa đặt)';
-sendEmail(recE,'[MẬT KHẨU] Phòng TH KTNN KV1','Xin chào '+pendL+',\n\nMật khẩu hiện tại của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu sau khi đăng nhập.');
-document.getElementById('fgO').textContent='✅ Đã gửi MK tới '+recE;document.getElementById('fgO').style.display='block';}
+notifyUser(pendL,'[MẬT KHẨU] Phòng TH KTNN KV1','Xin chào '+pendL+',\n\nMật khẩu hiện tại của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu sau khi đăng nhập.');
+document.getElementById('fgO').textContent='✅ Đã gửi MK qua '+(tgId&&S.tgBot?'Telegram':'Email');document.getElementById('fgO').style.display='block';}
 function loginAs(n){S.u=n;S.adm=S.admNames.includes(n);
 document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';document.getElementById('dN').textContent=n;
 const rt=document.getElementById('rT');rt.textContent=S.adm?'QTV':'TV';rt.className=S.adm?'rt a':'rt m';
@@ -448,12 +457,15 @@ if(p1!==p2){err.textContent='Mật khẩu không khớp';err.style.display='bloc
 S.passwords[S.u]=p1;if(S.tempPw)delete S.tempPw[S.u];sv();
 document.getElementById('forcePwOv').remove();toast('Đã đổi mật khẩu thành công!','ok');}
 function chMyEmail(){const v=document.getElementById('myEmail').value.trim();if(!v||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){toast('Email không hợp lệ','er');return;}const mem=S.mem.find(x=>x.name===S.u);if(mem)mem.email=v;S.recEmails[S.u]=v;sv();document.getElementById('myEmail').value='';document.getElementById('curEmail').textContent='Email hiện tại: '+v;toast('Đã đổi email!','ok');}
+function chMyTg(){const v=document.getElementById('myTgId').value.trim();if(!v||!/^\d+$/.test(v)){toast('Chat ID phải là số','er');return;}if(!S.tgChats)S.tgChats={};S.tgChats[S.u]=v;sv();document.getElementById('myTgId').value='';document.getElementById('curTgId').textContent='Chat ID hiện tại: '+v;toast('Đã lưu Telegram Chat ID!','ok');}
+function sendTg(chatId,message){if(!chatId||!S.tgBot)return;fetch('https://api.telegram.org/bot'+S.tgBot+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:message,parse_mode:'HTML'})}).then(r=>r.json()).then(d=>{if(d.ok)log('[📱] Telegram →'+chatId);else console.error('Telegram err:',d);}).catch(e=>console.error('Telegram err:',e));}
+function getPersonTgId(name){return(S.tgChats&&S.tgChats[name])||null;}
 function genTempPw(name){if(!S.adm)return;const pw=genPw();S.passwords[name]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[name]=true;sv();
 const box=document.createElement('div');box.className='pnl-ov show';box.onclick=function(e){if(e.target===box)box.remove();};
 box.innerHTML='<div class="pnl" style="max-width:360px"><h2>🔑 Mật khẩu tạm <span class="xp" onclick="this.closest(\'.pnl-ov\').remove()">✕</span></h2><p style="font-size:11px;color:var(--t2);margin-bottom:8px">Mật khẩu tạm cho <strong>'+esc(name)+'</strong>:</p><div style="background:var(--c3);padding:12px;border-radius:6px;text-align:center;font-size:18px;font-weight:700;font-family:JetBrains Mono,monospace;color:var(--blue);letter-spacing:2px;user-select:all">'+esc(pw)+'</div><p style="font-size:10px;color:var(--t3);margin-top:8px">Hãy gửi trực tiếp mật khẩu này cho thành viên (nhắn tin, gọi điện...).<br>Sau khi đăng nhập, hệ thống sẽ yêu cầu đổi mật khẩu ngay.</p></div>';
 document.body.appendChild(box);toast('Đã tạo MK tạm cho '+name,'ok');}
 // Panels
-function openSt(){document.getElementById('stOv').classList.add('show');document.querySelectorAll('.admOnly').forEach(el=>el.style.display=S.adm?'':'none');const mem=S.mem.find(x=>x.name===S.u);const curE=S.recEmails[S.u]||mem?.email||'';document.getElementById('curEmail').textContent=curE?'Email hiện tại: '+curE:'Chưa có email';document.getElementById('myEmail').value='';rSet();}
+function openSt(){document.getElementById('stOv').classList.add('show');document.querySelectorAll('.admOnly').forEach(el=>el.style.display=S.adm?'':'none');const mem=S.mem.find(x=>x.name===S.u);const curE=S.recEmails[S.u]||mem?.email||'';document.getElementById('curEmail').textContent=curE?'Email hiện tại: '+curE:'Chưa có email';document.getElementById('myEmail').value='';const curTg=(S.tgChats&&S.tgChats[S.u])||'';document.getElementById('curTgId').textContent=curTg?'Chat ID hiện tại: '+curTg:'Chưa có Chat ID';document.getElementById('myTgId').value='';rSet();}
 function closeSt(){document.getElementById('stOv').classList.remove('show');}
 function openNt(){document.getElementById('ntOv').classList.add('show');rNt();}
 function closeNt(){document.getElementById('ntOv').classList.remove('show');}
@@ -684,21 +696,26 @@ function rejR(id){const i=S.pend.findIndex(r=>r.id===id);if(i===-1)return;S.pend
 // Deadline check + email
 function chkDL(){const now=new Date();S.tasks.forEach((t,i)=>{if(t.status==='done'||!t.deadline)return;
 const dl=new Date(t.deadline),h=(dl-now)/36e5;
-if(h<=12&&h>2&&!t._warned12){t._warned12=true;if(S.emailReminder){const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nCòn '+Math.round(h)+' giờ.'));}}
-if(h<=2&&h>0&&!t._warned2){t._warned2=true;if(S.emailReminder){const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[GẤP - SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!'));}}
+if(h<=12&&h>2&&!t._warned12){t._warned12=true;const msg12='Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nCòn '+Math.round(h)+' giờ.';const subj12='[SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40);notifyTaskPeople(t,subj12,msg12);}
+if(h<=2&&h>0&&!t._warned2){t._warned2=true;const msg2='Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!';const subj2='[GẤP - SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40);notifyTaskPeople(t,subj2,msg2);}
 if(h<=0){if(t.status!=='overdue'){t.status='overdue';sv();}
-if(!t._overWarn||Date.now()-t._overWarn>864e5){t._overWarn=Date.now();if(S.emailReminder){const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[QUÁ HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.'));}}}});
+if(!t._overWarn||Date.now()-t._overWarn>864e5){t._overWarn=Date.now();const msgO='Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.';const subjO='[QUÁ HẠN] CV #'+(i+1)+': '+t.name.substring(0,40);notifyTaskPeople(t,subjO,msgO);}}});
 rAll();setTimeout(chkDL,15*60*1000);}
 function getTaskEmails(t){const emails=[...S.ne];[t.leader,...(t.collaborators||[])].forEach(n=>{const m=S.mem.find(x=>x.name===n);if(m?.email&&!emails.includes(m.email))emails.push(m.email);});return emails;}
+function notifyTaskPeople(t,subject,message){const people=[t.leader,...(t.collaborators||[])];
+// Telegram: gửi cho từng người có Chat ID
+if(S.tgBot){const sent=new Set();people.forEach(n=>{const tgId=getPersonTgId(n);if(tgId&&!sent.has(tgId)){sent.add(tgId);sendTg(tgId,'<b>'+subject+'</b>\n\n'+message);}});}
+// Email: chỉ gửi nếu bật emailReminder
+if(S.emailReminder){const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,subject,message));}}
 // Settings
-function rSet(){document.getElementById('nL').innerHTML=S.ne.map((e,i)=>'<div class="chip">📧 '+e+'<span class="x" onclick="rmNE('+i+')">✕</span></div>').join('');document.getElementById('emailReminder').checked=!!S.emailReminder;document.getElementById('gK').value=S.gk;document.getElementById('gM').value=S.gmodel||'gemini-2.5-flash';
+function rSet(){document.getElementById('nL').innerHTML=S.ne.map((e,i)=>'<div class="chip">📧 '+e+'<span class="x" onclick="rmNE('+i+')">✕</span></div>').join('');document.getElementById('emailReminder').checked=!!S.emailReminder;document.getElementById('tgBotToken').value=S.tgBot||'';document.getElementById('gK').value=S.gk;document.getElementById('gM').value=S.gmodel||'gemini-2.5-flash';
 const fb=S.fb||{};document.getElementById('fbKey').value=fb.apiKey||'';document.getElementById('fbDomain').value=fb.authDomain||'';
 document.getElementById('fbUrl').value=fb.databaseURL||'';document.getElementById('fbProject').value=fb.projectId||'';document.getElementById('fbApp').value=fb.appId||'';
 document.getElementById('fbStatus').innerHTML=fbInited?'🟢 Đã kết nối Firebase':'⚪ Chưa kết nối';
 rMem();}
 function addNE(){const inp=document.getElementById('nNE'),e=inp.value.trim().toLowerCase();if(!e||!e.includes('@'))return;if(S.ne.includes(e))return;S.ne.push(e);inp.value='';sv();rSet();}
 function rmNE(i){S.ne.splice(i,1);sv();rSet();}
-function saveCfg(){S.gk=document.getElementById('gK').value.trim();S.gmodel=document.getElementById('gM').value;
+function saveCfg(){S.tgBot=document.getElementById('tgBotToken').value.trim();S.gk=document.getElementById('gK').value.trim();S.gmodel=document.getElementById('gM').value;
 const newFb={apiKey:document.getElementById('fbKey').value.trim(),authDomain:document.getElementById('fbDomain').value.trim(),
 databaseURL:document.getElementById('fbUrl').value.trim(),projectId:document.getElementById('fbProject').value.trim(),
 appId:document.getElementById('fbApp').value.trim()};
