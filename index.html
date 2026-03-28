@@ -112,7 +112,7 @@ tbody tr{border-bottom:1px solid rgba(42,54,84,.25)}
 tbody tr:hover{background:var(--ch)}
 tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 .tid{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:14px;color:var(--blue)}
-.tn{font-weight:500;max-width:360px}
+.tn{font-weight:500;max-width:500px;min-width:200px}
 .pt{display:inline-flex;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:3px 8px;font-size:12px;margin:1px;white-space:nowrap}
 .pt.ld{border-color:var(--blue);color:var(--blue)}
 .sb{display:inline-flex;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;white-space:nowrap}
@@ -644,7 +644,7 @@ return list.map(t=>{const gi=S.tasks.indexOf(t)+1;const sc=t.status==='done'?'do
 const adCol='<td><span class="dl">'+fD(t.assignedDate||t.date)+'</span></td>';
 const tc=isDone?('<span class="dl">'+fDL(t.completedAt||t.date)+'</span>'):(S.adm?'<input type="datetime-local" class="dl-edit" value="'+(t.deadline?t.deadline.replace(' ','T'):'')+'" onchange="chDL('+gi+',this.value)"/>':'<span class="dl '+dc+'">'+fDL(t.deadline)+'</span>');
 const dateInfo=t.date?'<span style="font-size:9px;color:var(--t3);display:block" title="Nhập lúc '+t.date+'">📝 '+fD(t.date)+'</span>':'';
-return'<tr><td><span class="tid">#'+gi+'</span></td><td><div class="tn">'+esc(t.name)+dateInfo+'</div></td><td style="font-size:12px">'+esc(t.product||'')+'</td><td style="font-size:12px;text-align:center">'+(t.coefficient||'-')+'</td><td>'+(t.leader?'<span class="pt ld">'+esc(t.leader)+'</span>':'-')+'</td><td>'+((t.collaborators||[]).map(c=>'<span class="pt">'+esc(c)+'</span>').join('')||'-')+'</td>'+adCol+'<td>'+tc+'</td><td><span class="sb '+sc+'">'+sl+'</span></td><td style="font-size:12px;color:var(--t2)">'+esc(t.notes||'')+'</td>'+'<td><span style="cursor:pointer;font-size:15px" title="'+(S.adm?'Chỉnh sửa':'Đề xuất sửa')+'" onclick="openEdit('+gi+')">'+(S.adm?'✏️':'📝')+'</span></td></tr>';}).join('');}
+return'<tr><td><span class="tid">#'+gi+'</span></td><td><div class="tn">'+esc(t.name)+dateInfo+'</div></td><td style="font-size:12px">'+esc(t.product||'')+'</td><td style="font-size:12px;text-align:center">'+(t.coefficient||'-')+'</td><td>'+(t.leader?'<span class="pt ld">'+esc(t.leader)+'</span>':'-')+'</td><td style="max-width:140px">'+((t.collaborators||[]).map(c=>'<span class="pt">'+esc(c)+'</span>').join('')||'-')+'</td>'+adCol+'<td>'+tc+'</td><td><span class="sb '+sc+'">'+sl+'</span></td><td style="font-size:12px;color:var(--t2)">'+esc(t.notes||'')+'</td>'+'<td><span style="cursor:pointer;font-size:15px" title="'+(S.adm?'Chỉnh sửa':'Đề xuất sửa')+'" onclick="openEdit('+gi+')">'+(S.adm?'✏️':'📝')+'</span></td></tr>';}).join('');}
 function chDL(gi,v){const i=gi-1;if(i<0||i>=S.tasks.length)return;S.tasks[i].deadline=v.replace('T',' ');if(S.tasks[i].status==='overdue'&&new Date(v)>new Date())S.tasks[i].status='doing';sv();rAll();toast('Đổi hạn CV #'+gi,'ok');}
 function uSt(){const pc=S.pend.length;document.getElementById('cP').textContent=pc;const ntc=buildNotifs().length+(S.adm?pc:0);const nc=document.getElementById('nC');nc.textContent=ntc;nc.classList.toggle('hd',ntc===0);}
 // Pending
