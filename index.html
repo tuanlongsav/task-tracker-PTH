@@ -222,7 +222,7 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <div class="mfg"><label>Ngày giao việc</label><input type="date" id="eAD"/></div>
 <div class="mfg"><label>Hạn hoàn thành</label><input type="datetime-local" id="eDL"/></div>
 <div class="mfg" id="eCAWrap" style="display:none"><label>Thời gian hoàn thành</label><input type="datetime-local" id="eCA"/></div>
-<div class="fs mfg"><label>Sản phẩm / Công việc</label><input type="text" id="ePr" placeholder="Tên sản phẩm..."/></div>
+<div class="fs mfg"><label>Sản phẩm / Công việc</label><input type="text" id="ePr" placeholder="Tên sản phẩm..." list="dlPr" onfocus="updPrList()"/></div>
 <div class="mfg"><label>Hệ số quy đổi</label><input type="number" id="eCf" min="0" step="1" placeholder="100-300"/></div>
 <div class="fs mfg"><label>Ghi chú</label><input type="text" id="eNo"/></div>
 <div class="fs" style="display:flex;gap:4px;margin-top:3px"><button class="btn btn-p" id="eSaveBtn" onclick="saveEdit()">💾 Lưu</button><button class="btn btn-o" onclick="closeEdit()">Huỷ</button></div>
@@ -312,7 +312,7 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <div class="mfg"><label>Ngày giao việc</label><input type="date" id="mi_ad"/></div>
 <div class="mfg"><label>Hạn hoàn thành</label><input type="datetime-local" id="mi_d"/></div>
 <div class="mfg"><label>Trạng thái</label><select id="mi_s"><option value="doing">Đang thực hiện</option><option value="done">Hoàn thành</option></select></div>
-<div class="fs mfg"><label>Sản phẩm / Công việc</label><input type="text" id="mi_pr" placeholder="Tên sản phẩm..."/></div>
+<div class="fs mfg"><label>Sản phẩm / Công việc</label><input type="text" id="mi_pr" placeholder="Tên sản phẩm..." list="dlPr" onfocus="updPrList()"/></div>
 <div class="mfg"><label>Hệ số quy đổi</label><input type="number" id="mi_cf" min="0" step="1" placeholder="100-300"/></div>
 <div class="fs mfg"><label>Ghi chú</label><input type="text" id="mi_no"/></div>
 <div class="fs"><button class="btn btn-p" onclick="mAdd()">➕ Thêm</button></div>
@@ -335,6 +335,7 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 </div>
 <div id="t-pending" class="tc"><div class="tw"><div class="thb"><h3>⏳ Chờ duyệt</h3></div><div id="pList"></div></div></div>
 </div></div>
+<datalist id="dlPr"></datalist>
 <script>
 const SEED_DATA=[];
 let S={u:null,adm:false,tasks:[],pend:[],hist:[],
@@ -541,8 +542,10 @@ function popF(){const ns=new Set();S.mem.forEach(m=>ns.add(m.name));S.tasks.forE
 const sorted=sortByRole([...ns]);const o='<option value="all">Tất cả</option>'+sorted.map(n=>`<option>${esc(n)}</option>`).join('');
 document.getElementById('fP').innerHTML='<option value="all">Tất cả người</option>'+sorted.map(n=>`<option>${esc(n)}</option>`).join('');document.getElementById('rpPr').innerHTML=o;
 const mo=sorted.map(n=>`<option>${esc(n)}</option>`).join('');
-document.getElementById('mi_l').innerHTML='<option value="">-- Chọn --</option>'+mo;
+document.getElementById('mi_l').innerHTML='<option value="">-- Chọn --</option>'+mo;updPrList();
 updMiCollab();}
+function updPrList(){const prSet=new Set();S.tasks.forEach(t=>{if(t.product)prSet.add(t.product);});
+document.getElementById('dlPr').innerHTML=[...prSet].sort((a,b)=>a.localeCompare(b,'vi')).map(p=>'<option value="'+esc(p)+'">').join('');}
 function getChecked(containerId){return[...document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked')].map(cb=>cb.value);}
 function updMiCollab(){const leader=document.getElementById('mi_l').value;const prev=getChecked('mi_c');
 const ns=new Set();S.mem.forEach(m=>ns.add(m.name));S.tasks.forEach(t=>{if(t.leader)ns.add(t.leader);(t.collaborators||[]).forEach(c=>ns.add(c));});
