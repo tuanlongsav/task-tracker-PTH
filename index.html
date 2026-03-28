@@ -206,7 +206,7 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <div class="pacts"><button class="btn btn-o btn-s" onclick="cPw();document.getElementById('emO').classList.remove('show')">Huỷ</button><button class="btn btn-p btn-s" onclick="sEm()">Gửi qua Email</button></div>
 </div>
 <div id="emTgForm" style="display:none">
-<p style="font-size:11px;color:var(--t3);margin-bottom:6px">Nhắn <b>/start</b> cho bot trước, rồi nhập Chat ID (lấy từ <b>@userinfobot</b>)</p>
+<p style="font-size:11px;color:var(--t3);margin-bottom:6px">Nhắn <b>/start</b> cho bot <b>@PTH_KV1_bot</b> rồi nhắn cho <b>@userinfobot</b> để lấy Chat ID</p>
 <input type="text" id="emTgI" placeholder="Telegram Chat ID (vd: 123456789)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:7px;padding:10px;font-size:14px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none;text-align:center;margin-bottom:6px" onkeydown="if(event.key==='Enter')sEmTg()"/>
 <div class="perr" id="emTgE"></div>
 <div class="pacts"><button class="btn btn-o btn-s" onclick="cPw();document.getElementById('emO').classList.remove('show')">Huỷ</button><button class="btn btn-p btn-s" style="background:linear-gradient(135deg,#0088cc,#29b6f6)" onclick="sEmTg()">Gửi qua Telegram</button></div>
@@ -232,7 +232,7 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <h2>⚙️ Cài đặt <span class="xp" onclick="closeSt()">✕</span></h2>
 <div class="sx"><h3>🔐 Đổi mật khẩu</h3><input type="password" id="nPw" placeholder="MK mới (≥4 ký tự)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:4px"/><button class="btn btn-s btn-p" onclick="chPw()">Đổi</button></div>
 <div class="sx"><h3>📧 Đổi email cá nhân</h3><div style="display:flex;gap:4px;align-items:center"><input type="email" id="myEmail" placeholder="Email mới..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="chMyEmail()">Đổi</button></div><p id="curEmail" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
-<div class="sx"><h3>📱 Telegram Chat ID</h3><p style="font-size:9px;color:var(--t3);margin-bottom:4px">Nhắn <b>/start</b> cho bot rồi nhắn cho <b>@userinfobot</b> để lấy Chat ID.</p><div style="display:flex;gap:4px;align-items:center"><input type="text" id="myTgId" placeholder="Chat ID (vd: 123456789)" style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none"/><button class="btn btn-s btn-p" onclick="chMyTg()">Lưu</button></div><p id="curTgId" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
+<div class="sx"><h3>📱 Telegram Chat ID</h3><p style="font-size:9px;color:var(--t3);margin-bottom:4px">Nhắn <b>/start</b> cho bot <b>@PTH_KV1_bot</b> rồi nhắn cho <b>@userinfobot</b> để lấy Chat ID.</p><div style="display:flex;gap:4px;align-items:center"><input type="text" id="myTgId" placeholder="Chat ID (vd: 123456789)" style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none"/><button class="btn btn-s btn-p" onclick="chMyTg()">Lưu</button></div><p id="curTgId" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
 <div class="sx admOnly"><h3>🏢 Thành viên</h3><p style="font-size:8px;color:var(--t3);margin-bottom:6px">Nhấn vào email để sửa. AI tự nhận tên viết tắt.</p><div id="mW" class="cl" style="flex-direction:column;align-items:stretch"></div>
 <div class="af" id="aF"><input type="text" id="mfN" placeholder="Họ tên *"/><select id="mfR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option></select><input type="email" id="mfE" placeholder="Email"/><input type="text" id="mfNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm</button></div></div>
 <div class="sx admOnly"><h3>📧 Email thông báo chung</h3>
@@ -444,7 +444,7 @@ else{document.getElementById('emTgForm').style.display='';document.getElementByI
 function sEmTg(){const v=document.getElementById('emTgI').value.trim();if(!v||!/^-?\d+$/.test(v)){document.getElementById('emTgE').textContent='❌ Chat ID không hợp lệ (phải là số)';document.getElementById('emTgE').style.display='block';return;}
 if(!S.tgChats)S.tgChats={};S.tgChats[pendL]=v;
 const hasPw=S.passwords[pendL];
-if(!hasPw){const pw=genPw();S.passwords[pendL]=pw;sv();
+if(!hasPw){const pw=genPw();S.passwords[pendL]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[pendL]=true;sv();
 if(S.tgBot){sendTg(v,'<b>[MẬT KHẨU MỚI]</b>\n\nXin chào '+pendL+',\n\nMật khẩu đăng nhập của bạn là: <code>'+pw+'</code>\n\nVui lòng đổi mật khẩu sau khi đăng nhập.');}
 document.getElementById('emO').classList.remove('show');toast('Đã gửi MK qua Telegram','ok');
 document.getElementById('pwI').value='';document.getElementById('pwE').style.display='none';document.getElementById('fgO').style.display='none';
@@ -456,8 +456,8 @@ function askEmail(n){document.getElementById('emSub').innerHTML='<strong>'+esc(n
 function sEm(){const v=document.getElementById('emI').value.trim();if(!v||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){document.getElementById('emE').textContent='❌ Email không hợp lệ';document.getElementById('emE').style.display='block';return;}
 const mem=S.mem.find(x=>x.name===pendL);if(mem)mem.email=v;S.recEmails[pendL]=v;
 const hasPw=S.passwords[pendL];
-if(!hasPw){const pw=genPw();S.passwords[pendL]=pw;sv();
-notifyUser(pendL,'[MẬT KHẨU MỚI] Phòng TH KTNN KV1','Xin chào '+pendL+',\n\nMật khẩu đăng nhập của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu sau khi đăng nhập.');
+if(!hasPw){const pw=genPw();S.passwords[pendL]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[pendL]=true;sv();
+notifyUser(pendL,'[MẬT KHẨU TẠM] Phòng TH KTNN KV1','Xin chào '+pendL+',\n\nMật khẩu tạm của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu ngay sau khi đăng nhập.');
 document.getElementById('emO').classList.remove('show');toast('Đã gửi mật khẩu','ok');
 // Hiện form đăng nhập để nhập MK vừa nhận
 document.getElementById('pwI').value='';document.getElementById('pwE').style.display='none';document.getElementById('fgO').style.display='none';
@@ -472,19 +472,10 @@ else{document.getElementById('pwE').textContent='❌ Sai mật khẩu';document.
 function cPw(){document.getElementById('pwO').classList.remove('show');pendL=null;}
 function fgPw(){if(!pendL)return;const tgId=getPersonTgId(pendL);const mem=S.mem.find(x=>x.name===pendL);const recE=S.recEmails[pendL]||mem?.email;
 const hasTgOk=tgId&&S.tgBot;const hasEmOk=!!recE;
-if(!hasTgOk&&!hasEmOk){
+// Luôn cho chọn cách nhận MK
 document.getElementById('emSub').innerHTML='<strong>'+esc(pendL)+'</strong>, chọn cách nhận lại mật khẩu:';
 document.getElementById('emChoose').style.display='';document.getElementById('emEmailForm').style.display='none';document.getElementById('emTgForm').style.display='none';
-document.getElementById('pwO').classList.remove('show');document.getElementById('emO').classList.add('show');return;}
-const pw=genPw();S.passwords[pendL]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[pendL]=true;sv();
-const msg='Xin chào '+pendL+',\n\nMật khẩu tạm của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu ngay sau khi đăng nhập.';
-let via='';
-if(hasTgOk&&hasEmOk){const ch=confirm('Gửi mật khẩu qua Telegram?\n\nOK = Telegram\nCancel = Email');
-if(ch){sendTg(tgId,'<b>[MẬT KHẨU TẠM]</b>\n\n'+msg.replace(pw,'<code>'+pw+'</code>'));via='Telegram';}
-else{sendEmail(recE,'[MẬT KHẨU TẠM] Phòng TH KTNN KV1',msg);via='Email';}
-}else if(hasTgOk){sendTg(tgId,'<b>[MẬT KHẨU TẠM]</b>\n\n'+msg.replace(pw,'<code>'+pw+'</code>'));via='Telegram';}
-else{sendEmail(recE,'[MẬT KHẨU TẠM] Phòng TH KTNN KV1',msg);via='Email';}
-document.getElementById('fgO').textContent='✅ Đã gửi MK tạm qua '+via+' (bắt buộc đổi sau đăng nhập)';document.getElementById('fgO').style.display='block';}
+document.getElementById('pwO').classList.remove('show');document.getElementById('emO').classList.add('show');}
 function loginAs(n){S.u=n;S.adm=S.admNames.includes(n);
 if(!S.loggedOnce)S.loggedOnce={};if(!S.loggedOnce[n]){S.loggedOnce[n]=Date.now();sv();}
 document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';document.getElementById('dN').textContent=n;
