@@ -734,15 +734,17 @@ rd.innerHTML='<div class="am ok">✅ Đã duyệt sửa CV #'+d.taskIndex+'</div
 }else{exec(r.parsed,r.cmd,rd);}
 S.pend.splice(i,1);sv();rAll();toast('Duyệt!','ok');}
 function rejR(id){const i=S.pend.findIndex(r=>r.id===id);if(i===-1)return;S.pend.splice(i,1);sv();rAll();toast('Từ chối','wn');}
-// Deadline check + email
-function chkDL(){const now=new Date();S.tasks.forEach((t,i)=>{if(t.status==='done'||!t.deadline)return;
+// Deadline check - only admin sends notifications to avoid duplicates
+function chkDL(){const now=new Date();
+const shouldNotify=S.adm;
+S.tasks.forEach((t,i)=>{if(t.status==='done'||!t.deadline)return;
 const dl=new Date(t.deadline),h=(dl-now)/36e5;
-if(h<=12&&h>2&&!t._warned12){t._warned12=true;const msg12='Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nCòn '+Math.round(h)+' giờ.';const subj12='[SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40);notifyTaskPeople(t,subj12,msg12);}
-if(h<=2&&h>0&&!t._warned2){t._warned2=true;const msg2='Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!';const subj2='[GẤP - SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40);notifyTaskPeople(t,subj2,msg2);}
+if(h<=12&&h>2&&!t._warned12){t._warned12=Date.now();sv();if(shouldNotify){const msg12='Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nCòn '+Math.round(h)+' giờ.';const subj12='[SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40);notifyTaskPeople(t,subj12,msg12);}}
+if(h<=2&&h>0&&!t._warned2){t._warned2=Date.now();sv();if(shouldNotify){const msg2='Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!';const subj2='[GẤP - SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40);notifyTaskPeople(t,subj2,msg2);}}
 if(h<=0){if(t.status!=='overdue'){t.status='overdue';sv();}
 const today8=new Date(now.getFullYear(),now.getMonth(),now.getDate(),8,0,0).getTime();
 const canWarn=now.getHours()>=8&&(!t._overWarn||t._overWarn<today8);
-if(canWarn){t._overWarn=Date.now();const msgO='Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.';const subjO='[QUÁ HẠN] CV #'+(i+1)+': '+t.name.substring(0,40);notifyTaskPeople(t,subjO,msgO);}}});
+if(canWarn){t._overWarn=Date.now();sv();if(shouldNotify){const msgO='Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.';const subjO='[QUÁ HẠN] CV #'+(i+1)+': '+t.name.substring(0,40);notifyTaskPeople(t,subjO,msgO);}}}});
 rAll();setTimeout(chkDL,15*60*1000);}
 function getTaskEmails(t){const emails=[...S.ne];[t.leader,...(t.collaborators||[])].forEach(n=>{const m=S.mem.find(x=>x.name===n);if(m?.email&&!emails.includes(m.email))emails.push(m.email);});return emails;}
 function notifyTaskPeople(t,subject,message){const people=[t.leader,...(t.collaborators||[])];
