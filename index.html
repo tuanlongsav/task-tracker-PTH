@@ -652,10 +652,11 @@ document.getElementById('exportSec').style.display='';
 const y=new Date().getFullYear();
 document.getElementById('exY').innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>';
 document.getElementById('exQ').value=Math.ceil((new Date().getMonth()+1)/3);
-if(S.adm){const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};
+const exPr=document.getElementById('exPr');
+if(S.adm){exPr.disabled=false;const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};
 const sorted=[...S.mem].sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
-document.getElementById('exPr').innerHTML='<option value="all">Tất cả thành viên</option>'+sorted.map(m=>'<option>'+esc(m.name)+'</option>').join('');}
-else{document.getElementById('exPr').innerHTML='<option>'+esc(S.u)+'</option>';document.getElementById('exPr').disabled=true;}}
+exPr.innerHTML='<option value="all">Tất cả thành viên</option>'+sorted.map(m=>'<option>'+esc(m.name)+'</option>').join('');}
+else{exPr.innerHTML='<option>'+esc(S.u)+'</option>';exPr.disabled=true;}}
 function getQRange(q,y){const sm=(q-1)*3;return{from:new Date(y,sm,1),to:new Date(y,sm+3,0,23,59,59)};}
 function getPersonTasks(person,from,to){const mem=S.mem.find(m=>m.name===person);const isTP=mem&&mem.role==='Trưởng phòng';
 return S.tasks.filter(t=>{const d=new Date(t.assignedDate||t.date);if(d<from||d>to)return false;if(isTP)return true;return t.leader===person||(t.collaborators||[]).includes(person);});}
