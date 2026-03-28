@@ -220,7 +220,9 @@ tbody td{padding:10px 10px;vertical-align:top;line-height:1.4}
 <div class="sx"><h3>📧 Đổi email cá nhân</h3><div style="display:flex;gap:4px;align-items:center"><input type="email" id="myEmail" placeholder="Email mới..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="chMyEmail()">Đổi</button></div><p id="curEmail" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
 <div class="sx admOnly"><h3>🏢 Thành viên</h3><p style="font-size:8px;color:var(--t3);margin-bottom:6px">Nhấn vào email để sửa. AI tự nhận tên viết tắt.</p><div id="mW" class="cl" style="flex-direction:column;align-items:stretch"></div>
 <div class="af" id="aF"><input type="text" id="mfN" placeholder="Họ tên *"/><select id="mfR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option></select><input type="email" id="mfE" placeholder="Email"/><input type="text" id="mfNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm</button></div></div>
-<div class="sx admOnly"><h3>📧 Email thông báo chung</h3><div id="nL" class="cl"></div><div style="display:flex;gap:4px;margin-top:4px"><input type="email" id="nNE" placeholder="Thêm..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:9px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="addNE()">+</button></div></div>
+<div class="sx admOnly"><h3>📧 Email thông báo chung</h3>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t2);cursor:pointer"><input type="checkbox" id="emailReminder" onchange="S.emailReminder=this.checked;sv();" style="cursor:pointer"/>Bật nhắc việc qua email (tốn quota EmailJS)</label></div>
+<div id="nL" class="cl"></div><div style="display:flex;gap:4px;margin-top:4px"><input type="email" id="nNE" placeholder="Thêm..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:9px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="addNE()">+</button></div></div>
 <div class="sx admOnly"><h3>🔑 Gemini API</h3><input type="password" id="gK" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none;margin-bottom:6px"/>
 <h3>🤖 Model</h3><select id="gM" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none"><option value="gemini-2.5-flash">2.5 Flash</option><option value="gemini-2.5-flash-lite">2.5 Flash Lite</option><option value="gemini-2.5-pro">2.5 Pro</option><option value="gemini-3-flash">3 Flash</option></select></div>
 <div class="sx admOnly"><h3>🔥 Firebase Database</h3>
@@ -237,6 +239,11 @@ tbody td{padding:10px 10px;vertical-align:top;line-height:1.4}
 <button class="btn btn-p admOnly" style="margin-top:3px" onclick="saveCfg()">💾 Lưu</button>
 </div></div>
 
+<div class="pnl-ov" id="ntOv" onclick="if(event.target===this)closeNt()"><div class="pnl">
+<h2>🔔 Thông báo <span class="xp" onclick="closeNt()">✕</span></h2>
+<div id="ntList"></div>
+</div></div>
+
 <div class="pnl-ov" id="hiOv" onclick="if(event.target===this)closeHi()"><div class="pnl">
 <h2>📜 Lịch sử <span class="xp" onclick="closeHi()">✕</span></h2>
 <button class="btn btn-s btn-o" onclick="clrH()" style="margin-bottom:6px">Xóa</button><div id="hLog"></div>
@@ -248,7 +255,7 @@ tbody td{padding:10px 10px;vertical-align:top;line-height:1.4}
 <div class="hdr-r">
 <div class="hb" onclick="openHi()" title="Lịch sử">📜</div>
 <div class="hb" id="stBtn" onclick="openSt()" title="Cài đặt" style="display:none">⚙️</div>
-<div class="hb" onclick="sTab('pending')" title="Chờ duyệt">🔔<span id="nC" class="bdg hd">0</span></div>
+<div class="hb" onclick="openNt()" title="Thông báo">🔔<span id="nC" class="bdg hd">0</span></div>
 <div class="ub"><span class="dot"></span><span id="dN">user</span><span id="rT" class="rt a">QTV</span></div>
 <button class="btn btn-s btn-o" onclick="logout()">Thoát</button>
 </div></div></div>
@@ -313,7 +320,7 @@ let S={u:null,adm:false,tasks:[],pend:[],hist:[],
 admNames:['Lê Huy Hoằng','Hoàng Tuấn Long'],
 passwords:{},  // {name: password} for ALL users
 recEmails:{},
-ne:[],
+ne:[],emailReminder:false,
 mem:[
 {id:1,name:'Lê Huy Hoằng',role:'Trưởng phòng',email:'',note:''},
 {id:2,name:'Hoàng Tuấn Long',role:'Phó Trưởng phòng',email:'',note:''},
@@ -435,6 +442,25 @@ function chMyEmail(){const v=document.getElementById('myEmail').value.trim();if(
 // Panels
 function openSt(){document.getElementById('stOv').classList.add('show');document.querySelectorAll('.admOnly').forEach(el=>el.style.display=S.adm?'':'none');const mem=S.mem.find(x=>x.name===S.u);const curE=S.recEmails[S.u]||mem?.email||'';document.getElementById('curEmail').textContent=curE?'Email hiện tại: '+curE:'Chưa có email';document.getElementById('myEmail').value='';rSet();}
 function closeSt(){document.getElementById('stOv').classList.remove('show');}
+function openNt(){document.getElementById('ntOv').classList.add('show');rNt();}
+function closeNt(){document.getElementById('ntOv').classList.remove('show');}
+function buildNotifs(){const now=new Date();const notifs=[];
+S.tasks.forEach((t,i)=>{if(t.status==='done'||!t.deadline)return;
+const dl=new Date(t.deadline),h=(dl-now)/36e5;
+const isMyTask=S.adm||t.leader===S.u||(t.collaborators||[]).includes(S.u);
+if(!isMyTask)return;
+if(h<=0)notifs.push({type:'overdue',gi:i+1,task:t,hours:Math.abs(h)});
+else if(h<=12)notifs.push({type:'soon',gi:i+1,task:t,hours:h});});
+notifs.sort((a,b)=>a.type==='overdue'&&b.type!=='overdue'?-1:b.type==='overdue'&&a.type!=='overdue'?1:a.hours-b.hours);
+return notifs;}
+function rNt(){const notifs=buildNotifs();const c=document.getElementById('ntList');
+if(!notifs.length){c.innerHTML='<div class="empty"><div class="icon">✨</div><p>Không có thông báo</p></div>';return;}
+const pendHtml=S.adm&&S.pend.length?'<div style="margin-bottom:10px;padding:8px 10px;background:var(--c3);border-radius:6px;border-left:3px solid var(--amber)"><div style="font-size:11px;font-weight:600;color:var(--amber);margin-bottom:4px">⏳ '+S.pend.length+' đề xuất chờ duyệt</div><button class="btn btn-s btn-p" onclick="closeNt();sTab(\'pending\')" style="font-size:10px">Xem chờ duyệt</button></div>':'';
+c.innerHTML=pendHtml+notifs.map(n=>{const t=n.task;
+const icon=n.type==='overdue'?'🚨':'⚠️';
+const label=n.type==='overdue'?'Quá hạn '+Math.round(n.hours)+' giờ':'Còn '+(n.hours>=1?Math.round(n.hours)+' giờ':Math.round(n.hours*60)+' phút');
+const color=n.type==='overdue'?'#ef4444':'#f59e0b';
+return'<div class="rc" style="border-left:3px solid '+color+'"><div class="rh"><span>'+icon+' CV #'+n.gi+'</span><span style="color:'+color+';font-weight:600;font-size:10px">'+label+'</span></div><div class="rcc" style="font-size:11px"><strong>'+esc(t.name)+'</strong></div><div style="font-size:10px;color:var(--t3);margin-top:2px">Phụ trách: '+esc(t.leader)+(t.collaborators&&t.collaborators.length?' | Phối hợp: '+t.collaborators.map(c=>esc(c)).join(', '):'')+'</div><div style="font-size:10px;color:var(--t3)">Hạn: '+fDL(t.deadline)+'</div></div>';}).join('');}
 function openHi(){document.getElementById('hiOv').classList.add('show');rH();}
 function closeHi(){document.getElementById('hiOv').classList.remove('show');}
 // Tabs
@@ -606,7 +632,7 @@ const tc=isDone?('<span class="dl">'+fDL(t.completedAt||t.date)+'</span>'):(S.ad
 const dateInfo=t.date?'<span style="font-size:9px;color:var(--t3);display:block" title="Nhập lúc '+t.date+'">📝 '+fD(t.date)+'</span>':'';
 return'<tr><td><span class="tid">#'+gi+'</span></td><td><div class="tn">'+esc(t.name)+dateInfo+'</div></td><td style="font-size:12px">'+esc(t.product||'')+'</td><td style="font-size:12px;text-align:center">'+(t.coefficient||'-')+'</td><td>'+(t.leader?'<span class="pt ld">'+esc(t.leader)+'</span>':'-')+'</td><td>'+((t.collaborators||[]).map(c=>'<span class="pt">'+esc(c)+'</span>').join('')||'-')+'</td>'+adCol+'<td>'+tc+'</td><td><span class="sb '+sc+'">'+sl+'</span></td><td style="font-size:12px;color:var(--t2)">'+esc(t.notes||'')+'</td>'+'<td><span style="cursor:pointer;font-size:15px" title="'+(S.adm?'Chỉnh sửa':'Đề xuất sửa')+'" onclick="openEdit('+gi+')">'+(S.adm?'✏️':'📝')+'</span></td></tr>';}).join('');}
 function chDL(gi,v){const i=gi-1;if(i<0||i>=S.tasks.length)return;S.tasks[i].deadline=v.replace('T',' ');if(S.tasks[i].status==='overdue'&&new Date(v)>new Date())S.tasks[i].status='doing';sv();rAll();toast('Đổi hạn CV #'+gi,'ok');}
-function uSt(){const pc=S.pend.length;document.getElementById('cP').textContent=pc;const nc=document.getElementById('nC');nc.textContent=pc;nc.classList.toggle('hd',pc===0);}
+function uSt(){const pc=S.pend.length;document.getElementById('cP').textContent=pc;const ntc=buildNotifs().length+(S.adm?pc:0);const nc=document.getElementById('nC');nc.textContent=ntc;nc.classList.toggle('hd',ntc===0);}
 // Pending
 function rPend(){const c=document.getElementById('pList');if(!S.pend.length){c.innerHTML='<div class="empty"><div class="icon">✨</div><p>Không có</p></div>';return;}
 c.innerHTML=S.pend.map(r=>{let detail='';
@@ -644,14 +670,14 @@ function rejR(id){const i=S.pend.findIndex(r=>r.id===id);if(i===-1)return;S.pend
 // Deadline check + email
 function chkDL(){const now=new Date();S.tasks.forEach((t,i)=>{if(t.status==='done'||!t.deadline)return;
 const dl=new Date(t.deadline),h=(dl-now)/36e5;
-if(h<=12&&h>2&&!t._warned12){t._warned12=true;const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nCòn '+Math.round(h)+' giờ.'));}
-if(h<=2&&h>0&&!t._warned2){t._warned2=true;const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[GẤP - SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!'));}
+if(h<=12&&h>2&&!t._warned12){t._warned12=true;if(S.emailReminder){const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nCòn '+Math.round(h)+' giờ.'));}}
+if(h<=2&&h>0&&!t._warned2){t._warned2=true;if(S.emailReminder){const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[GẤP - SẮP HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!'));}}
 if(h<=0){if(t.status!=='overdue'){t.status='overdue';sv();}
-if(!t._overWarn||Date.now()-t._overWarn>864e5){t._overWarn=Date.now();const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[QUÁ HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.'));}}});
+if(!t._overWarn||Date.now()-t._overWarn>864e5){t._overWarn=Date.now();if(S.emailReminder){const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,'[QUÁ HẠN] CV #'+(i+1)+': '+t.name.substring(0,40),'Công việc: '+t.name+'\nPhụ trách: '+t.leader+'\nHạn: '+fDL(t.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.'));}}}});
 rAll();setTimeout(chkDL,15*60*1000);}
 function getTaskEmails(t){const emails=[...S.ne];[t.leader,...(t.collaborators||[])].forEach(n=>{const m=S.mem.find(x=>x.name===n);if(m?.email&&!emails.includes(m.email))emails.push(m.email);});return emails;}
 // Settings
-function rSet(){document.getElementById('nL').innerHTML=S.ne.map((e,i)=>'<div class="chip">📧 '+e+'<span class="x" onclick="rmNE('+i+')">✕</span></div>').join('');document.getElementById('gK').value=S.gk;document.getElementById('gM').value=S.gmodel||'gemini-2.5-flash';
+function rSet(){document.getElementById('nL').innerHTML=S.ne.map((e,i)=>'<div class="chip">📧 '+e+'<span class="x" onclick="rmNE('+i+')">✕</span></div>').join('');document.getElementById('emailReminder').checked=!!S.emailReminder;document.getElementById('gK').value=S.gk;document.getElementById('gM').value=S.gmodel||'gemini-2.5-flash';
 const fb=S.fb||{};document.getElementById('fbKey').value=fb.apiKey||'';document.getElementById('fbDomain').value=fb.authDomain||'';
 document.getElementById('fbUrl').value=fb.databaseURL||'';document.getElementById('fbProject').value=fb.projectId||'';document.getElementById('fbApp').value=fb.appId||'';
 document.getElementById('fbStatus').innerHTML=fbInited?'🟢 Đã kết nối Firebase':'⚪ Chưa kết nối';
