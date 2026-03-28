@@ -217,12 +217,13 @@ tbody td{padding:10px 10px;vertical-align:top;line-height:1.4}
 <div class="pnl-ov" id="stOv" onclick="if(event.target===this)closeSt()"><div class="pnl">
 <h2>⚙️ Cài đặt <span class="xp" onclick="closeSt()">✕</span></h2>
 <div class="sx"><h3>🔐 Đổi mật khẩu</h3><input type="password" id="nPw" placeholder="MK mới (≥4 ký tự)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:4px"/><button class="btn btn-s btn-p" onclick="chPw()">Đổi</button></div>
-<div class="sx"><h3>🏢 Thành viên</h3><p style="font-size:8px;color:var(--t3);margin-bottom:6px">Nhấn vào email để sửa. AI tự nhận tên viết tắt.</p><div id="mW" class="cl" style="flex-direction:column;align-items:stretch"></div>
+<div class="sx"><h3>📧 Đổi email cá nhân</h3><div style="display:flex;gap:4px;align-items:center"><input type="email" id="myEmail" placeholder="Email mới..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="chMyEmail()">Đổi</button></div><p id="curEmail" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
+<div class="sx admOnly"><h3>🏢 Thành viên</h3><p style="font-size:8px;color:var(--t3);margin-bottom:6px">Nhấn vào email để sửa. AI tự nhận tên viết tắt.</p><div id="mW" class="cl" style="flex-direction:column;align-items:stretch"></div>
 <div class="af" id="aF"><input type="text" id="mfN" placeholder="Họ tên *"/><select id="mfR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option></select><input type="email" id="mfE" placeholder="Email"/><input type="text" id="mfNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm</button></div></div>
-<div class="sx"><h3>📧 Email thông báo chung</h3><div id="nL" class="cl"></div><div style="display:flex;gap:4px;margin-top:4px"><input type="email" id="nNE" placeholder="Thêm..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:9px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="addNE()">+</button></div></div>
-<div class="sx"><h3>🔑 Gemini API</h3><input type="password" id="gK" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none;margin-bottom:6px"/>
+<div class="sx admOnly"><h3>📧 Email thông báo chung</h3><div id="nL" class="cl"></div><div style="display:flex;gap:4px;margin-top:4px"><input type="email" id="nNE" placeholder="Thêm..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:9px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="addNE()">+</button></div></div>
+<div class="sx admOnly"><h3>🔑 Gemini API</h3><input type="password" id="gK" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none;margin-bottom:6px"/>
 <h3>🤖 Model</h3><select id="gM" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none"><option value="gemini-2.5-flash">2.5 Flash</option><option value="gemini-2.5-flash-lite">2.5 Flash Lite</option><option value="gemini-2.5-pro">2.5 Pro</option><option value="gemini-3-flash">3 Flash</option></select></div>
-<div class="sx"><h3>🔥 Firebase Database</h3>
+<div class="sx admOnly"><h3>🔥 Firebase Database</h3>
 <p style="font-size:10px;color:var(--t2);margin-bottom:6px">Dán cấu hình Firebase để đồng bộ dữ liệu giữa các máy. Lấy từ Firebase Console > Project Settings > Your apps.</p>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
 <input type="text" id="fbKey" placeholder="apiKey" style="background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:5px 7px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none"/>
@@ -233,7 +234,7 @@ tbody td{padding:10px 10px;vertical-align:top;line-height:1.4}
 </div>
 <div style="margin-top:5px;display:flex;gap:4px;align-items:center"><span id="fbStatus" style="font-size:10px;color:var(--t3)">⚪ Chưa kết nối</span></div>
 </div>
-<button class="btn btn-p" style="margin-top:3px" onclick="saveCfg()">💾 Lưu</button>
+<button class="btn btn-p admOnly" style="margin-top:3px" onclick="saveCfg()">💾 Lưu</button>
 </div></div>
 
 <div class="pnl-ov" id="hiOv" onclick="if(event.target===this)closeHi()"><div class="pnl">
@@ -418,12 +419,13 @@ function loginAs(n){S.u=n;S.adm=S.admNames.includes(n);
 document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';document.getElementById('dN').textContent=n;
 const rt=document.getElementById('rT');rt.textContent=S.adm?'QTV':'TV';rt.className=S.adm?'rt a':'rt m';
 document.getElementById('aF').style.display=S.adm?'grid':'none';
-document.getElementById('stBtn').style.display=S.adm?'flex':'none';
+document.getElementById('stBtn').style.display='flex';
 initRpt();popF();rAll();}
 function logout(){S.u=null;S.adm=false;document.getElementById('authScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('ns').value='';}
 function chPw(){const v=document.getElementById('nPw').value.trim();if(!v||v.length<4){toast('≥4 ký tự','er');return;}S.passwords[S.u]=v;sv();document.getElementById('nPw').value='';toast('Đã đổi MK!','ok');}
+function chMyEmail(){const v=document.getElementById('myEmail').value.trim();if(!v||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){toast('Email không hợp lệ','er');return;}const mem=S.mem.find(x=>x.name===S.u);if(mem)mem.email=v;S.recEmails[S.u]=v;sv();document.getElementById('myEmail').value='';document.getElementById('curEmail').textContent='Email hiện tại: '+v;toast('Đã đổi email!','ok');}
 // Panels
-function openSt(){document.getElementById('stOv').classList.add('show');rSet();}
+function openSt(){document.getElementById('stOv').classList.add('show');document.querySelectorAll('.admOnly').forEach(el=>el.style.display=S.adm?'':'none');const mem=S.mem.find(x=>x.name===S.u);const curE=S.recEmails[S.u]||mem?.email||'';document.getElementById('curEmail').textContent=curE?'Email hiện tại: '+curE:'Chưa có email';document.getElementById('myEmail').value='';rSet();}
 function closeSt(){document.getElementById('stOv').classList.remove('show');}
 function openHi(){document.getElementById('hiOv').classList.add('show');rH();}
 function closeHi(){document.getElementById('hiOv').classList.remove('show');}
