@@ -366,7 +366,7 @@ function migrateTasks(){S.tasks.forEach(t=>{if(t.product===undefined)t.product='
 if(t.assignedDate===undefined){if(t.deadline){try{const dd=new Date(t.deadline);dd.setDate(dd.getDate()-1);t.assignedDate=dd.toISOString().slice(0,10);}catch(e){t.assignedDate=t.date||'';}}else if(t.completedAt){try{const dd=new Date(t.completedAt);dd.setDate(dd.getDate()-1);t.assignedDate=dd.toISOString().slice(0,10);}catch(e){t.assignedDate=t.date||'';}}else{t.assignedDate=t.date||'';}}});}
 function cleanForSave(){const{u,adm,...r}=S;const clean=JSON.parse(JSON.stringify(r));if(clean.tasks)clean.tasks.forEach(t=>{delete t._warned;delete t._overWarn;});return clean;}
 function cleanForFirebase(){const c=cleanForSave();delete c.fb;delete c.ejs;delete c.recEmails;
-if(c.passwords){const safe={};Object.keys(c.passwords).forEach(k=>{if(!S.admNames.includes(k))safe[k]=c.passwords[k];});c.passwords=safe;}
+if(c.passwords&&c.tempPw){const temp={};Object.keys(c.tempPw).forEach(k=>{if(c.passwords[k])temp[k]=c.passwords[k];});c.passwords=temp;}else{delete c.passwords;}
 return c;}
 function initFb(){
 if(fbInited)return;
