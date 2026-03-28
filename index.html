@@ -444,28 +444,23 @@ if(method==='email'){document.getElementById('emEmailForm').style.display='';doc
 else{document.getElementById('emTgForm').style.display='';document.getElementById('emEmailForm').style.display='none';document.getElementById('emTgI').value='';document.getElementById('emTgE').style.display='none';setTimeout(()=>document.getElementById('emTgI').focus(),80);}}
 function sEmTg(){const v=document.getElementById('emTgI').value.trim();if(!v||!/^-?\d+$/.test(v)){document.getElementById('emTgE').textContent='❌ Chat ID không hợp lệ (phải là số)';document.getElementById('emTgE').style.display='block';return;}
 if(!S.tgChats)S.tgChats={};S.tgChats[pendL]=v;
-const hasPw=S.passwords[pendL];
-if(!hasPw){const pw=genPw();S.passwords[pendL]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[pendL]=true;sv();
-if(S.tgBot){sendTg(v,'<b>[MẬT KHẨU MỚI]</b>\n\nXin chào '+pendL+',\n\nMật khẩu đăng nhập của bạn là: <code>'+pw+'</code>\n\nVui lòng đổi mật khẩu sau khi đăng nhập.');}
-document.getElementById('emO').classList.remove('show');toast('Đã gửi MK qua Telegram','ok');
+const pw=genPw();S.passwords[pendL]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[pendL]=true;sv();
+if(S.tgBot){sendTg(v,'<b>[MẬT KHẨU TẠM]</b>\n\nXin chào '+pendL+',\n\nMật khẩu tạm của bạn là: <code>'+pw+'</code>\n\nVui lòng đổi mật khẩu ngay sau khi đăng nhập.');}
+document.getElementById('emO').classList.remove('show');toast('Đã gửi MK tạm qua Telegram','ok');
 document.getElementById('pwI').value='';document.getElementById('pwE').style.display='none';document.getElementById('fgO').style.display='none';
-document.getElementById('pwTitle').textContent='🔐 Đăng nhập';document.getElementById('pwSub').innerHTML='Mật khẩu đã gửi qua <strong>Telegram</strong><br>Vui lòng kiểm tra và nhập mật khẩu';document.getElementById('pwI').placeholder='Mật khẩu...';
+document.getElementById('pwTitle').textContent='🔐 Đăng nhập';document.getElementById('pwSub').innerHTML='Mật khẩu tạm đã gửi qua <strong>Telegram</strong><br>Vui lòng kiểm tra và nhập mật khẩu';document.getElementById('pwI').placeholder='Mật khẩu...';
 document.getElementById('pfgLink').style.display='inline-block';
-document.getElementById('pwO').classList.add('show');setTimeout(()=>document.getElementById('pwI').focus(),80);
-}else{sv();document.getElementById('emO').classList.remove('show');toast('Đã lưu Telegram Chat ID!','ok');loginAs(pendL);}}
+document.getElementById('pwO').classList.add('show');setTimeout(()=>document.getElementById('pwI').focus(),80);}
 function askEmail(n){document.getElementById('emSub').innerHTML='<strong>'+esc(n)+'</strong>, chọn cách nhận thông báo:';document.getElementById('emChoose').style.display='';document.getElementById('emEmailForm').style.display='none';document.getElementById('emTgForm').style.display='none';document.getElementById('emO').classList.add('show');}
 function sEm(){const v=document.getElementById('emI').value.trim();if(!v||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){document.getElementById('emE').textContent='❌ Email không hợp lệ';document.getElementById('emE').style.display='block';return;}
 const mem=S.mem.find(x=>x.name===pendL);if(mem)mem.email=v;S.recEmails[pendL]=v;
-const hasPw=S.passwords[pendL];
-if(!hasPw){const pw=genPw();S.passwords[pendL]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[pendL]=true;sv();
+const pw=genPw();S.passwords[pendL]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[pendL]=true;sv();
 notifyUser(pendL,'[MẬT KHẨU TẠM] Phòng TH KTNN KV1','Xin chào '+pendL+',\n\nMật khẩu tạm của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu ngay sau khi đăng nhập.');
-document.getElementById('emO').classList.remove('show');toast('Đã gửi mật khẩu','ok');
-// Hiện form đăng nhập để nhập MK vừa nhận
+document.getElementById('emO').classList.remove('show');toast('Đã gửi MK tạm qua Email','ok');
 document.getElementById('pwI').value='';document.getElementById('pwE').style.display='none';document.getElementById('fgO').style.display='none';
-document.getElementById('pwTitle').textContent='🔐 Đăng nhập';document.getElementById('pwSub').innerHTML='Mật khẩu đã gửi qua Telegram/Email<br>Vui lòng kiểm tra và nhập mật khẩu';document.getElementById('pwI').placeholder='Mật khẩu...';
+document.getElementById('pwTitle').textContent='🔐 Đăng nhập';document.getElementById('pwSub').innerHTML='Mật khẩu tạm đã gửi qua <strong>Email</strong><br>Vui lòng kiểm tra và nhập mật khẩu';document.getElementById('pwI').placeholder='Mật khẩu...';
 document.getElementById('pfgLink').style.display='inline-block';
-document.getElementById('pwO').classList.add('show');setTimeout(()=>document.getElementById('pwI').focus(),80);
-}else{sv();document.getElementById('emO').classList.remove('show');toast('Đã lưu email!','ok');loginAs(pendL);}}
+document.getElementById('pwO').classList.add('show');setTimeout(()=>document.getElementById('pwI').focus(),80);}
 function skipEm(){document.getElementById('emO').classList.remove('show');loginAs(pendL);}
 function sPw(){const pw=document.getElementById('pwI').value;if(!pw){document.getElementById('pwE').textContent='❌ Vui lòng nhập mật khẩu';document.getElementById('pwE').style.display='block';return;}
 if(pw===S.passwords[pendL]){document.getElementById('pwO').classList.remove('show');loginAs(pendL);}
