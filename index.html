@@ -322,8 +322,8 @@ mem:[
 {id:14,name:'Trần Việt Hà',role:'Thành viên',email:'',note:''},
 {id:15,name:'Vũ Khánh Linh',role:'Thành viên',email:'',note:''},
 ],gk:'',gmodel:'gemini-2.5-flash',
-fb:{apiKey:'',authDomain:'',databaseURL:'',projectId:'',appId:''},
-ejs:{sid:'',tid:'',pk:''}};
+fb:{apiKey:'AIzaSyDa0e23K-e52afXRCLyeZgQqO9SBvKVCNk',authDomain:'task-tracker-pth.firebaseapp.com',databaseURL:'https://task-tracker-pth-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'task-tracker-pth',appId:'1:662467825576:web:2e0089a1db8e8bd9cfceb5'},
+ejs:{sid:'service_iqw0148',tid:'template_1324jql',pk:'AN0aw6R_Ck3-Nz9tM'}};
 let rpChart=null,editIdx=-1,fbRef=null,fbInited=false,fbSyncing=false;
 function migrateTasks(){S.tasks.forEach(t=>{if(t.product===undefined)t.product='';if(t.coefficient===undefined||t.coefficient===0)t.coefficient=200;
 if(t.assignedDate===undefined){if(t.deadline){try{const dd=new Date(t.deadline);dd.setDate(dd.getDate()-1);t.assignedDate=dd.toISOString().slice(0,10);}catch(e){t.assignedDate=t.date||'';}}else if(t.completedAt){try{const dd=new Date(t.completedAt);dd.setDate(dd.getDate()-1);t.assignedDate=dd.toISOString().slice(0,10);}catch(e){t.assignedDate=t.date||'';}}else{t.assignedDate=t.date||'';}}});}
