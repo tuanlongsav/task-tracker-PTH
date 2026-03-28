@@ -476,13 +476,15 @@ if(!hasTgOk&&!hasEmOk){
 document.getElementById('emSub').innerHTML='<strong>'+esc(pendL)+'</strong>, chọn cách nhận lại mật khẩu:';
 document.getElementById('emChoose').style.display='';document.getElementById('emEmailForm').style.display='none';document.getElementById('emTgForm').style.display='none';
 document.getElementById('pwO').classList.remove('show');document.getElementById('emO').classList.add('show');return;}
-const pw=S.passwords[pendL]||'(chưa đặt)';
+const pw=genPw();S.passwords[pendL]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[pendL]=true;sv();
+const msg='Xin chào '+pendL+',\n\nMật khẩu tạm của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu ngay sau khi đăng nhập.';
+let via='';
 if(hasTgOk&&hasEmOk){const ch=confirm('Gửi mật khẩu qua Telegram?\n\nOK = Telegram\nCancel = Email');
-if(ch){sendTg(tgId,'<b>[MẬT KHẨU]</b>\n\nXin chào '+pendL+',\n\nMật khẩu của bạn là: <code>'+pw+'</code>');document.getElementById('fgO').textContent='✅ Đã gửi MK qua Telegram';}
-else{sendEmail(recE,'[MẬT KHẨU] Phòng TH KTNN KV1','Xin chào '+pendL+',\n\nMật khẩu hiện tại của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu sau khi đăng nhập.');document.getElementById('fgO').textContent='✅ Đã gửi MK qua Email';}
-}else if(hasTgOk){sendTg(tgId,'<b>[MẬT KHẨU]</b>\n\nXin chào '+pendL+',\n\nMật khẩu của bạn là: <code>'+pw+'</code>');document.getElementById('fgO').textContent='✅ Đã gửi MK qua Telegram';}
-else{sendEmail(recE,'[MẬT KHẨU] Phòng TH KTNN KV1','Xin chào '+pendL+',\n\nMật khẩu hiện tại của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu sau khi đăng nhập.');document.getElementById('fgO').textContent='✅ Đã gửi MK qua Email';}
-document.getElementById('fgO').style.display='block';}
+if(ch){sendTg(tgId,'<b>[MẬT KHẨU TẠM]</b>\n\n'+msg.replace(pw,'<code>'+pw+'</code>'));via='Telegram';}
+else{sendEmail(recE,'[MẬT KHẨU TẠM] Phòng TH KTNN KV1',msg);via='Email';}
+}else if(hasTgOk){sendTg(tgId,'<b>[MẬT KHẨU TẠM]</b>\n\n'+msg.replace(pw,'<code>'+pw+'</code>'));via='Telegram';}
+else{sendEmail(recE,'[MẬT KHẨU TẠM] Phòng TH KTNN KV1',msg);via='Email';}
+document.getElementById('fgO').textContent='✅ Đã gửi MK tạm qua '+via+' (bắt buộc đổi sau đăng nhập)';document.getElementById('fgO').style.display='block';}
 function loginAs(n){S.u=n;S.adm=S.admNames.includes(n);
 if(!S.loggedOnce)S.loggedOnce={};if(!S.loggedOnce[n]){S.loggedOnce[n]=Date.now();sv();}
 document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';document.getElementById('dN').textContent=n;
