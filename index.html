@@ -415,24 +415,18 @@ return`<div class="ddi" onclick="pickM('${esc(x.name).replace(/'/g,"\\'")}')">${
 document.addEventListener('click',e=>{if(!e.target.closest('.swrap'))document.getElementById('ndd').classList.remove('show');});
 function genPw(){const c='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';let p='';for(let i=0;i<8;i++)p+=c[Math.floor(Math.random()*c.length)];return p;}
 function pickM(n){document.getElementById('ndd').classList.remove('show');document.getElementById('ns').value=n;pendL=n;
-const hasPw=S.passwords[n];
-const mem=S.mem.find(x=>x.name===n);const hasEmail=!!(S.recEmails[n]||mem?.email);
-// Lần đầu: chưa có MK VÀ chưa có email/tg → chọn cách nhận MK
-const hasTg=!!(S.tgChats&&S.tgChats[n]);
-if(!hasPw&&!hasEmail&&!hasTg){
-document.getElementById('emSub').innerHTML='Lần đầu đăng nhập cho <strong>'+esc(n)+'</strong><br>Chọn cách nhận mật khẩu:';
-document.getElementById('emChoose').style.display='';document.getElementById('emEmailForm').style.display='none';document.getElementById('emTgForm').style.display='none';
-document.getElementById('emO').classList.add('show');return;}
-// Lần đầu: chưa có MK nhưng đã có email/tg → tự tạo MK gửi
-if(!hasPw&&(hasEmail||hasTg)){
-const pw=genPw();S.passwords[n]=pw;sv();
-notifyUser(n,'[MẬT KHẨU MỚI] Phòng TH KTNN KV1','Xin chào '+n+',\n\nMật khẩu đăng nhập của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu sau khi đăng nhập.');
-toast('Đã tạo MK và gửi qua '+(hasTg&&S.tgBot?'Telegram':'Email'),'ok');}
-// Đã có MK → hiện form đăng nhập
+let hasPw=S.passwords[n];
+const mem=S.mem.find(x=>x.name===n);
+// Lần đầu: chưa có MK → gán MK mặc định tạm thời
+if(!hasPw){S.passwords[n]='123456@';if(!S.tempPw)S.tempPw={};S.tempPw[n]=true;sv();hasPw=true;}
+// Hiện form đăng nhập
 document.getElementById('pwI').value='';document.getElementById('pwE').style.display='none';document.getElementById('fgO').style.display='none';
-document.getElementById('pwTitle').textContent='🔐 Đăng nhập';document.getElementById('pwSub').innerHTML='Nhập mật khẩu cho <strong>'+esc(n)+'</strong>';document.getElementById('pwI').placeholder='Mật khẩu...';
-const recE=S.recEmails[n]||mem?.email;
-document.getElementById('pfgLink').style.display=recE?'inline-block':'none';
+const isFirst=S.tempPw&&S.tempPw[n]&&S.passwords[n]==='123456@';
+document.getElementById('pwTitle').textContent='🔐 Đăng nhập';
+document.getElementById('pwSub').innerHTML=isFirst?'Lần đầu đăng nhập cho <strong>'+esc(n)+'</strong><br>Mật khẩu mặc định: <code style="background:var(--c3);padding:2px 8px;border-radius:4px;font-size:15px;letter-spacing:1px">123456@</code><br><span style="font-size:10px;color:var(--t3)">Bắt buộc đổi MK sau khi đăng nhập</span>':'Nhập mật khẩu cho <strong>'+esc(n)+'</strong>';
+document.getElementById('pwI').placeholder='Mật khẩu...';
+const recE=S.recEmails[n]||mem?.email;const hasTg=!!(S.tgChats&&S.tgChats[n]);
+document.getElementById('pfgLink').style.display='inline-block';
 document.getElementById('pwO').classList.add('show');setTimeout(()=>document.getElementById('pwI').focus(),80);}
 function needEmail(n){const mem=S.mem.find(x=>x.name===n);return!mem?.email&&!S.recEmails[n];}
 function showEmMethod(method){document.getElementById('emChoose').style.display='none';
