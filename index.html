@@ -402,11 +402,26 @@ Object.assign(S,d,keep);
 Object.keys(localPw).forEach(k=>{if(!(S.tempPw&&S.tempPw[k])){S.passwords[k]=localPw[k];}});
 migrateTasks();try{localStorage.setItem('tt7',JSON.stringify(cleanForSave()));}catch(e){}if(S.u)rAll();}}).catch(e=>console.warn('[Firebase] Tải lần đầu lỗi:',e));}}
 function sv(){const clean=cleanForSave();try{localStorage.setItem('tt7',JSON.stringify(clean));}catch(e){}}
-function checkDupes(name,leader){const n=(name||'').toLowerCase();const l=(leader||'').toLowerCase();
-const dupes=S.tasks.filter(t=>{const tn=(t.name||'').toLowerCase();return tn.includes(n.substring(0,20))||(l&&(t.leader||'').toLowerCase()===l&&tn.includes(n.substring(0,15)));});
+function checkDupes(name,leader,collabs){const n=(name||'').toLowerCase();const l=(leader||'').toLowerCase();const cs=(collabs||[]).map(c=>c.toLowerCase());
+// Tách từ khoá từ nội dung CV mới (bỏ từ ngắn <3 ký tự)
+const stopWords=['và','của','cho','các','với','theo','về','trong','được','này','đã','có','không','từ','đến','việc','công'];
+const words=n.split(/[\s,;.\/\-()]+/).filter(w=>w.length>=3&&!stopWords.includes(w));
+const dupes=S.tasks.filter(t=>{const tn=(t.name||'').toLowerCase();
+// Kiểm tra nội dung: đếm từ khoá trùng
+const matchCount=words.filter(w=>tn.includes(w)).length;
+const nameMatch=words.length>0&&matchCount>=Math.ceil(words.length*0.5);
+// Kiểm tra cùng người phụ trách
+const leaderMatch=l&&(t.leader||'').toLowerCase()===l;
+// Kiểm tra người phối hợp trùng
+const tcs=(t.collaborators||[]).map(c=>c.toLowerCase());
+const collabMatch=cs.length&&cs.some(c=>tcs.includes(c));
+// Trùng nội dung HOẶC (cùng leader + nội dung gần giống)
+return nameMatch||(leaderMatch&&matchCount>=Math.ceil(words.length*0.3));});
 if(!dupes.length)return true;
-const list=dupes.map(t=>'  #'+(S.tasks.indexOf(t)+1)+': '+t.name.substring(0,50)+' ('+t.leader+')').join('\n');
-return confirm('⚠️ Phát hiện CV có thể trùng:\n\n'+list+'\n\nCV mới: '+name.substring(0,50)+' ('+leader+')\n\nVẫn muốn thêm?');}
+const list=dupes.map(t=>{const gi=S.tasks.indexOf(t)+1;const cls=(t.collaborators||[]).join(', ');
+return'  CV #'+gi+':\n    Nội dung: '+t.name+'\n    Phụ trách: '+(t.leader||'--')+'\n    Phối hợp: '+(cls||'--');}).join('\n\n');
+const newCls=(collabs||[]).join(', ');
+return confirm('⚠️ Phát hiện CV có thể trùng lặp!\n\n--- CV đã có ---\n'+list+'\n\n--- CV mới ---\n  Nội dung: '+name+'\n  Phụ trách: '+(leader||'--')+'\n  Phối hợp: '+(newCls||'--')+'\n\nVẫn muốn thêm?');}
 function _fbW(path,data){if(!fbRef)return;fbSyncing=true;const ref=path?fbRef.child(path):fbRef;ref.set(data).then(()=>{fbSyncing=false;}).catch(e=>{fbSyncing=false;console.error('[Firebase] Lỗi:',path,e);});}
 function _cleanTask(t){const c=JSON.parse(JSON.stringify(t));delete c._warned12;delete c._warned2;delete c._overWarn;return c;}
 function fbSaveTask(i){if(i>=0&&i<S.tasks.length)_fbW('tasks/'+i,_cleanTask(S.tasks[i]));}
@@ -608,9 +623,9 @@ document.getElementById('eC').innerHTML=sorted.map(n=>`<label style="display:fle
 function mAdd(){const name=document.getElementById('mi_n').value.trim();if(!name){toast('Nhập nội dung','er');return;}
 const l=document.getElementById('mi_l').value,cs=getChecked('mi_c'),dl=document.getElementById('mi_d').value?.replace('T',' ')||'',st=document.getElementById('mi_s').value,no=document.getElementById('mi_no').value.trim();
 const pr=document.getElementById('mi_pr').value.trim(),cf=parseFloat(document.getElementById('mi_cf').value)||200,ad=document.getElementById('mi_ad').value||new Date().toISOString().slice(0,10);
-if(!S.adm){if(!checkDupes(name,l)){toast('Đã huỷ do nghi trùng','wn');return;}
+if(!S.adm){if(!checkDupes(name,l,cs)){toast('Đã huỷ do nghi trùng','wn');return;}
 S.pend.push({id:Date.now(),from:S.u,cmd:'[Thủ công] '+name,parsed:{action:'add_task',data:{name,leader:l,collaborators:cs,deadline:dl,notes:no,product:pr,coefficient:cf,assignedDate:ad}},time:new Date().toISOString()});sv();fbSavePend();rPend();uSt();toast('Gửi chờ duyệt','ok');return;}
-if(!checkDupes(name,l)){toast('Đã huỷ do nghi trùng','wn');return;}
+if(!checkDupes(name,l,cs)){toast('Đã huỷ do nghi trùng','wn');return;}
 S.tasks.push({id:Date.now(),name,leader:l,collaborators:cs,date:new Date().toISOString().slice(0,10),deadline:dl,status:st,completedAt:st==='done'?new Date().toISOString():'',notes:no,product:pr,coefficient:cf,assignedDate:ad});sv();fbSaveTasks();rAll();toast('CV #'+S.tasks.length+' đã thêm!','ok');
 ['mi_n','mi_no','mi_pr'].forEach(i=>document.getElementById(i).value='');document.getElementById('mi_d').value='';document.getElementById('mi_cf').value='';document.getElementById('mi_ad').value='';}
 // Edit
@@ -682,7 +697,7 @@ btn.disabled=false;txt.textContent='Gửi ✨';inp.value='';}
 async function doClr(n,o){const rd=document.getElementById('aR');rd.innerHTML='<div class="am inf">🤖 Xử lý...</div>';
 try{const res=await callG(o+'\nTên="'+n+'".');if(S.adm)exec(res,o,rd);else{S.pend.push({id:Date.now(),from:S.u,cmd:o+' [→'+n+']',parsed:res,time:new Date().toISOString()});sv();fbSavePend();rPend();uSt();rd.innerHTML='<div class="am pn">⏳ Chờ duyệt</div>';}}catch(e){rd.innerHTML='<div class="am er">❌ '+esc(e.message)+'</div>';}}
 function exec(res,cmd,rd){switch(res.action){
-case'add_task':{const d=res.data;if(!checkDupes(d.name||cmd,d.leader||'')){rd.innerHTML='<div class="am wn">⏸️ Đã huỷ - nghi trùng lặp</div>';break;}
+case'add_task':{const d=res.data;if(!checkDupes(d.name||cmd,d.leader||'',d.collaborators||[])){rd.innerHTML='<div class="am wn">⏸️ Đã huỷ - nghi trùng lặp</div>';break;}
 const isDone=d.status==='done';S.tasks.push({id:Date.now(),name:d.name||cmd,leader:d.leader||'',collaborators:d.collaborators||[],date:new Date().toISOString().slice(0,10),assignedDate:d.assignedDate||new Date().toISOString().slice(0,10),deadline:d.deadline||'',status:isDone?'done':'doing',completedAt:isDone?new Date().toISOString():'',notes:d.notes||'',product:d.product||'',coefficient:d.coefficient||200});sv();fbSaveTasks();rAll();const n=S.tasks.length;const stLabel=isDone?' (Hoàn thành)':' (Đang thực hiện)';rd.innerHTML='<div class="am ok">✅ CV #'+n+' đã thêm!'+stLabel+'<br>'+esc(d.name||cmd)+'</div>';toast('CV #'+n+' thêm!','ok');break;}
 case'complete_task':{const i=(res.data.taskIndex||1)-1;if(i>=0&&i<S.tasks.length){S.tasks[i].status='done';S.tasks[i].completedAt=new Date().toISOString();sv();fbSaveTask(i);rAll();rd.innerHTML='<div class="am ok">✅ CV #'+(i+1)+' Xong!</div>';toast('CV #'+(i+1)+' xong!','ok');}else rd.innerHTML='<div class="am er">❌ Không có CV</div>';break;}
 case'update_deadline':{const i=(res.data.taskIndex||1)-1;if(i>=0&&i<S.tasks.length){S.tasks[i].deadline=res.data.newDeadline;if(S.tasks[i].status==='overdue')S.tasks[i].status='doing';sv();fbSaveTask(i);rAll();rd.innerHTML='<div class="am ok">✅ Đổi hạn CV #'+(i+1)+'</div>';toast('Đổi hạn','ok');}else rd.innerHTML='<div class="am er">❌ Không có CV</div>';break;}
@@ -793,7 +808,7 @@ rd.innerHTML='<div class="am ok">✅ Đã duyệt sửa CV #'+d.taskIndex+'</div
 if(ti>=0&&ti<S.tasks.length){const name=S.tasks[ti].name;S.tasks.splice(ti,1);rd.innerHTML='<div class="am ok">✅ Đã duyệt xoá CV #'+(ti+1)+': '+esc(name.substring(0,40))+'</div>';log('[🗑️] Duyệt xoá CV #'+(ti+1)+': '+name.substring(0,40));}
 else{rd.innerHTML='<div class="am er">❌ CV không tồn tại</div>';}
 }else if(r.parsed.action==='add_task'){
-const d=r.parsed.data;if(!checkDupes(d.name||r.cmd,d.leader||'')){rd.innerHTML='<div class="am wn">⏸️ Đã huỷ - nghi trùng lặp</div>';return;}
+const d=r.parsed.data;if(!checkDupes(d.name||r.cmd,d.leader||'',d.collaborators||[])){rd.innerHTML='<div class="am wn">⏸️ Đã huỷ - nghi trùng lặp</div>';return;}
 exec(r.parsed,r.cmd,rd);
 }else{exec(r.parsed,r.cmd,rd);}
 S.pend.splice(i,1);sv();fbSavePend();
