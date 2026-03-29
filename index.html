@@ -486,8 +486,10 @@ const words=n.split(/[\s,;.\/\-()]+/).filter(w=>w.length>=2&&!stopWords.includes
 if(!words.length)return true;
 // Tách riêng số/mã (quan trọng để phân biệt VB khác nhau)
 const nums=words.filter(w=>/\d/.test(w));const textWords=words.filter(w=>!/\d/.test(w));
-// Chỉ so sánh với CV chưa hoàn thành (doing/overdue)
-const activeTasks=S.tasks.filter(t=>t.status!=='done');
+// So sánh với CV đang làm/quá hạn + CV hoàn thành trong 1 tháng gần đây
+const oneMonthAgo=new Date();oneMonthAgo.setMonth(oneMonthAgo.getMonth()-1);
+const activeTasks=S.tasks.filter(t=>{if(t.status!=='done')return true;
+const ca=t.completedAt?new Date(t.completedAt):null;return ca&&ca>=oneMonthAgo;});
 const dupes=activeTasks.filter(t=>{const tn=(t.name||'').toLowerCase();
 // Đếm từ text trùng
 const textMatch=textWords.length?textWords.filter(w=>tn.includes(w)).length:0;
@@ -506,7 +508,7 @@ if(textRate>=0.7)return true;
 if(sameLeader&&textRate>=0.6)return true;
 return false;});
 if(!dupes.length)return true;
-const list=dupes.map(t=>{const gi=S.tasks.indexOf(t)+1;const cls=(t.collaborators||[]).join(', ');const st=t.status==='overdue'?'⚠️ Quá hạn':'🔄 Đang làm';
+const list=dupes.map(t=>{const gi=S.tasks.indexOf(t)+1;const cls=(t.collaborators||[]).join(', ');const st=t.status==='done'?'✅ Đã HT':t.status==='overdue'?'⚠️ Quá hạn':'🔄 Đang làm';
 return'  CV #'+gi+' ['+st+']:\n    Nội dung: '+t.name+'\n    Phụ trách: '+(t.leader||'--')+'\n    Phối hợp: '+(cls||'--');}).join('\n\n');
 const newCls=(collabs||[]).join(', ');
 return confirm('⚠️ Phát hiện '+dupes.length+' CV có thể trùng lặp!\n\n--- CV đã có ---\n'+list+'\n\n--- CV mới ---\n  Nội dung: '+name+'\n  Phụ trách: '+(leader||'--')+'\n  Phối hợp: '+(newCls||'--')+'\n\nVẫn muốn thêm?');}
