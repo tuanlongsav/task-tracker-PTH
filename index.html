@@ -366,7 +366,7 @@ let rpChart=null,editIdx=-1,fbRef=null,fbInited=false,fbSyncing=false;
 function migrateTasks(){S.tasks.forEach(t=>{if(t.product===undefined)t.product='';if(t.coefficient===undefined||t.coefficient===0)t.coefficient=200;
 if(t.assignedDate===undefined){if(t.deadline){try{const dd=new Date(t.deadline);dd.setDate(dd.getDate()-1);t.assignedDate=dd.toISOString().slice(0,10);}catch(e){t.assignedDate=t.date||'';}}else if(t.completedAt){try{const dd=new Date(t.completedAt);dd.setDate(dd.getDate()-1);t.assignedDate=dd.toISOString().slice(0,10);}catch(e){t.assignedDate=t.date||'';}}else{t.assignedDate=t.date||'';}}});}
 function cleanForSave(){const{u,adm,...r}=S;const clean=JSON.parse(JSON.stringify(r));if(clean.tasks)clean.tasks.forEach(t=>{delete t._warned;delete t._overWarn;});return clean;}
-function cleanForFirebase(){const c=cleanForSave();delete c.fb;delete c.ejs;delete c.recEmails;
+function cleanForFirebase(){const c=cleanForSave();delete c.fb;delete c.ejs;
 if(c.passwords&&c.tempPw&&Object.keys(c.tempPw).length){const temp={};Object.keys(c.tempPw).forEach(k=>{if(c.passwords[k])temp[k]=c.passwords[k];});c.passwords=Object.keys(temp).length?temp:null;}else{delete c.passwords;}
 if(c.tempPw&&!Object.keys(c.tempPw).length)delete c.tempPw;
 return c;}
@@ -377,7 +377,7 @@ try{const app=firebase.initializeApp({apiKey:c.apiKey,authDomain:c.authDomain||'
 fbRef=firebase.database().ref('appData');fbInited=true;
 // Realtime listener
 fbRef.on('value',snap=>{if(fbSyncing)return;const d=snap.val();if(d){
-const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs,recEmails:S.recEmails};if(S.gk)keep.gk=S.gk;if(S.gmodel)keep.gmodel=S.gmodel;
+const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs};if(S.gk)keep.gk=S.gk;if(S.gmodel)keep.gmodel=S.gmodel;if(S.recEmails&&Object.keys(S.recEmails).length)keep.recEmails=S.recEmails;
 Object.assign(S,d,keep);migrateTasks();
 if(S.u){rAll();}
 console.log('[Firebase] Đồng bộ dữ liệu (không ghi đè dữ liệu nhạy cảm)');}});
@@ -392,7 +392,7 @@ migrateTasks();emailjs.init(S.ejs.pk);
 // Kết nối Firebase nếu có config
 initFb();
 // Nếu có Firebase, tải dữ liệu 1 lần
-if(fbRef){fbRef.once('value').then(snap=>{const d=snap.val();if(d){const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs,recEmails:S.recEmails};if(S.gk)keep.gk=S.gk;if(S.gmodel)keep.gmodel=S.gmodel;Object.assign(S,d,keep);migrateTasks();if(S.u)rAll();}}).catch(e=>console.warn('[Firebase] Tải lần đầu lỗi:',e));}}
+if(fbRef){fbRef.once('value').then(snap=>{const d=snap.val();if(d){const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs};if(S.gk)keep.gk=S.gk;if(S.gmodel)keep.gmodel=S.gmodel;if(S.recEmails&&Object.keys(S.recEmails).length)keep.recEmails=S.recEmails;Object.assign(S,d,keep);migrateTasks();if(S.u)rAll();}}).catch(e=>console.warn('[Firebase] Tải lần đầu lỗi:',e));}}
 function sv(){const clean=cleanForSave();
 // Luôn lưu localStorage đầy đủ (bao gồm passwords, gk, fb...)
 try{localStorage.setItem('tt7',JSON.stringify(clean));}catch(e){}
