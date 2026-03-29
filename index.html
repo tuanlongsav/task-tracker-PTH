@@ -314,6 +314,10 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <select id="sumMode" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="quarter">Theo quý</option><option value="week">Theo tuần</option><option value="month">Theo tháng</option><option value="year">Theo năm</option></select>
 <select id="sumQ" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="1">Q1</option><option value="2">Q2</option><option value="3">Q3</option><option value="4">Q4</option></select>
 <select id="sumY" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"></select>
+<input type="week" id="sumWeek" onchange="rSummary()" style="display:none;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"/>
+<input type="month" id="sumMonth" onchange="rSummary()" style="display:none;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"/>
+<select id="sumYearOnly" onchange="rSummary()" style="display:none;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"></select>
+<span id="sumRangeLabel" style="font-size:11px;color:var(--t3);font-style:italic"></span>
 <select id="sumSort" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="score">Sắp xếp: HT đạt CL quy đổi</option><option value="total">Sắp xếp: SL CV được giao</option></select>
 <select id="sumTpMode" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="dept">Trưởng phòng: gồm cả theo phòng</option><option value="personal">Trưởng phòng: theo CV xử lý riêng</option></select>
 </div>
@@ -964,16 +968,44 @@ function toast(m,t){document.querySelectorAll('.toast').forEach(x=>x.remove());c
 function syncFilter(src){const v=document.getElementById(src).value;if(src==='rpPr')document.getElementById('fP').value=v;else document.getElementById('rpPr').value=v;}
 function sRptTab(id){document.querySelectorAll('.rptPane').forEach(p=>p.style.display='none');document.getElementById(id).style.display='block';document.querySelectorAll('[data-rt]').forEach(b=>b.classList.toggle('on',b.dataset.rt===id));if(id==='rptMem')rSummary();}
 // Summary table
-function initSummary(){const y=new Date().getFullYear();document.getElementById('sumY').innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>';document.getElementById('sumQ').value=Math.ceil((new Date().getMonth()+1)/3);rSummary();}
+function initSummary(){const now=new Date(),y=now.getFullYear(),m=now.getMonth();
+document.getElementById('sumY').innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>';
+document.getElementById('sumQ').value=Math.ceil((m+1)/3);
+// Week input: current week
+const d=new Date(y,m,now.getDate());const day=d.getDay()||7;
+d.setDate(d.getDate()+4-day);const yr=d.getFullYear();
+const wk=Math.ceil((((d-new Date(yr,0,1))/864e5)+1)/7);
+document.getElementById('sumWeek').value=yr+'-W'+p2(wk);
+// Month input
+document.getElementById('sumMonth').value=y+'-'+p2(m+1);
+// Year only dropdown
+document.getElementById('sumYearOnly').innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option><option value="'+(y-2)+'">'+(y-2)+'</option>';
+rSummary();}
 function getSumRange(){const mode=document.getElementById('sumMode').value;
 if(mode==='quarter'){const q=+document.getElementById('sumQ').value,y=+document.getElementById('sumY').value;return getQRange(q,y);}
-const now=new Date(),y=now.getFullYear(),m=now.getMonth(),d=now.getDate(),dow=now.getDay()||7;
-if(mode==='week'){const mon=new Date(y,m,d-dow+1);return{from:mon,to:new Date(y,m,d-dow+7,23,59,59)};}
-if(mode==='month')return{from:new Date(y,m,1),to:new Date(y,m+1,0,23,59,59)};
-return{from:new Date(y,0,1),to:new Date(y,11,31,23,59,59)};}
-function rSummary(){const{from,to}=getSumRange();const sortBy=document.getElementById('sumSort').value;
-document.getElementById('sumQ').style.display=document.getElementById('sumMode').value==='quarter'?'':'none';
-document.getElementById('sumY').style.display=document.getElementById('sumMode').value==='quarter'?'':'none';
+if(mode==='week'){const wv=document.getElementById('sumWeek').value;
+if(wv){const[yw,wn]=wv.split('-W').map(Number);
+const jan4=new Date(yw,0,4);const mon=new Date(jan4);mon.setDate(jan4.getDate()-(jan4.getDay()||7)+1+(wn-1)*7);
+return{from:mon,to:new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+6,23,59,59)};}
+const now=new Date(),dow=now.getDay()||7;const mon=new Date(now.getFullYear(),now.getMonth(),now.getDate()-dow+1);
+return{from:mon,to:new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+6,23,59,59)};}
+if(mode==='month'){const mv=document.getElementById('sumMonth').value;
+if(mv){const[ym,mm]=mv.split('-').map(Number);return{from:new Date(ym,mm-1,1),to:new Date(ym,mm,0,23,59,59)};}
+const now=new Date();return{from:new Date(now.getFullYear(),now.getMonth(),1),to:new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59)};}
+const yv=+document.getElementById('sumYearOnly').value||new Date().getFullYear();
+return{from:new Date(yv,0,1),to:new Date(yv,11,31,23,59,59)};}
+function rSummary(){const mode=document.getElementById('sumMode').value;
+document.getElementById('sumQ').style.display=mode==='quarter'?'':'none';
+document.getElementById('sumY').style.display=mode==='quarter'?'':'none';
+document.getElementById('sumWeek').style.display=mode==='week'?'':'none';
+document.getElementById('sumMonth').style.display=mode==='month'?'':'none';
+document.getElementById('sumYearOnly').style.display=mode==='year'?'':'none';
+const{from,to}=getSumRange();const sortBy=document.getElementById('sumSort').value;
+// Range label
+const lbl=document.getElementById('sumRangeLabel');
+if(lbl){const f=p2(from.getDate())+'/'+p2(from.getMonth()+1)+'/'+from.getFullYear();
+const t=p2(to.getDate())+'/'+p2(to.getMonth()+1)+'/'+to.getFullYear();
+lbl.textContent='('+f+' → '+t+')';}
 const tpMode=document.getElementById('sumTpMode').value;
 const rows=S.mem.map(m=>{const tasks=getPersonTasks(m.name,from,to,m.role==='Trưởng phòng'?tpMode:undefined);
 const tot=tasks.length,dg=tasks.filter(t=>t.status==='doing').length,ov=tasks.filter(t=>t.status==='overdue').length;
