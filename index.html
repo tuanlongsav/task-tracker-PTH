@@ -422,8 +422,19 @@ const mem=S.mem.find(x=>x.name===n);
 const everLogged=S.loggedOnce&&S.loggedOnce[n];
 // Lần đầu thực sự: chưa từng đăng nhập (theo Firebase) → gán MK mặc định
 if(!hasPw&&!everLogged){S.passwords[n]='123456@';if(!S.tempPw)S.tempPw={};S.tempPw[n]=true;sv();hasPw=true;}
-// Máy mới nhưng đã từng đăng nhập → không tạo MK tạm, yêu cầu quên MK
+// Máy mới nhưng đã từng đăng nhập → tạo MK tạm gửi tự động nếu có thông tin liên hệ
 if(!hasPw&&everLogged){
+const tgId=getPersonTgId(n);const hasTgOk=tgId&&S.tgBot;const recE=S.recEmails[n]||mem?.email;
+if(hasTgOk||recE){const pw=genPw();S.passwords[n]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[n]=true;sv();hasPw=true;
+const via=hasTgOk?'Telegram':'Email';
+if(hasTgOk){sendTg(tgId,'<b>[MẬT KHẨU TẠM]</b>\n\nXin chào '+n+',\n\nĐăng nhập máy mới.\nMật khẩu tạm: <code>'+pw+'</code>\n\nVui lòng đổi MK ngay sau khi đăng nhập.');}
+else{sendEmail(recE,'[MẬT KHẨU TẠM] Phòng TH KTNN KV1','Xin chào '+n+',\n\nĐăng nhập máy mới.\nMật khẩu tạm của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu ngay sau khi đăng nhập.');}
+document.getElementById('pwI').value='';document.getElementById('pwE').style.display='none';document.getElementById('fgO').style.display='none';
+document.getElementById('pwTitle').textContent='🔐 Đăng nhập';
+document.getElementById('pwSub').innerHTML='<strong>'+esc(n)+'</strong><br><span style="font-size:11px;color:var(--green)">MK tạm đã gửi qua '+via+'. Kiểm tra và nhập mật khẩu.</span>';
+document.getElementById('pwI').placeholder='Mật khẩu...';document.getElementById('pfgLink').style.display='inline-block';
+document.getElementById('pwO').classList.add('show');setTimeout(()=>document.getElementById('pwI').focus(),80);return;}
+// Không có thông tin liên hệ → yêu cầu quên MK để nhập mới
 document.getElementById('pwI').value='';document.getElementById('pwE').style.display='none';document.getElementById('fgO').style.display='none';
 document.getElementById('pwTitle').textContent='🔐 Đăng nhập';
 document.getElementById('pwSub').innerHTML='<strong>'+esc(n)+'</strong><br><span style="font-size:11px;color:var(--amber)">Máy mới - vui lòng nhấn "Quên mật khẩu?" để nhận lại MK</span>';
@@ -469,7 +480,16 @@ else{document.getElementById('pwE').textContent='❌ Sai mật khẩu';document.
 function cPw(){document.getElementById('pwO').classList.remove('show');pendL=null;}
 function fgPw(){if(!pendL)return;const tgId=getPersonTgId(pendL);const mem=S.mem.find(x=>x.name===pendL);const recE=S.recEmails[pendL]||mem?.email;
 const hasTgOk=tgId&&S.tgBot;const hasEmOk=!!recE;
-// Luôn cho chọn cách nhận MK
+// Đã có thông tin liên hệ → tạo MK tạm và gửi ngay
+if(hasTgOk||hasEmOk){const pw=genPw();S.passwords[pendL]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[pendL]=true;sv();
+let via='';
+if(hasTgOk&&hasEmOk){const ch=confirm('Gửi mật khẩu qua Telegram?\n\nOK = Telegram\nCancel = Email');
+if(ch){sendTg(tgId,'<b>[MẬT KHẨU TẠM]</b>\n\nXin chào '+pendL+',\n\nMật khẩu tạm: <code>'+pw+'</code>\n\nVui lòng đổi MK ngay sau khi đăng nhập.');via='Telegram';}
+else{sendEmail(recE,'[MẬT KHẨU TẠM] Phòng TH KTNN KV1','Xin chào '+pendL+',\n\nMật khẩu tạm của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu ngay sau khi đăng nhập.');via='Email';}
+}else if(hasTgOk){sendTg(tgId,'<b>[MẬT KHẨU TẠM]</b>\n\nXin chào '+pendL+',\n\nMật khẩu tạm: <code>'+pw+'</code>\n\nVui lòng đổi MK ngay sau khi đăng nhập.');via='Telegram';}
+else{sendEmail(recE,'[MẬT KHẨU TẠM] Phòng TH KTNN KV1','Xin chào '+pendL+',\n\nMật khẩu tạm của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu ngay sau khi đăng nhập.');via='Email';}
+document.getElementById('fgO').textContent='✅ Đã gửi MK tạm qua '+via;document.getElementById('fgO').style.display='block';return;}
+// Chưa có thông tin liên hệ → cho nhập mới
 document.getElementById('emSub').innerHTML='<strong>'+esc(pendL)+'</strong>, chọn cách nhận lại mật khẩu:';
 document.getElementById('emChoose').style.display='';document.getElementById('emEmailForm').style.display='none';document.getElementById('emTgForm').style.display='none';
 document.getElementById('pwO').classList.remove('show');document.getElementById('emO').classList.add('show');}
