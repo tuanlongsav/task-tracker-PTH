@@ -1026,5 +1026,5 @@ sorted.forEach((m,i)=>{setTimeout(()=>{if(doExport(m.name))count++;if(i===sorted
 else{if(doExport(pr))toast('Đã xuất báo cáo cho '+pr,'ok');else toast('Không có công việc trong quý này','wn');}}
 function rAll(){rTasks();rRpt();uSt();rPend();initExport();}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&document.activeElement===document.getElementById('cmdIn')){e.preventDefault();handleCmd();}});
-ld();chkDL();
+ld();setTimeout(chkDL,3000);
 </script></body></html>
