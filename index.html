@@ -378,9 +378,14 @@ fbRef=firebase.database().ref('appData');fbInited=true;
 // Realtime listener
 fbRef.on('value',snap=>{if(fbSyncing)return;const d=snap.val();if(d){
 const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs};if(S.gk)keep.gk=S.gk;if(S.gmodel)keep.gmodel=S.gmodel;if(S.recEmails&&Object.keys(S.recEmails).length)keep.recEmails=S.recEmails;
-Object.assign(S,d,keep);migrateTasks();
+// Merge tasks: Firebase tasks luôn là source of truth
+const localPw=JSON.parse(JSON.stringify(S.passwords||{}));
+Object.assign(S,d,keep);
+// Giữ passwords local (chỉ nhận tempPw từ Firebase)
+Object.keys(localPw).forEach(k=>{if(!(S.tempPw&&S.tempPw[k])){S.passwords[k]=localPw[k];}});
+migrateTasks();
 if(S.u){rAll();}
-console.log('[Firebase] Đồng bộ dữ liệu (không ghi đè dữ liệu nhạy cảm)');}});
+console.log('[Firebase] Đồng bộ dữ liệu');}});
 const st=document.getElementById('fbStatus');if(st)st.innerHTML='🟢 Đã kết nối Firebase';
 console.log('[Firebase] Khởi tạo thành công');}catch(e){console.error('[Firebase] Lỗi:',e);
 const st=document.getElementById('fbStatus');if(st)st.innerHTML='🔴 Lỗi: '+e.message;}}
@@ -393,11 +398,14 @@ migrateTasks();emailjs.init(S.ejs.pk);
 initFb();
 // Nếu có Firebase, tải dữ liệu 1 lần
 if(fbRef){fbRef.once('value').then(snap=>{const d=snap.val();if(d){const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs};if(S.gk)keep.gk=S.gk;if(S.gmodel)keep.gmodel=S.gmodel;if(S.recEmails&&Object.keys(S.recEmails).length)keep.recEmails=S.recEmails;Object.assign(S,d,keep);migrateTasks();if(S.u)rAll();}}).catch(e=>console.warn('[Firebase] Tải lần đầu lỗi:',e));}}
+let _svTimer=null;
 function sv(){const clean=cleanForSave();
-// Luôn lưu localStorage đầy đủ (bao gồm passwords, gk, fb...)
 try{localStorage.setItem('tt7',JSON.stringify(clean));}catch(e){}
-// Lưu Firebase CHỈ dữ liệu công việc (KHÔNG passwords, API keys, config)
-if(fbRef){fbSyncing=true;fbRef.set(cleanForFirebase()).then(()=>{fbSyncing=false;}).catch(e=>{fbSyncing=false;console.error('[Firebase] Lỗi lưu:',e);});}}
+// Debounce Firebase save (500ms) để tránh ghi đè liên tục
+if(_svTimer)clearTimeout(_svTimer);
+_svTimer=setTimeout(()=>{_svTimer=null;
+if(fbRef){fbSyncing=true;fbRef.set(cleanForFirebase()).then(()=>{fbSyncing=false;console.log('[Firebase] Đã lưu');}).catch(e=>{fbSyncing=false;console.error('[Firebase] Lỗi lưu:',e);});}
+},500);}
 // Email
 function sendEmail(to,subject,message){if(!to)return;
 emailjs.send(S.ejs.sid,S.ejs.tid,{to_email:to,subject:subject,message:message}).then(()=>log('[📧] →'+to+': '+subject.substring(0,40)),e=>console.error('Email err:',e));}
