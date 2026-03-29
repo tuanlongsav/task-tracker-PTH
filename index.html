@@ -405,7 +405,20 @@ function sv(){const clean=cleanForSave();try{localStorage.setItem('tt7',JSON.str
 function _fbW(path,data){if(!fbRef)return;fbSyncing=true;const ref=path?fbRef.child(path):fbRef;ref.set(data).then(()=>{fbSyncing=false;}).catch(e=>{fbSyncing=false;console.error('[Firebase] Lỗi:',path,e);});}
 function _cleanTask(t){const c=JSON.parse(JSON.stringify(t));delete c._warned12;delete c._warned2;delete c._overWarn;return c;}
 function fbSaveTask(i){if(i>=0&&i<S.tasks.length)_fbW('tasks/'+i,_cleanTask(S.tasks[i]));}
-function fbSaveTasks(){_fbW('tasks',S.tasks.map(t=>_cleanTask(t)));}
+function fbSaveTasks(){if(!fbRef)return;
+fbRef.child('tasks').once('value').then(snap=>{
+const remote=snap.val()||[];
+// Tạo map ID từ remote để phát hiện CV mới từ máy khác
+const remoteIds=new Set(remote.map(t=>t&&t.id).filter(Boolean));
+const localIds=new Set(S.tasks.map(t=>t.id));
+// CV trên Firebase mà local chưa có → thêm vào local
+const newFromRemote=remote.filter(t=>t&&t.id&&!localIds.has(t.id));
+if(newFromRemote.length){S.tasks.push(...newFromRemote);migrateTasks();
+try{localStorage.setItem('tt7',JSON.stringify(cleanForSave()));}catch(e){}
+console.log('[Firebase] Merge '+newFromRemote.length+' CV mới từ máy khác');rAll();}
+// Ghi toàn bộ tasks đã merge
+_fbW('tasks',S.tasks.map(t=>_cleanTask(t)));
+}).catch(e=>{console.error('[Firebase] Lỗi merge tasks:',e);_fbW('tasks',S.tasks.map(t=>_cleanTask(t)));});}
 function fbSavePend(){_fbW('pend',S.pend.length?S.pend:null);}
 function fbSaveMeta(key,val){_fbW(key,val);}
 function fbSaveTemps(){const tp=S.tempPw&&Object.keys(S.tempPw).length?S.tempPw:null;_fbW('tempPw',tp);
