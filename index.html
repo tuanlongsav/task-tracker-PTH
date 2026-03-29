@@ -259,6 +259,10 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 </div>
 <div style="margin-top:5px;display:flex;gap:4px;align-items:center"><span id="fbStatus" style="font-size:10px;color:var(--t3)">⚪ Chưa kết nối</span></div>
 </div>
+<div class="sx admOnly"><h3>📊 Phân quyền xuất báo cáo</h3>
+<p style="font-size:9px;color:var(--t3);margin-bottom:6px">Chọn thành viên được phép xuất báo cáo quý/năm (thay mặt admin). Admin luôn có quyền.</p>
+<div id="exportPermList" style="display:flex;flex-wrap:wrap;gap:4px;max-height:120px;overflow-y:auto;padding:6px;background:var(--inp);border:1px solid var(--b);border-radius:5px"></div>
+</div>
 <button class="btn btn-p admOnly" style="margin-top:3px" onclick="saveCfg()">💾 Lưu</button>
 </div></div>
 
@@ -317,7 +321,8 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 </div>
 <div id="exportSec" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--b)">
 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-<span style="font-size:14px;font-weight:600">📥 Xuất báo cáo quý:</span>
+<span style="font-size:14px;font-weight:600">📥 Xuất báo cáo quý / năm:</span>
+<select id="exMode" onchange="toggleExMode()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"><option value="quarter">Theo quý</option><option value="year">Theo năm</option></select>
 <select id="exQ" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select>
 <select id="exY" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"></select>
 <select id="exPr" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"></select>
@@ -923,10 +928,19 @@ function rSet(){document.getElementById('nL').innerHTML=S.ne.map((e,i)=>'<div cl
 const fb=S.fb||{};document.getElementById('fbKey').value=fb.apiKey||'';document.getElementById('fbDomain').value=fb.authDomain||'';
 document.getElementById('fbUrl').value=fb.databaseURL||'';document.getElementById('fbProject').value=fb.projectId||'';document.getElementById('fbApp').value=fb.appId||'';
 document.getElementById('fbStatus').innerHTML=fbInited?'🟢 Đã kết nối Firebase':'⚪ Chưa kết nối';
+// Export permissions
+const epList=document.getElementById('exportPermList');
+if(epList&&S.adm){const perm=S.exportPerm||[];
+epList.innerHTML=S.mem.filter(m=>!S.admNames.includes(m.name)).map(m=>{
+const chk=perm.includes(m.name)?'checked':'';
+return'<label style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:var(--c);border:1px solid var(--b);border-radius:4px;font-size:11px;cursor:pointer;white-space:nowrap"><input type="checkbox" class="expPermCb" value="'+esc(m.name)+'" '+chk+'/>'+esc(m.name)+'</label>';}).join('');}
 rMem();}
 function addNE(){const inp=document.getElementById('nNE'),e=inp.value.trim().toLowerCase();if(!e||!e.includes('@'))return;if(S.ne.includes(e))return;S.ne.push(e);inp.value='';sv();fbSaveMeta('ne',S.ne);rSet();}
 function rmNE(i){S.ne.splice(i,1);sv();fbSaveMeta('ne',S.ne);rSet();}
 function saveCfg(){S.tgBot=document.getElementById('tgBotToken').value.trim();S.tgGroup=document.getElementById('tgGroupId').value.trim();S.gk=document.getElementById('gK').value.trim();S.gmodel=document.getElementById('gM').value;
+// Save export permissions
+S.exportPerm=[...document.querySelectorAll('.expPermCb:checked')].map(cb=>cb.value);
+fbSaveMeta('exportPerm',S.exportPerm.length?S.exportPerm:null);
 const newFb={apiKey:document.getElementById('fbKey').value.trim(),authDomain:document.getElementById('fbDomain').value.trim(),
 databaseURL:document.getElementById('fbUrl').value.trim(),projectId:document.getElementById('fbProject').value.trim(),
 appId:document.getElementById('fbApp').value.trim()};
@@ -979,11 +993,13 @@ return'<tr><td style="text-align:center">'+(i+1)+'</td><td style="font-weight:60
 let _expData=null;
 function openExportPreview(){if(typeof XLSX==='undefined'){toast('Thư viện XLSX chưa tải','er');return;}
 const q=+document.getElementById('exQ').value,y=+document.getElementById('exY').value,pr=document.getElementById('exPr').value;
-const{from,to}=getQRange(q,y);const person=pr;
+if(!pr){toast('Hãy chọn thành viên','wn');return;}
+const{from,to}=getExRange();const person=pr;
 const tasks=getPersonTasks(person,from,to);
-if(!tasks.length){toast('Không có CV trong quý này','wn');return;}
+const{label}=getExRange();
+if(!tasks.length){toast('Không có CV trong '+label,'wn');return;}
 _expData={q,y,person,tasks:tasks.map(t=>({idx:S.tasks.indexOf(t),task:JSON.parse(JSON.stringify(t))}))};
-document.getElementById('expTitle').innerHTML='📊 Q'+q+'/'+y+' - '+esc(person)+' ('+tasks.length+' CV) <span class="xp" onclick="closeExpPv()">✕</span>';
+document.getElementById('expTitle').innerHTML='📊 '+label+' - '+esc(person)+' ('+tasks.length+' CV) <span class="xp" onclick="closeExpPv()">✕</span>';
 const hdr='<tr><th>STT</th><th style="min-width:250px">Nội dung</th><th>Sản phẩm</th><th>Hệ số</th><th>Phụ trách</th><th>Hạn HT</th><th>Trạng thái</th><th>Chậm TĐ</th><th>Làm lại</th></tr>';
 document.getElementById('expHead').innerHTML=hdr;
 const isEditable=true;const rows=_expData.tasks.map((d,i)=>{const t=d.task;const late=isLate(t)?1:0;
@@ -1041,15 +1057,23 @@ function expExportOnly(){if(!_expData)return;const changes=_getExpChanges();
 if(changes.length){if(!confirm('Dữ liệu đã được chỉnh sửa nhưng chưa được phê duyệt.\nBạn có chắc chắn muốn xuất báo cáo với dữ liệu cũ (chưa chỉnh sửa)?'))return;}
 const{lates,redos}=_getExpLatesRedos();_doExportExcel(lates,redos);closeExpPv();}
 // Export
+function canExport(){return S.adm||(S.exportPerm&&S.exportPerm.includes(S.u));}
+function toggleExMode(){const m=document.getElementById('exMode').value;document.getElementById('exQ').style.display=m==='quarter'?'':'none';}
+function getExRange(){const mode=document.getElementById('exMode').value;const y=+document.getElementById('exY').value;
+if(mode==='year')return{from:new Date(y,0,1),to:new Date(y,11,31,23,59,59),label:'Năm '+y};
+const q=+document.getElementById('exQ').value;const r=getQRange(q,y);r.label='Q'+q+'/'+y;return r;}
 function initExport(){
-document.getElementById('exportSec').style.display='';
+const canExp=canExport();
+document.getElementById('exportSec').style.display=canExp?'':'none';
+if(!canExp)return;
 const y=new Date().getFullYear();
 document.getElementById('exY').innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>';
 document.getElementById('exQ').value=Math.ceil((new Date().getMonth()+1)/3);
+document.getElementById('exMode').value='quarter';toggleExMode();
 const exPr=document.getElementById('exPr');
 if(S.adm){exPr.disabled=false;const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};
 const sorted=[...S.mem].sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
-exPr.innerHTML=sorted.map(m=>'<option>'+esc(m.name)+'</option>').join('');}
+exPr.innerHTML='<option value="" disabled selected>Chọn thành viên...</option>'+sorted.map(m=>'<option>'+esc(m.name)+'</option>').join('');}
 else{exPr.innerHTML='<option>'+esc(S.u)+'</option>';exPr.disabled=true;}}
 function getQRange(q,y){const sm=(q-1)*3;return{from:new Date(y,sm,1),to:new Date(y,sm+3,0,23,59,59)};}
 function getPersonTasks(person,from,to,tpMode){const mem=S.mem.find(m=>m.name===person);const isTP=mem&&mem.role==='Trưởng phòng';
@@ -1240,7 +1264,7 @@ const q=+document.getElementById('sumExpQ').value;const y=+document.getElementBy
 const qRoman=['I','II','III','IV'][q-1];
 document.getElementById('sumExpTitle').innerHTML='📋 Xuất TH KQ chấm điểm đánh giá CC Quý '+qRoman+' năm '+y;}
 function openSummaryExport(){
-if(!S.adm){toast('Chỉ admin được xuất báo cáo tổng hợp','er');return;}
+if(!canExport()){toast('Bạn chưa được cấp quyền xuất báo cáo','er');return;}
 const y=new Date().getFullYear();
 document.getElementById('sumExpY').innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>';
 document.getElementById('sumExpQ').value=Math.ceil((new Date().getMonth()+1)/3);
@@ -1426,23 +1450,20 @@ toast('Đã xuất ZIP: 1 TH + '+count+' báo cáo cá nhân','ok');});}}
 function exportXlsx(){
 if(typeof XLSX==='undefined'){toast('Lỗi: Thư viện XLSX chưa tải xong','er');return;}
 const q=+document.getElementById('exQ').value,y=+document.getElementById('exY').value,pr=document.getElementById('exPr').value;
-const{from,to}=getQRange(q,y);
-const doExport=(name)=>{
-const mem=S.mem.find(m=>m.name===name);const role=mem?mem.role:'Thành viên';
-const tasks=getPersonTasks(name,from,to);if(!tasks.length)return false;
+if(!pr){toast('Hãy chọn thành viên','wn');return;}
+const{from,to,label}=getExRange();
+const mem=S.mem.find(m=>m.name===pr);const role=mem?mem.role:'Thành viên';
+const tasks=getPersonTasks(pr,from,to);if(!tasks.length){toast('Không có công việc trong '+label,'wn');return;}
 const wb=XLSX.utils.book_new();
-const s1=mkSheet1(tasks,name,mem),s2=mkSheet2(tasks,name,mem),s3=mkSheet3(tasks,name,mem);
-const s4=mkSheet4(s1.rate,s2.rate,s3.rate,role,name,q,y);
+const s1=mkSheet1(tasks,pr,mem),s2=mkSheet2(tasks,pr,mem),s3=mkSheet3(tasks,pr,mem);
+const s4=mkSheet4(s1.rate,s2.rate,s3.rate,role,pr,q,y);
 XLSX.utils.book_append_sheet(wb,s1.ws,'Bang 1. So luong');
 XLSX.utils.book_append_sheet(wb,s2.ws,'Bang 2. Tien do');
 XLSX.utils.book_append_sheet(wb,s3.ws,'Bang 3. Chat luong');
 XLSX.utils.book_append_sheet(wb,s4,'Ket qua');
-XLSX.writeFile(wb,'BangChamDiem_Q'+q+'_'+y+'_'+name.replace(/\s+/g,'_')+'.xlsx');return true;};
-if(pr==='all'){let count=0;
-const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};
-const sorted=[...S.mem].sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
-sorted.forEach((m,i)=>{setTimeout(()=>{if(doExport(m.name))count++;if(i===sorted.length-1)toast('Đã xuất '+count+' báo cáo','ok');},i*400);});}
-else{if(doExport(pr))toast('Đã xuất báo cáo cho '+pr,'ok');else toast('Không có công việc trong quý này','wn');}}
+const modeTag=document.getElementById('exMode').value==='year'?'Nam'+y:'Q'+q+'_'+y;
+XLSX.writeFile(wb,'BangChamDiem_'+modeTag+'_'+pr.replace(/\s+/g,'_')+'.xlsx');
+toast('Đã xuất báo cáo cho '+pr+' ('+label+')','ok');}
 function rAll(){rTasks();rRpt();uSt();rPend();initExport();initSummary();updateReminders();}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&document.activeElement===document.getElementById('cmdIn')){e.preventDefault();handleCmd();}});
 ld();
