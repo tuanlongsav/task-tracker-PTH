@@ -8,6 +8,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
@@ -320,7 +322,42 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <select id="exY" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"></select>
 <select id="exPr" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"></select>
 <button class="btn btn-p" onclick="openExportPreview()">📊 Xem & Xuất Excel</button>
+<button class="btn btn-p" onclick="openSummaryExport()" style="background:linear-gradient(135deg,#2b5797,#3b82f6)">📋 Xuất TH Quý (Mẫu PL03)</button>
 </div></div>
+<!-- Summary Export Overlay -->
+<div id="sumExpOv" class="pnl-ov" onclick="if(event.target===this)closeSumExp()" style="justify-content:center;align-items:center">
+<div style="width:750px;max-width:92vw;max-height:90vh;overflow-y:auto;background:var(--bg2);border:1px solid var(--b);border-radius:12px;padding:0;box-shadow:0 12px 40px rgba(0,0,0,.6)">
+<div style="padding:16px 20px;border-bottom:1px solid var(--b);font-size:16px;font-weight:700" id="sumExpTitle">📋 Xuất báo cáo tổng hợp quý</div>
+<div style="padding:16px">
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+<label style="font-size:12px;font-weight:600;color:var(--t2)">Quý:</label>
+<select id="sumExpQ" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:13px;color:var(--t1);font-family:inherit;outline:none">
+<option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select>
+<select id="sumExpY" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"></select>
+<label style="font-size:12px;font-weight:600;color:var(--t2);margin-left:8px">Ngày ký:</label>
+<input type="date" id="sumExpDate" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"/>
+</div>
+<div style="margin-bottom:10px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+<label style="font-size:12px;font-weight:600;color:var(--t2)">Chọn thành viên:</label>
+<button class="btn" style="font-size:10px;padding:2px 8px" onclick="toggleAllSumExp(true)">Chọn tất cả</button>
+<button class="btn" style="font-size:10px;padding:2px 8px" onclick="toggleAllSumExp(false)">Bỏ chọn</button>
+</div>
+<div id="sumExpMembers" style="display:flex;flex-wrap:wrap;gap:4px;max-height:150px;overflow-y:auto;padding:8px;background:var(--inp);border:1px solid var(--b);border-radius:5px"></div>
+</div>
+<div style="margin-bottom:10px">
+<label style="font-size:12px;font-weight:600;color:var(--t2)">Điểm Tiêu chí chung (mặc định 28):</label>
+<input type="number" id="sumExpTCChung" value="28" min="0" max="30" step="0.5" style="width:70px;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:13px;color:var(--t1);font-family:inherit;outline:none;text-align:center;margin-left:6px"/>
+</div>
+<div id="sumExpPreview" style="overflow-x:auto;margin-bottom:12px"></div>
+<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+<button class="btn btn-o" onclick="closeSumExp()">Đóng</button>
+<button class="btn btn-p" onclick="previewSumExp()">👁️ Xem trước</button>
+<button class="btn btn-p" onclick="doExportSummary('summary')" style="background:linear-gradient(135deg,#2b5797,#3b82f6)">📋 Xuất TH cả phòng</button>
+<button class="btn btn-p" onclick="doExportSummary('individual')">📊 Xuất từng người</button>
+<button class="btn btn-p" onclick="doExportSummary('zip')">📦 Xuất tất cả (zip)</button>
+</div>
+</div></div></div>
 </div>
 <div class="isec"><div class="itabs"><button class="itab on" onclick="sInp(0)">🤖 Lệnh AI</button><button class="itab" onclick="sInp(1)">📝 Nhập thủ công</button></div>
 <div class="ibody">
@@ -1183,6 +1220,219 @@ if(ws[a1])ws[a1].s=s4Blue;if(ws[a2])ws[a2].s=s4BlueC;if(ws[a3]){ws[a3].z='0.00';
 // Note row for leaders
 if(isLeader){const noteRow=scoreStart+4;const a1=XLSX.utils.encode_cell({r:noteRow,c:1});if(ws[a1])ws[a1].s=s4Note;}
 return ws;}
+// ===== BÁO CÁO TỔNG HỢP QUÝ (Mẫu PL03) =====
+function getChucVu(m){
+const r=m.role;if(r==='Trưởng phòng')return'Trưởng phòng';
+if(r==='Phó Trưởng phòng')return'P. Trưởng phòng';
+if(m.title)return m.title;return'Chuyên viên';}
+function calcPersonScore(name,from,to){
+const mem=S.mem.find(m=>m.name===name);const role=mem?mem.role:'Thành viên';
+const isLeader=role==='Trưởng phòng'||role==='Phó Trưởng phòng';
+const tasks=getPersonTasks(name,from,to);
+let rA=0,rB=0,rC=0;
+if(tasks.length){let totG=0,totHT=0,totTD=0,totCL=0;
+tasks.forEach(t=>{const done=t.status==='done'?1:0;const cf=t.coefficient||200;const qdHT=cf*done;
+const late=isLate(t)?1:0;const qdTD=r2(qdHT-(late*0.25*qdHT));const redo=0;const qdCL=r2(qdHT-(redo*0.25*qdHT));
+totG+=cf;totHT+=qdHT;totTD+=qdTD;totCL+=qdCL;});
+rA=totG?totHT/totG*100:0;rB=totG?totTD/totG*100:0;rC=totG?totCL/totG*100:0;}
+let score;if(isLeader){score=(rA+rB+rC+rA+rA+rA)/6;}else{score=(rA+rB+rC)/3;}
+const diemKQ=r2(score*70/100);return{rA,rB,rC,score,diemKQ,taskCount:tasks.length,role,isLeader};}
+function openSummaryExport(){
+if(!S.adm){toast('Chỉ admin được xuất báo cáo tổng hợp','er');return;}
+const y=new Date().getFullYear();
+document.getElementById('sumExpY').innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>';
+document.getElementById('sumExpQ').value=Math.ceil((new Date().getMonth()+1)/3);
+const today=new Date();document.getElementById('sumExpDate').value=today.toISOString().split('T')[0];
+const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};
+const sorted=[...S.mem].sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
+const html=sorted.map(m=>'<label style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:var(--c);border:1px solid var(--b);border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap"><input type="checkbox" checked class="sumExpCb" value="'+esc(m.name)+'"/>'+esc(m.name)+' <span style="font-size:10px;color:var(--t3)">('+esc(getChucVu(m))+')</span></label>').join('');
+document.getElementById('sumExpMembers').innerHTML=html;
+document.getElementById('sumExpPreview').innerHTML='';
+document.getElementById('sumExpOv').classList.add('show');}
+function closeSumExp(){document.getElementById('sumExpOv').classList.remove('show');}
+function toggleAllSumExp(v){document.querySelectorAll('.sumExpCb').forEach(cb=>cb.checked=v);}
+function getSelectedSumMembers(){return[...document.querySelectorAll('.sumExpCb:checked')].map(cb=>cb.value);}
+function previewSumExp(){
+const q=+document.getElementById('sumExpQ').value,y=+document.getElementById('sumExpY').value;
+const{from,to}=getQRange(q,y);const names=getSelectedSumMembers();const tcChung=parseFloat(document.getElementById('sumExpTCChung').value)||28;
+if(!names.length){toast('Chọn ít nhất 1 thành viên','wn');return;}
+const qRoman=['I','II','III','IV'][q-1];
+let html='<div style="font-weight:700;text-align:center;margin-bottom:8px;font-size:14px">TỔNG HỢP KẾT QUẢ CHẤM ĐIỂM ĐÁNH GIÁ, XẾP LOẠI CÔNG CHỨC QUÝ '+qRoman+' NĂM '+y+'</div>';
+html+='<table style="width:100%;border-collapse:collapse;font-size:11px"><thead>';
+html+='<tr style="background:var(--ch)"><th rowspan="2" style="border:1px solid var(--b);padding:4px;width:30px">STT</th><th rowspan="2" style="border:1px solid var(--b);padding:4px;min-width:120px">Họ và tên</th><th rowspan="2" style="border:1px solid var(--b);padding:4px;min-width:80px">Chức vụ</th><th colspan="3" style="border:1px solid var(--b);padding:4px">Kết quả tự chấm điểm</th><th colspan="3" style="border:1px solid var(--b);padding:4px">Đơn vị chấm điểm</th><th rowspan="2" style="border:1px solid var(--b);padding:4px;min-width:60px">Ghi chú</th></tr>';
+html+='<tr style="background:var(--ch)"><th style="border:1px solid var(--b);padding:4px;font-size:10px">Tổng điểm</th><th style="border:1px solid var(--b);padding:4px;font-size:10px">TC chung</th><th style="border:1px solid var(--b);padding:4px;font-size:10px">TC KQ</th><th style="border:1px solid var(--b);padding:4px;font-size:10px">Tổng điểm</th><th style="border:1px solid var(--b);padding:4px;font-size:10px">TC chung</th><th style="border:1px solid var(--b);padding:4px;font-size:10px">TC KQ</th></tr></thead><tbody>';
+names.forEach((name,i)=>{const mem=S.mem.find(m=>m.name===name);const sc=calcPersonScore(name,from,to);
+const diemKQ=sc.diemKQ;const tongDiem=sc.taskCount?r2(tcChung+diemKQ):'';
+const tcKQ=sc.taskCount?r2(diemKQ):'';const tc=sc.taskCount?tcChung:'';
+html+='<tr><td style="border:1px solid var(--b);padding:4px;text-align:center">'+(i+1)+'</td>';
+html+='<td style="border:1px solid var(--b);padding:4px;font-weight:500">'+esc(name)+'</td>';
+html+='<td style="border:1px solid var(--b);padding:4px;font-size:10px">'+esc(getChucVu(mem))+'</td>';
+html+='<td style="border:1px solid var(--b);padding:4px;text-align:center;color:var(--blue);font-weight:600">'+(tongDiem||'')+'</td>';
+html+='<td style="border:1px solid var(--b);padding:4px;text-align:center">'+(tc||'')+'</td>';
+html+='<td style="border:1px solid var(--b);padding:4px;text-align:center">'+(tcKQ||'')+'</td>';
+html+='<td style="border:1px solid var(--b);padding:4px;text-align:center"></td>';
+html+='<td style="border:1px solid var(--b);padding:4px;text-align:center"></td>';
+html+='<td style="border:1px solid var(--b);padding:4px;text-align:center"></td>';
+html+='<td style="border:1px solid var(--b);padding:4px"></td></tr>';});
+html+='</tbody></table>';
+document.getElementById('sumExpPreview').innerHTML=html;}
+function mkSheetTH(q,y,names,tcChungVal){
+const{from,to}=getQRange(q,y);const qRoman=['I','II','III','IV'][q-1];
+const dateStr=document.getElementById('sumExpDate')?.value||'';
+let dd='',mm='',yyyy=y;
+if(dateStr){const dt=new Date(dateStr);dd=p2(dt.getDate());mm=p2(dt.getMonth()+1);yyyy=dt.getFullYear();}
+const C=10,data=[];
+// Row 0: Header left
+data.push(['KIỂM TOÁN NHÀ NƯỚC KHU VỰC I','','','','','','','Phụ lục III','','']);
+// Row 1: Sub header
+data.push(['PHÒNG TỔNG HỢP','','','','','','','','','']);
+// Row 2: empty
+data.push(['','','','','','','','','','']);
+// Row 3: Title
+data.push(['TỔNG HỢP KẾT QUẢ CHẤM ĐIỂM ĐÁNH GIÁ, XẾP LOẠI CÔNG CHỨC QUÝ '+qRoman+' NĂM '+yyyy,'','','','','','','','','']);
+// Row 4: Subtitle
+data.push(['(Ban hành kèm theo Công văn số 338/KTNN-TCCB ngày 17 tháng 3 năm 2026 của Kiểm toán nhà nước)','','','','','','','','','']);
+// Row 5: empty
+data.push(['','','','','','','','','','']);
+// Row 6: Header row 1
+data.push(['STT','Họ và tên','Chức vụ','Kết quả tự chấm điểm','','','Đơn vị chấm điểm','','','Ghi chú']);
+// Row 7: Header row 2
+data.push(['','','','Tổng điểm','Tiêu chí chung','Tiêu chí về KQ thực hiện chức trách, nhiệm vụ','Tổng điểm','Tiêu chí chung','Tiêu chí về KQ thực hiện chức trách, nhiệm vụ','']);
+// Data rows
+const startRow=8;
+names.forEach((name,i)=>{const mem=S.mem.find(m=>m.name===name);const sc=calcPersonScore(name,from,to);
+const diemKQ=sc.taskCount?r2(sc.diemKQ):'';const tc=sc.taskCount?tcChungVal:'';
+const tongDiem=sc.taskCount?r2(tcChungVal+(sc.diemKQ||0)):'';
+data.push([i+1,name,getChucVu(mem),tongDiem,tc,diemKQ,'','','','']);});
+const n=names.length;
+// Footer rows
+data.push(['','','','','','','','','','']);
+data.push(['','Hà Nội, ngày '+dd+' tháng '+mm+' năm '+yyyy,'','','','','','','','']);
+data.push(['','','','','','','Trưởng phòng','','','']);
+data.push(['','','','','','','','','','']);
+data.push(['','','','','','','','','','']);
+data.push(['','','','','','','Lê Huy Hoằng','','','']);
+const ws=XLSX.utils.aoa_to_sheet(data);
+// Column widths
+ws['!cols']=[{wch:5},{wch:22},{wch:16},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:8}];
+// Merges
+ws['!merges']=[
+// Row 0: merge header cells
+{s:{r:0,c:0},e:{r:0,c:2}},{s:{r:0,c:7},e:{r:0,c:9}},
+// Row 1: merge
+{s:{r:1,c:0},e:{r:1,c:2}},
+// Row 3: Title merge
+{s:{r:3,c:0},e:{r:3,c:9}},
+// Row 4: Subtitle merge
+{s:{r:4,c:0},e:{r:4,c:9}},
+// Row 6-7: Header merges
+{s:{r:6,c:0},e:{r:7,c:0}},// STT
+{s:{r:6,c:1},e:{r:7,c:1}},// Họ và tên
+{s:{r:6,c:2},e:{r:7,c:2}},// Chức vụ
+{s:{r:6,c:3},e:{r:6,c:5}},// Kết quả tự chấm điểm
+{s:{r:6,c:6},e:{r:6,c:8}},// Đơn vị chấm điểm
+{s:{r:6,c:9},e:{r:7,c:9}},// Ghi chú
+// Footer: date merge
+{s:{r:startRow+n+1,c:1},e:{r:startRow+n+1,c:4}},
+// Footer: Trưởng phòng
+{s:{r:startRow+n+2,c:5},e:{r:startRow+n+2,c:8}},
+{s:{r:startRow+n+5,c:5},e:{r:startRow+n+5,c:8}},
+];
+// Styles
+const sTNR={name:'Times New Roman'};
+const sBdr={top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};
+const sHdrOrg={font:{...sTNR,sz:12},alignment:{horizontal:'center',vertical:'center'}};
+const sHdrOrgBold={font:{...sTNR,sz:12,bold:true},alignment:{horizontal:'center',vertical:'center'}};
+const sHdrRight={font:{...sTNR,sz:12,bold:true},alignment:{horizontal:'right',vertical:'center'}};
+const sTitleSt={font:{...sTNR,sz:13,bold:true},alignment:{horizontal:'center',vertical:'center',wrapText:true}};
+const sSubSt={font:{...sTNR,sz:11,italic:true},alignment:{horizontal:'center',vertical:'center',wrapText:true}};
+const sTblHdr={font:{...sTNR,sz:11,bold:true},alignment:{horizontal:'center',vertical:'center',wrapText:true},border:sBdr};
+const sDataC={font:{...sTNR,sz:12},alignment:{horizontal:'center',vertical:'center'},border:sBdr};
+const sDataL={font:{...sTNR,sz:12},alignment:{horizontal:'left',vertical:'center'},border:sBdr};
+const sDataNum={font:{...sTNR,sz:12},alignment:{horizontal:'center',vertical:'center'},border:sBdr};
+const sDateSt={font:{...sTNR,sz:12,italic:true},alignment:{horizontal:'center',vertical:'center'}};
+const sSignTitle={font:{...sTNR,sz:12,bold:true},alignment:{horizontal:'center',vertical:'center'}};
+const sSignName={font:{...sTNR,sz:12,bold:true},alignment:{horizontal:'center',vertical:'center'}};
+// Apply header styles
+for(let c=0;c<C;c++){
+let a=XLSX.utils.encode_cell({r:0,c});if(ws[a])ws[a].s=c>=7?sHdrRight:sHdrOrg;
+a=XLSX.utils.encode_cell({r:1,c});if(ws[a])ws[a].s=sHdrOrgBold;}
+// Title
+for(let c=0;c<C;c++){let a=XLSX.utils.encode_cell({r:3,c});if(!ws[a])ws[a]={v:'',t:'s'};ws[a].s=sTitleSt;}
+// Subtitle
+for(let c=0;c<C;c++){let a=XLSX.utils.encode_cell({r:4,c});if(!ws[a])ws[a]={v:'',t:'s'};ws[a].s=sSubSt;}
+// Table headers (row 6-7)
+for(let r=6;r<=7;r++)for(let c=0;c<C;c++){const a=XLSX.utils.encode_cell({r,c});if(!ws[a])ws[a]={v:'',t:'s'};ws[a].s=sTblHdr;}
+// Data rows
+for(let i=0;i<n;i++){const r=startRow+i;
+for(let c=0;c<C;c++){const a=XLSX.utils.encode_cell({r,c});if(!ws[a])ws[a]={v:'',t:'s'};
+if(c===0)ws[a].s=sDataC;
+else if(c===1)ws[a].s=sDataL;
+else if(c===2)ws[a].s={...sDataL,alignment:{horizontal:'center',vertical:'center'}};
+else ws[a].s=sDataNum;}}
+// Footer styles
+const dateRow=startRow+n+1;
+const a=XLSX.utils.encode_cell({r:dateRow,c:1});if(ws[a])ws[a].s=sDateSt;
+const signR=startRow+n+2;
+for(let c=5;c<=8;c++){let ac=XLSX.utils.encode_cell({r:signR,c});if(!ws[ac])ws[ac]={v:'',t:'s'};ws[ac].s=sSignTitle;}
+const nameR=startRow+n+5;
+for(let c=5;c<=8;c++){let ac=XLSX.utils.encode_cell({r:nameR,c});if(!ws[ac])ws[ac]={v:'',t:'s'};ws[ac].s=sSignName;}
+// Row heights
+ws['!rows']=[{hpt:18},{hpt:18},{hpt:8},{hpt:32},{hpt:28},{hpt:8},{hpt:30},{hpt:38}];
+return ws;}
+function doExportSummary(mode){
+if(typeof XLSX==='undefined'){toast('Thư viện XLSX chưa tải','er');return;}
+const q=+document.getElementById('sumExpQ').value,y=+document.getElementById('sumExpY').value;
+const names=getSelectedSumMembers();const tcChung=parseFloat(document.getElementById('sumExpTCChung').value)||28;
+const qRoman=['I','II','III','IV'][q-1];
+if(!names.length){toast('Chọn ít nhất 1 thành viên','wn');return;}
+const{from,to}=getQRange(q,y);
+if(mode==='summary'){
+// Xuất 1 file Excel tổng hợp cả phòng
+const wb=XLSX.utils.book_new();
+const wsTH=mkSheetTH(q,y,names,tcChung);
+XLSX.utils.book_append_sheet(wb,wsTH,'TH KQ CD DG CC');
+XLSX.writeFile(wb,'PL03_TH_KQ_CD_DG_CC_QUY_'+qRoman+'_'+y+'_PTH.xlsx');
+toast('Đã xuất báo cáo tổng hợp quý '+qRoman+'/'+y,'ok');
+}else if(mode==='individual'){
+// Xuất từng người (mỗi người 1 file Excel 4 sheet)
+let count=0;
+names.forEach((name,i)=>{setTimeout(()=>{
+const mem=S.mem.find(m=>m.name===name);const role=mem?mem.role:'Thành viên';
+const tasks=getPersonTasks(name,from,to);
+if(tasks.length){const wb=XLSX.utils.book_new();
+const s1=mkSheet1(tasks,name,mem),s2=mkSheet2(tasks,name,mem),s3=mkSheet3(tasks,name,mem);
+const s4=mkSheet4(s1.rate,s2.rate,s3.rate,role,name,q,y);
+XLSX.utils.book_append_sheet(wb,s1.ws,'Bang 1. So luong');
+XLSX.utils.book_append_sheet(wb,s2.ws,'Bang 2. Tien do');
+XLSX.utils.book_append_sheet(wb,s3.ws,'Bang 3. Chat luong');
+XLSX.utils.book_append_sheet(wb,s4,'Ket qua');
+XLSX.writeFile(wb,'BangChamDiem_Q'+q+'_'+y+'_'+name.replace(/\s+/g,'_')+'.xlsx');count++;}
+if(i===names.length-1)toast('Đã xuất '+count+' báo cáo cá nhân','ok');},i*400);});
+}else if(mode==='zip'){
+// Xuất tất cả vào 1 file ZIP
+if(typeof JSZip==='undefined'){toast('Thư viện JSZip chưa tải','er');return;}
+const zip=new JSZip();let count=0;
+// File tổng hợp
+const wbTH=XLSX.utils.book_new();const wsTH=mkSheetTH(q,y,names,tcChung);
+XLSX.utils.book_append_sheet(wbTH,wsTH,'TH KQ CD DG CC');
+const thBuf=XLSX.write(wbTH,{bookType:'xlsx',type:'array'});
+zip.file('PL03_TH_KQ_CD_DG_CC_QUY_'+qRoman+'_'+y+'_PTH.xlsx',thBuf);
+// Từng người
+names.forEach(name=>{const mem=S.mem.find(m=>m.name===name);const role=mem?mem.role:'Thành viên';
+const tasks=getPersonTasks(name,from,to);
+if(tasks.length){const wb=XLSX.utils.book_new();
+const s1=mkSheet1(tasks,name,mem),s2=mkSheet2(tasks,name,mem),s3=mkSheet3(tasks,name,mem);
+const s4=mkSheet4(s1.rate,s2.rate,s3.rate,role,name,q,y);
+XLSX.utils.book_append_sheet(wb,s1.ws,'Bang 1. So luong');
+XLSX.utils.book_append_sheet(wb,s2.ws,'Bang 2. Tien do');
+XLSX.utils.book_append_sheet(wb,s3.ws,'Bang 3. Chat luong');
+XLSX.utils.book_append_sheet(wb,s4,'Ket qua');
+const buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+zip.file('BangChamDiem_Q'+q+'_'+y+'_'+name.replace(/\s+/g,'_')+'.xlsx',buf);count++;}});
+zip.generateAsync({type:'blob'}).then(blob=>{
+saveAs(blob,'BaoCaoQuy'+qRoman+'_'+y+'_PTH.zip');
+toast('Đã xuất ZIP: 1 TH + '+count+' báo cáo cá nhân','ok');});}}
 function exportXlsx(){
 if(typeof XLSX==='undefined'){toast('Lỗi: Thư viện XLSX chưa tải xong','er');return;}
 const q=+document.getElementById('exQ').value,y=+document.getElementById('exY').value,pr=document.getElementById('exPr').value;
