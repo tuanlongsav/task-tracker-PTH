@@ -260,6 +260,14 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <button class="btn btn-p admOnly" style="margin-top:3px" onclick="saveCfg()">💾 Lưu</button>
 </div></div>
 
+<div class="eov" id="expOv"><div class="ebox" style="max-width:95vw;width:1200px">
+<h2 id="expTitle">📊 Xem trước & Xuất Excel <span class="xp" onclick="closeExpPv()">✕</span></h2>
+<div style="overflow-x:auto;max-height:60vh;overflow-y:auto"><table id="expTable" style="font-size:12px"><thead id="expHead"></thead><tbody id="expBody"></tbody></table></div>
+<div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+<button class="btn btn-o" onclick="closeExpPv()">Huỷ</button>
+<button class="btn btn-p" onclick="saveAndExport()">💾 Lưu & Xuất Excel</button>
+</div></div></div>
+
 <div class="pnl-ov" id="ntOv" onclick="if(event.target===this)closeNt()"><div class="pnl">
 <h2>🔔 Thông báo <span class="xp" onclick="closeNt()">✕</span></h2>
 <div id="ntList"></div>
@@ -291,13 +299,24 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <select id="rpPr" onchange="syncFilter('rpPr');rAll()"><option value="all">Tất cả</option></select>
 </div>
 <div class="rrow"><div class="rnums" id="rpN"></div><div class="rch"><canvas id="rpC"></canvas></div></div>
+<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--b)">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+<h3 style="font-size:16px;font-weight:700">📊 Tổng hợp theo dõi toàn phòng</h3>
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+<select id="sumMode" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="quarter">Theo quý</option><option value="week">Theo tuần</option><option value="month">Theo tháng</option><option value="year">Theo năm</option></select>
+<select id="sumQ" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="1">Q1</option><option value="2">Q2</option><option value="3">Q3</option><option value="4">Q4</option></select>
+<select id="sumY" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"></select>
+<select id="sumSort" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="score">Sắp xếp: Điểm quy đổi</option><option value="done">Sắp xếp: CV hoàn thành</option></select>
+</div></div>
+<div class="tsc"><table id="sumTable"><thead><tr><th>STT</th><th>Họ tên</th><th>Chức vụ</th><th>Tổng CV</th><th style="color:var(--green)">Hoàn thành</th><th style="color:var(--blue)">Đang làm</th><th style="color:var(--red)">Quá hạn</th><th>Hệ số QĐ</th><th>HT quy đổi</th><th>Tỷ lệ %</th></tr></thead><tbody id="sumBody"></tbody></table></div>
+</div>
 <div id="exportSec" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--b)">
 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
 <span style="font-size:14px;font-weight:600">📥 Xuất báo cáo quý:</span>
 <select id="exQ" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select>
 <select id="exY" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"></select>
 <select id="exPr" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"></select>
-<button class="btn btn-p" onclick="exportXlsx()">📊 Xuất Excel</button>
+<button class="btn btn-p" onclick="openExportPreview()">📊 Xem & Xuất Excel</button>
 </div></div>
 </div>
 <div class="isec"><div class="itabs"><button class="itab on" onclick="sInp(0)">🤖 Lệnh AI</button><button class="itab" onclick="sInp(1)">📝 Nhập thủ công</button></div>
@@ -865,6 +884,81 @@ function dlC(dl,st){if(!dl||st==='done')return'';const h=(new Date(dl)-new Date(
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function toast(m,t){document.querySelectorAll('.toast').forEach(x=>x.remove());const el=document.createElement('div');el.className='toast '+t;el.innerHTML=m;document.body.appendChild(el);setTimeout(()=>el.remove(),3e3);}
 function syncFilter(src){const v=document.getElementById(src).value;if(src==='rpPr')document.getElementById('fP').value=v;else document.getElementById('rpPr').value=v;}
+// Summary table
+function initSummary(){const y=new Date().getFullYear();document.getElementById('sumY').innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>';document.getElementById('sumQ').value=Math.ceil((new Date().getMonth()+1)/3);rSummary();}
+function getSumRange(){const mode=document.getElementById('sumMode').value;
+if(mode==='quarter'){const q=+document.getElementById('sumQ').value,y=+document.getElementById('sumY').value;return getQRange(q,y);}
+const now=new Date(),y=now.getFullYear(),m=now.getMonth(),d=now.getDate(),dow=now.getDay()||7;
+if(mode==='week'){const mon=new Date(y,m,d-dow+1);return{from:mon,to:new Date(y,m,d-dow+7,23,59,59)};}
+if(mode==='month')return{from:new Date(y,m,1),to:new Date(y,m+1,0,23,59,59)};
+return{from:new Date(y,0,1),to:new Date(y,11,31,23,59,59)};}
+function rSummary(){const{from,to}=getSumRange();const sortBy=document.getElementById('sumSort').value;
+document.getElementById('sumQ').style.display=document.getElementById('sumMode').value==='quarter'?'':'none';
+document.getElementById('sumY').style.display=document.getElementById('sumMode').value==='quarter'?'':'none';
+const rows=S.mem.map(m=>{const tasks=getPersonTasks(m.name,from,to);
+const tot=tasks.length,dn=tasks.filter(t=>t.status==='done').length,dg=tasks.filter(t=>t.status==='doing').length,ov=tasks.filter(t=>t.status==='overdue').length;
+const totCf=tasks.reduce((s,t)=>s+(t.coefficient||200),0);
+const htCf=tasks.filter(t=>t.status==='done').reduce((s,t)=>s+(t.coefficient||200),0);
+const rate=totCf?Math.round(htCf/totCf*100):0;
+return{name:m.name,role:m.role,tot,dn,dg,ov,totCf,htCf,rate};});
+if(sortBy==='done')rows.sort((a,b)=>b.dn-a.dn||b.rate-a.rate);
+else rows.sort((a,b)=>b.htCf-a.htCf||b.rate-a.rate);
+const tb=document.getElementById('sumBody');
+if(!rows.length){tb.innerHTML='<tr><td colspan="10"><div class="empty"><div class="icon">📭</div><p>Không có dữ liệu</p></div></td></tr>';return;}
+tb.innerHTML=rows.map((r,i)=>{const rc=r.role==='Trưởng phòng'?'tp':r.role==='Phó Trưởng phòng'?'ptp':'tv';
+return'<tr><td style="text-align:center">'+(i+1)+'</td><td style="font-weight:600">'+esc(r.name)+'</td><td><span class="mr '+rc+'" style="font-size:10px">'+esc(r.role)+'</span></td><td style="text-align:center;font-weight:600">'+r.tot+'</td><td style="text-align:center;background:rgba(16,185,129,.12);color:var(--green);font-weight:600">'+r.dn+'</td><td style="text-align:center;background:rgba(59,130,246,.12);color:var(--blue);font-weight:600">'+r.dg+'</td><td style="text-align:center;background:rgba(239,68,68,.12);color:var(--red);font-weight:600">'+r.ov+'</td><td style="text-align:center">'+r.totCf+'</td><td style="text-align:center;font-weight:600">'+r.htCf+'</td><td style="text-align:center;font-weight:700;color:'+(r.rate>=80?'var(--green)':r.rate>=50?'var(--amber)':'var(--red)')+'">'+r.rate+'%</td></tr>';}).join('');}
+// Export preview
+let _expData=null;
+function openExportPreview(){if(typeof XLSX==='undefined'){toast('Thư viện XLSX chưa tải','er');return;}
+const q=+document.getElementById('exQ').value,y=+document.getElementById('exY').value,pr=document.getElementById('exPr').value;
+if(pr==='all'){exportXlsx();return;}
+const{from,to}=getQRange(q,y);const person=pr;
+const tasks=getPersonTasks(person,from,to);
+if(!tasks.length){toast('Không có CV trong quý này','wn');return;}
+_expData={q,y,person,tasks:tasks.map(t=>({idx:S.tasks.indexOf(t),task:JSON.parse(JSON.stringify(t))}))};
+document.getElementById('expTitle').innerHTML='📊 Q'+q+'/'+y+' - '+esc(person)+' ('+tasks.length+' CV) <span class="xp" onclick="closeExpPv()">✕</span>';
+const hdr='<tr><th>STT</th><th style="min-width:250px">Nội dung</th><th>Sản phẩm</th><th>Hệ số</th><th>Phụ trách</th><th>Hạn HT</th><th>Trạng thái</th><th>Chậm TĐ</th><th>Làm lại</th></tr>';
+document.getElementById('expHead').innerHTML=hdr;
+const isEditable=true;const rows=_expData.tasks.map((d,i)=>{const t=d.task;const late=isLate(t)?1:0;
+const stOpts='<option value="doing"'+(t.status==='doing'?' selected':'')+'>Đang làm</option><option value="done"'+(t.status==='done'?' selected':'')+'>Hoàn thành</option><option value="overdue"'+(t.status==='overdue'?' selected':'')+'>Quá hạn</option>';
+if(isEditable)return'<tr><td style="text-align:center">'+(i+1)+'</td><td><input type="text" value="'+esc(t.name)+'" data-f="name" data-i="'+i+'" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"/></td><td><input type="text" value="'+esc(t.product||'')+'" data-f="product" data-i="'+i+'" list="dlPr" style="width:80px;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:11px;color:var(--t1);outline:none"/></td><td><input type="number" value="'+(t.coefficient||200)+'" data-f="coefficient" data-i="'+i+'" style="width:60px;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:11px;color:var(--t1);outline:none;text-align:center"/></td><td>'+esc(t.leader||'')+'</td><td style="font-size:11px">'+fDL(t.deadline)+'</td><td><select data-f="status" data-i="'+i+'" style="background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px;font-size:11px;color:var(--t1);outline:none">'+stOpts+'</select></td><td><input type="number" value="'+late+'" min="0" max="5" data-f="lateCount" data-i="'+i+'" style="width:45px;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px;font-size:11px;color:var(--t1);outline:none;text-align:center"/></td><td><input type="number" value="0" min="0" max="5" data-f="redoCount" data-i="'+i+'" style="width:45px;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px;font-size:11px;color:var(--t1);outline:none;text-align:center"/></td></tr>';
+return'';}).join('');
+document.getElementById('expBody').innerHTML=rows;
+document.getElementById('expOv').classList.add('show');}
+function closeExpPv(){document.getElementById('expOv').classList.remove('show');_expData=null;}
+function saveAndExport(){if(!_expData)return;
+const changes=[];const edits=document.querySelectorAll('#expTable [data-f]');
+edits.forEach(el=>{const i=+el.dataset.i;const f=el.dataset.f;const d=_expData.tasks[i];const t=d.task;
+const nv=f==='coefficient'?parseFloat(el.value)||200:el.value.trim();
+if(f==='name'&&nv!==t.name){changes.push({i,f,old:t.name,nw:nv});t.name=nv;}
+if(f==='product'&&nv!==(t.product||'')){changes.push({i,f,old:t.product,nw:nv});t.product=nv;}
+if(f==='coefficient'&&nv!==t.coefficient){changes.push({i,f,old:t.coefficient,nw:nv});t.coefficient=nv;}
+if(f==='status'&&nv!==t.status){changes.push({i,f,old:t.status,nw:nv});t.status=nv;if(nv==='done'&&!t.completedAt)t.completedAt=new Date().toISOString();}
+});
+// Lấy lateCount và redoCount cho export
+const lates=[],redos=[];
+_expData.tasks.forEach((d,i)=>{
+lates[i]=+(document.querySelector('#expTable [data-f="lateCount"][data-i="'+i+'"]')?.value||0);
+redos[i]=+(document.querySelector('#expTable [data-f="redoCount"][data-i="'+i+'"]')?.value||0);});
+// Lưu thay đổi
+if(changes.length){
+if(S.adm){if(confirm('Bạn đã sửa '+changes.length+' trường. Lưu thay đổi vào danh sách công việc?')){
+changes.forEach(c=>{const gi=_expData.tasks[c.i].idx;if(gi>=0&&gi<S.tasks.length){S.tasks[gi][c.f]=c.nw;fbSaveTask(gi);}});sv();rAll();toast('Đã lưu '+changes.length+' thay đổi','ok');}
+}else{changes.forEach(c=>{const gi=_expData.tasks[c.i].idx;
+S.pend.push({id:Date.now()+c.i,from:S.u,cmd:'[Sửa từ báo cáo] CV #'+(gi+1)+': '+c.f+'='+String(c.nw).substring(0,30),parsed:{action:'edit_task',data:{taskIndex:gi+1,[c.f]:c.nw}},time:new Date().toISOString()});});
+sv();fbSavePend();rPend();uSt();
+if(!confirm('Dữ liệu đã sửa nhưng chưa được phê duyệt.\nBạn có chắc chắn muốn xuất báo cáo với dữ liệu đã chỉnh sửa?')){closeExpPv();return;}}}
+// Xuất Excel
+const q=_expData.q,y=_expData.y,name=_expData.person;
+const mem=S.mem.find(m=>m.name===name);const role=mem?mem.role:'Thành viên';
+const tasks=_expData.tasks.map(d=>d.task);
+const wb=XLSX.utils.book_new();
+const s1=mkSheet1(tasks,name,mem,lates,redos);const s2=mkSheet2(tasks,name,mem,lates,redos);const s3=mkSheet3(tasks,name,mem,lates,redos);
+const s4=mkSheet4(s1.rate,s2.rate,s3.rate,role,name,q,y);
+XLSX.utils.book_append_sheet(wb,s1.ws,'Bang 1. So luong');XLSX.utils.book_append_sheet(wb,s2.ws,'Bang 2. Tien do');
+XLSX.utils.book_append_sheet(wb,s3.ws,'Bang 3. Chat luong');XLSX.utils.book_append_sheet(wb,s4,'Ket qua');
+XLSX.writeFile(wb,'BangChamDiem_Q'+q+'_'+y+'_'+name.replace(/\s+/g,'_')+'.xlsx');
+closeExpPv();toast('Đã xuất báo cáo cho '+name,'ok');}
 // Export
 function initExport(){
 document.getElementById('exportSec').style.display='';
@@ -925,7 +1019,7 @@ for(let r=6;r<6+n;r++){for(let c=0;c<C;c++){const a=XLSX.utils.encode_cell({r,c}
 styleRow(ws,6+n,C,sTot);styleRow(ws,7+n,C,sTot);
 const pc=XLSX.utils.encode_cell({r:7+n,c:8});if(ws[pc]){ws[pc].z='0%';ws[pc].s=sPct;}
 return{ws,rate:totG?totHT/totG*100:0};}
-function mkSheet2(tasks,personName,mem){
+function mkSheet2(tasks,personName,mem,lates){
 const role=mem?mem.role:'Thành viên';const rl=role==='Trưởng phòng'?'Trưởng phòng':role==='Phó Trưởng phòng'?'Phó Trưởng phòng':'KTV';
 const C=12,data=[];
 data.push(['BẢNG 2: BẢNG CHẤM ĐIỂM TIẾN ĐỘ','','','','','','','','','','','']);
@@ -936,7 +1030,7 @@ data.push(['STT','Nội dung nhiệm vụ','Ngày hết hạn','Sản phẩm/\nc
 data.push([1,2,3,4,5,6,'7=5×6',8,'9=5×8',10,11,'12=9-11×25%×9']);
 let totG=0,totHT=0,totTD=0,totLate=0;
 tasks.forEach((t,i)=>{const done=t.status==='done'?1:0;const cf=t.coefficient||200;const qdHT=cf*done;
-const late=isLate(t)?1:0;const qdTD=r2(qdHT-(late*0.25*qdHT));const st=taskStatus(t);
+const late=lates?lates[i]:(isLate(t)?1:0);const qdTD=r2(qdHT-(late*0.25*qdHT));const st=taskStatus(t);
 totG+=cf;totHT+=qdHT;totTD+=qdTD;totLate+=late;
 data.push([i+1,t.name,fmtDL(t.deadline),t.product||'',cf,1,cf,done,qdHT,st,late,qdTD]);});
 const n=tasks.length;
@@ -952,7 +1046,7 @@ for(let r=6;r<6+n;r++){for(let c=0;c<C;c++){const a=XLSX.utils.encode_cell({r,c}
 styleRow(ws,6+n,C,sTot);styleRow(ws,7+n,C,sTot);
 const pc=XLSX.utils.encode_cell({r:7+n,c:11});if(ws[pc]){ws[pc].z='0%';ws[pc].s=sPct;}
 return{ws,rate:totG?totTD/totG*100:0};}
-function mkSheet3(tasks,personName,mem){
+function mkSheet3(tasks,personName,mem,lates,redos){
 const role=mem?mem.role:'Thành viên';const rl=role==='Trưởng phòng'?'Trưởng phòng':role==='Phó Trưởng phòng'?'Phó Trưởng phòng':'KTV';
 const C=14,data=[];
 data.push(['BẢNG 3: BẢNG CHẤM ĐIỂM CHẤT LƯỢNG','','','','','','','','','','','','','']);
@@ -963,7 +1057,7 @@ data.push(['STT','Nội dung nhiệm vụ','Ngày hết hạn','Sản phẩm/\nc
 data.push([1,2,3,4,5,6,'7=5×6',8,'9=5×8',10,11,'12=9-11×25%×9',13,'14=9-13×25%×9']);
 let totG=0,totHT=0,totTD=0,totCL=0;
 tasks.forEach((t,i)=>{const done=t.status==='done'?1:0;const cf=t.coefficient||200;const qdHT=cf*done;
-const late=isLate(t)?1:0;const qdTD=r2(qdHT-(late*0.25*qdHT));const redo=0;const qdCL=r2(qdHT-(redo*0.25*qdHT));
+const late=lates?lates[i]:(isLate(t)?1:0);const qdTD=r2(qdHT-(late*0.25*qdHT));const redo=redos?redos[i]:0;const qdCL=r2(qdHT-(redo*0.25*qdHT));
 const st=taskStatus(t);totG+=cf;totHT+=qdHT;totTD+=qdTD;totCL+=qdCL;
 data.push([i+1,t.name,fmtDL(t.deadline),t.product||'',cf,1,cf,done,qdHT,st,late,qdTD,redo,qdCL]);});
 const n=tasks.length;
@@ -1063,7 +1157,7 @@ const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};
 const sorted=[...S.mem].sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
 sorted.forEach((m,i)=>{setTimeout(()=>{if(doExport(m.name))count++;if(i===sorted.length-1)toast('Đã xuất '+count+' báo cáo','ok');},i*400);});}
 else{if(doExport(pr))toast('Đã xuất báo cáo cho '+pr,'ok');else toast('Không có công việc trong quý này','wn');}}
-function rAll(){rTasks();rRpt();uSt();rPend();initExport();}
+function rAll(){rTasks();rRpt();uSt();rPend();initExport();initSummary();}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&document.activeElement===document.getElementById('cmdIn')){e.preventDefault();handleCmd();}});
 ld();setTimeout(chkDL,3000);
 </script></body></html>
