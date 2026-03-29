@@ -784,6 +784,13 @@ rd.innerHTML='<div class="am ok">✅ Đã duyệt sửa CV #'+d.taskIndex+'</div
 }else if(r.parsed.action==='delete_task'){const ti=r.parsed.data.taskIndex-1;
 if(ti>=0&&ti<S.tasks.length){const name=S.tasks[ti].name;S.tasks.splice(ti,1);rd.innerHTML='<div class="am ok">✅ Đã duyệt xoá CV #'+(ti+1)+': '+esc(name.substring(0,40))+'</div>';log('[🗑️] Duyệt xoá CV #'+(ti+1)+': '+name.substring(0,40));}
 else{rd.innerHTML='<div class="am er">❌ CV không tồn tại</div>';}
+}else if(r.parsed.action==='add_task'){
+const d=r.parsed.data;const newName=(d.name||r.cmd).toLowerCase();const newLeader=(d.leader||'').toLowerCase();
+const dupes=S.tasks.filter(t=>t.name.toLowerCase().includes(newName.substring(0,20))||(newLeader&&t.leader.toLowerCase()===newLeader&&t.name.toLowerCase().includes(newName.substring(0,15))));
+if(dupes.length){const dupeList=dupes.map((t,j)=>'#'+(S.tasks.indexOf(t)+1)+': '+t.name.substring(0,50)+' ('+t.leader+')').join('\n');
+if(!confirm('⚠️ Phát hiện CV có thể trùng lặp:\n\n'+dupeList+'\n\nCV đề xuất: '+d.name.substring(0,50)+' ('+d.leader+')\n\nVẫn muốn thêm?')){
+rd.innerHTML='<div class="am wn">⏸️ Đã huỷ - nghi trùng lặp</div>';return;}}
+exec(r.parsed,r.cmd,rd);
 }else{exec(r.parsed,r.cmd,rd);}
 S.pend.splice(i,1);sv();fbSavePend();
 if(r.parsed.action==='edit_task'){const ti2=(r.parsed.data.taskIndex||1)-1;fbSaveTask(ti2);}
