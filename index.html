@@ -263,10 +263,8 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <div class="eov" id="expOv"><div class="ebox" style="max-width:95vw;width:1200px">
 <h2 id="expTitle">📊 Xem trước & Xuất Excel <span class="xp" onclick="closeExpPv()">✕</span></h2>
 <div style="overflow-x:auto;max-height:60vh;overflow-y:auto"><table id="expTable" style="font-size:12px"><thead id="expHead"></thead><tbody id="expBody"></tbody></table></div>
-<div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
-<button class="btn btn-o" onclick="closeExpPv()">Huỷ</button>
-<button class="btn btn-p" onclick="saveAndExport()">💾 Lưu & Xuất Excel</button>
-</div></div></div>
+<div id="expBtns" style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end"></div>
+</div></div>
 
 <div class="pnl-ov" id="ntOv" onclick="if(event.target===this)closeNt()"><div class="pnl">
 <h2>🔔 Thông báo <span class="xp" onclick="closeNt()">✕</span></h2>
@@ -289,7 +287,12 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <button class="btn btn-s btn-o" onclick="logout()">Thoát</button>
 </div></div></div>
 <div class="main" id="mainC">
-<div class="rpt"><h3>📊 Tổng hợp theo dõi</h3>
+<div class="rpt">
+<div style="display:flex;gap:3px;margin-bottom:12px;background:var(--bg2);border:1px solid var(--b);border-radius:6px;padding:3px">
+<button class="tb on" data-rt="rptMain" onclick="sRptTab('rptMain')">📊 Tổng hợp theo dõi</button>
+<button class="tb" data-rt="rptMem" onclick="sRptTab('rptMem')">👥 Tổng hợp theo thành viên</button>
+</div>
+<div id="rptMain" class="rptPane" style="display:block">
 <div class="rf">
 <select id="rpMode" onchange="onRM()"><option value="week">Theo tuần</option><option value="month">Theo tháng</option><option value="year">Theo năm</option><option value="custom">Tự chọn</option></select>
 <select id="rpWeek" onchange="rRpt()"></select>
@@ -299,15 +302,14 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <select id="rpPr" onchange="syncFilter('rpPr');rAll()"><option value="all">Tất cả</option></select>
 </div>
 <div class="rrow"><div class="rnums" id="rpN"></div><div class="rch"><canvas id="rpC"></canvas></div></div>
-<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--b)">
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-<h3 style="font-size:16px;font-weight:700">📊 Tổng hợp theo dõi toàn phòng</h3>
-<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+</div>
+<div id="rptMem" class="rptPane" style="display:none">
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
 <select id="sumMode" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="quarter">Theo quý</option><option value="week">Theo tuần</option><option value="month">Theo tháng</option><option value="year">Theo năm</option></select>
 <select id="sumQ" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="1">Q1</option><option value="2">Q2</option><option value="3">Q3</option><option value="4">Q4</option></select>
 <select id="sumY" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"></select>
 <select id="sumSort" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="score">Sắp xếp: Điểm quy đổi</option><option value="done">Sắp xếp: CV hoàn thành</option></select>
-</div></div>
+</div>
 <div class="tsc"><table id="sumTable"><thead><tr><th>STT</th><th>Họ tên</th><th>Chức vụ</th><th>Tổng CV</th><th style="color:var(--green)">Hoàn thành</th><th style="color:var(--blue)">Đang làm</th><th style="color:var(--red)">Quá hạn</th><th>Hệ số QĐ</th><th>HT quy đổi</th><th>Tỷ lệ %</th></tr></thead><tbody id="sumBody"></tbody></table></div>
 </div>
 <div id="exportSec" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--b)">
@@ -884,6 +886,7 @@ function dlC(dl,st){if(!dl||st==='done')return'';const h=(new Date(dl)-new Date(
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function toast(m,t){document.querySelectorAll('.toast').forEach(x=>x.remove());const el=document.createElement('div');el.className='toast '+t;el.innerHTML=m;document.body.appendChild(el);setTimeout(()=>el.remove(),3e3);}
 function syncFilter(src){const v=document.getElementById(src).value;if(src==='rpPr')document.getElementById('fP').value=v;else document.getElementById('rpPr').value=v;}
+function sRptTab(id){document.querySelectorAll('.rptPane').forEach(p=>p.style.display='none');document.getElementById(id).style.display='block';document.querySelectorAll('[data-rt]').forEach(b=>b.classList.toggle('on',b.dataset.rt===id));if(id==='rptMem')rSummary();}
 // Summary table
 function initSummary(){const y=new Date().getFullYear();document.getElementById('sumY').innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>';document.getElementById('sumQ').value=Math.ceil((new Date().getMonth()+1)/3);rSummary();}
 function getSumRange(){const mode=document.getElementById('sumMode').value;
@@ -924,41 +927,55 @@ const stOpts='<option value="doing"'+(t.status==='doing'?' selected':'')+'>Đang
 if(isEditable)return'<tr><td style="text-align:center">'+(i+1)+'</td><td><input type="text" value="'+esc(t.name)+'" data-f="name" data-i="'+i+'" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"/></td><td><input type="text" value="'+esc(t.product||'')+'" data-f="product" data-i="'+i+'" list="dlPr" style="width:80px;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:11px;color:var(--t1);outline:none"/></td><td><input type="number" value="'+(t.coefficient||200)+'" data-f="coefficient" data-i="'+i+'" style="width:60px;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:11px;color:var(--t1);outline:none;text-align:center"/></td><td>'+esc(t.leader||'')+'</td><td style="font-size:11px">'+fDL(t.deadline)+'</td><td><select data-f="status" data-i="'+i+'" style="background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px;font-size:11px;color:var(--t1);outline:none">'+stOpts+'</select></td><td><input type="number" value="'+late+'" min="0" max="5" data-f="lateCount" data-i="'+i+'" style="width:45px;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px;font-size:11px;color:var(--t1);outline:none;text-align:center"/></td><td><input type="number" value="0" min="0" max="5" data-f="redoCount" data-i="'+i+'" style="width:45px;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px;font-size:11px;color:var(--t1);outline:none;text-align:center"/></td></tr>';
 return'';}).join('');
 document.getElementById('expBody').innerHTML=rows;
+const btns=document.getElementById('expBtns');
+if(S.adm){btns.innerHTML='<button class="btn btn-o" onclick="closeExpPv()">Huỷ</button><button class="btn btn-p" onclick="expSaveOnly()">💾 Lưu</button><button class="btn btn-p" onclick="expSaveAndExport()">📊 Lưu & Xuất Excel</button>';}
+else{btns.innerHTML='<button class="btn btn-o" onclick="closeExpPv()">Huỷ</button><button class="btn btn-p" onclick="expSubmitChanges()">💾 Lưu (chờ duyệt)</button><button class="btn btn-p" onclick="expExportOnly()">📊 Xuất Excel</button>';}
 document.getElementById('expOv').classList.add('show');}
 function closeExpPv(){document.getElementById('expOv').classList.remove('show');_expData=null;}
-function saveAndExport(){if(!_expData)return;
-const changes=[];const edits=document.querySelectorAll('#expTable [data-f]');
-edits.forEach(el=>{const i=+el.dataset.i;const f=el.dataset.f;const d=_expData.tasks[i];const t=d.task;
-const nv=f==='coefficient'?parseFloat(el.value)||200:el.value.trim();
-if(f==='name'&&nv!==t.name){changes.push({i,f,old:t.name,nw:nv});t.name=nv;}
-if(f==='product'&&nv!==(t.product||'')){changes.push({i,f,old:t.product,nw:nv});t.product=nv;}
-if(f==='coefficient'&&nv!==t.coefficient){changes.push({i,f,old:t.coefficient,nw:nv});t.coefficient=nv;}
-if(f==='status'&&nv!==t.status){changes.push({i,f,old:t.status,nw:nv});t.status=nv;if(nv==='done'&&!t.completedAt)t.completedAt=new Date().toISOString();}
-});
-// Lấy lateCount và redoCount cho export
-const lates=[],redos=[];
-_expData.tasks.forEach((d,i)=>{
+function _getExpChanges(){const changes=[];const edits=document.querySelectorAll('#expTable [data-f]');
+edits.forEach(el=>{const i=+el.dataset.i;const f=el.dataset.f;if(f==='lateCount'||f==='redoCount')return;
+const d=_expData.tasks[i];const t=d.task;const nv=f==='coefficient'?parseFloat(el.value)||200:el.value.trim();
+if(f==='name'&&nv!==t.name)changes.push({i,f,old:t.name,nw:nv});
+if(f==='product'&&nv!==(t.product||''))changes.push({i,f,old:t.product,nw:nv});
+if(f==='coefficient'&&nv!==t.coefficient)changes.push({i,f,old:t.coefficient,nw:nv});
+if(f==='status'&&nv!==t.status)changes.push({i,f,old:t.status,nw:nv});});return changes;}
+function _getExpLatesRedos(){const lates=[],redos=[];_expData.tasks.forEach((d,i)=>{
 lates[i]=+(document.querySelector('#expTable [data-f="lateCount"][data-i="'+i+'"]')?.value||0);
-redos[i]=+(document.querySelector('#expTable [data-f="redoCount"][data-i="'+i+'"]')?.value||0);});
-// Lưu thay đổi
-if(changes.length){
-if(S.adm){if(confirm('Bạn đã sửa '+changes.length+' trường. Lưu thay đổi vào danh sách công việc?')){
-changes.forEach(c=>{const gi=_expData.tasks[c.i].idx;if(gi>=0&&gi<S.tasks.length){S.tasks[gi][c.f]=c.nw;fbSaveTask(gi);}});sv();rAll();toast('Đã lưu '+changes.length+' thay đổi','ok');}
-}else{changes.forEach(c=>{const gi=_expData.tasks[c.i].idx;
-S.pend.push({id:Date.now()+c.i,from:S.u,cmd:'[Sửa từ báo cáo] CV #'+(gi+1)+': '+c.f+'='+String(c.nw).substring(0,30),parsed:{action:'edit_task',data:{taskIndex:gi+1,[c.f]:c.nw}},time:new Date().toISOString()});});
-sv();fbSavePend();rPend();uSt();
-if(!confirm('Dữ liệu đã sửa nhưng chưa được phê duyệt.\nBạn có chắc chắn muốn xuất báo cáo với dữ liệu đã chỉnh sửa?')){closeExpPv();return;}}}
-// Xuất Excel
-const q=_expData.q,y=_expData.y,name=_expData.person;
+redos[i]=+(document.querySelector('#expTable [data-f="redoCount"][data-i="'+i+'"]')?.value||0);});return{lates,redos};}
+function _doExportExcel(lates,redos){const q=_expData.q,y=_expData.y,name=_expData.person;
 const mem=S.mem.find(m=>m.name===name);const role=mem?mem.role:'Thành viên';
-const tasks=_expData.tasks.map(d=>d.task);
-const wb=XLSX.utils.book_new();
+const tasks=_expData.tasks.map(d=>d.task);const wb=XLSX.utils.book_new();
 const s1=mkSheet1(tasks,name,mem,lates,redos);const s2=mkSheet2(tasks,name,mem,lates,redos);const s3=mkSheet3(tasks,name,mem,lates,redos);
 const s4=mkSheet4(s1.rate,s2.rate,s3.rate,role,name,q,y);
 XLSX.utils.book_append_sheet(wb,s1.ws,'Bang 1. So luong');XLSX.utils.book_append_sheet(wb,s2.ws,'Bang 2. Tien do');
 XLSX.utils.book_append_sheet(wb,s3.ws,'Bang 3. Chat luong');XLSX.utils.book_append_sheet(wb,s4,'Ket qua');
-XLSX.writeFile(wb,'BangChamDiem_Q'+q+'_'+y+'_'+name.replace(/\s+/g,'_')+'.xlsx');
-closeExpPv();toast('Đã xuất báo cáo cho '+name,'ok');}
+XLSX.writeFile(wb,'BangChamDiem_Q'+q+'_'+y+'_'+name.replace(/\s+/g,'_')+'.xlsx');toast('Đã xuất báo cáo cho '+name,'ok');}
+// Admin: Lưu thay đổi (không xuất)
+function expSaveOnly(){if(!_expData)return;const changes=_getExpChanges();
+if(!changes.length){toast('Không có thay đổi','wn');return;}
+if(!confirm('Lưu '+changes.length+' thay đổi vào danh sách công việc?'))return;
+changes.forEach(c=>{const gi=_expData.tasks[c.i].idx;const t=_expData.tasks[c.i].task;
+t[c.f]=c.nw;if(c.f==='status'&&c.nw==='done'&&!t.completedAt)t.completedAt=new Date().toISOString();
+if(gi>=0&&gi<S.tasks.length){S.tasks[gi][c.f]=c.nw;if(c.f==='status'&&c.nw==='done'&&!S.tasks[gi].completedAt)S.tasks[gi].completedAt=new Date().toISOString();fbSaveTask(gi);}});
+sv();rAll();toast('Đã lưu '+changes.length+' thay đổi','ok');}
+// Admin: Lưu + Xuất Excel
+function expSaveAndExport(){if(!_expData)return;const changes=_getExpChanges();
+if(changes.length){if(!confirm('Lưu '+changes.length+' thay đổi vào danh sách công việc và xuất Excel?'))return;
+changes.forEach(c=>{const gi=_expData.tasks[c.i].idx;const t=_expData.tasks[c.i].task;
+t[c.f]=c.nw;if(c.f==='status'&&c.nw==='done'&&!t.completedAt)t.completedAt=new Date().toISOString();
+if(gi>=0&&gi<S.tasks.length){S.tasks[gi][c.f]=c.nw;if(c.f==='status'&&c.nw==='done'&&!S.tasks[gi].completedAt)S.tasks[gi].completedAt=new Date().toISOString();fbSaveTask(gi);}});
+sv();rAll();}
+const{lates,redos}=_getExpLatesRedos();_doExportExcel(lates,redos);closeExpPv();}
+// Thành viên: Lưu (gửi chờ duyệt)
+function expSubmitChanges(){if(!_expData)return;const changes=_getExpChanges();
+if(!changes.length){toast('Không có thay đổi','wn');return;}
+changes.forEach(c=>{const gi=_expData.tasks[c.i].idx;
+S.pend.push({id:Date.now()+c.i,from:S.u,cmd:'[Sửa từ báo cáo] CV #'+(gi+1)+': '+c.f+'='+String(c.nw).substring(0,30),parsed:{action:'edit_task',data:{taskIndex:gi+1,[c.f]:c.nw}},time:new Date().toISOString()});});
+sv();fbSavePend();rPend();uSt();toast('Đã gửi '+changes.length+' thay đổi chờ duyệt','ok');}
+// Thành viên: Xuất Excel (cảnh báo nếu có thay đổi chưa duyệt)
+function expExportOnly(){if(!_expData)return;const changes=_getExpChanges();
+if(changes.length){if(!confirm('Dữ liệu đã được chỉnh sửa nhưng chưa được phê duyệt.\nBạn có chắc chắn muốn xuất báo cáo với dữ liệu cũ (chưa chỉnh sửa)?'))return;}
+const{lates,redos}=_getExpLatesRedos();_doExportExcel(lates,redos);closeExpPv();}
 // Export
 function initExport(){
 document.getElementById('exportSec').style.display='';
