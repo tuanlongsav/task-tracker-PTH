@@ -131,7 +131,7 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 .sb.overdue{background:var(--rg);color:var(--red);border:1px solid rgba(239,68,68,.3)}
 .dl{font-family:'JetBrains Mono',monospace;font-size:13px}
 .dl.urg{color:var(--red);font-weight:600}.dl.soon{color:var(--amber);font-weight:600}
-.dl-edit{background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:4px 6px;font-size:12px;color:var(--t1);font-family:'JetBrains Mono',monospace;width:175px;outline:none}
+.dl-edit{background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:4px 6px;font-size:11px;color:var(--t1);font-family:'JetBrains Mono',monospace;width:155px;outline:none}
 .empty{text-align:center;padding:28px 12px;color:var(--t3)}.empty .icon{font-size:24px;margin-bottom:6px}.empty p{font-size:12px}
 .rc{background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;margin:6px 12px;animation:fi .2s ease}
 .rc .rh{display:flex;justify-content:space-between;margin-bottom:5px;font-size:11px;color:var(--t2)}
@@ -895,7 +895,7 @@ document.getElementById('tbI').innerHTML=tR(inc,false);document.getElementById('
 function tR(list,isDone){if(!list.length)return'<tr><td colspan="11"><div class="empty"><div class="icon">'+(isDone?'🎉':'📭')+'</div><p>'+(isDone?'Không có':'Không có CV')+'</p></div></td></tr>';
 return list.map(t=>{const gi=S.tasks.indexOf(t)+1;const sc=t.status==='done'?'done':t.status==='overdue'?'overdue':'doing';const sl=t.status==='done'?'✅':t.status==='overdue'?'🚨':'⏳';const dc=dlC(t.deadline,t.status);
 const adCol='<td><span class="dl">'+fD(t.assignedDate||t.date)+'</span></td>';
-const tc=isDone?('<span class="dl">'+fDL(t.completedAt||t.date)+'</span>'):(S.adm?'<input type="datetime-local" class="dl-edit" value="'+(t.deadline?t.deadline.replace(' ','T'):'')+'" onchange="chDL('+gi+',this.value)"/>':'<span class="dl '+dc+'">'+fDL(t.deadline)+'</span>');
+const tc=isDone?('<span class="dl">'+fDL(t.completedAt||t.date)+'</span>'):(S.adm?'<span class="dl '+dc+'" style="cursor:pointer" title="Click để sửa hạn" onclick="this.style.display=\'none\';this.nextElementSibling.style.display=\'\'">'+fDL(t.deadline)+'</span><input type="datetime-local" class="dl-edit" style="display:none" value="'+(t.deadline?t.deadline.replace(' ','T'):'')+'" onchange="chDL('+gi+',this.value)" onblur="this.style.display=\'none\';this.previousElementSibling.style.display=\'\'"/>':'<span class="dl '+dc+'">'+fDL(t.deadline)+'</span>');
 const dateInfo=t.date?'<span style="font-size:9px;color:var(--t3);display:block" title="Nhập lúc '+t.date+'">📝 '+fD(t.date)+'</span>':'';
 return'<tr><td><span class="tid">#'+gi+'</span></td><td><div class="tn">'+esc(t.name)+dateInfo+'</div></td><td style="font-size:12px">'+esc(t.product||'')+'</td><td style="font-size:12px;text-align:center">'+(t.coefficient||'-')+'</td><td>'+(t.leader?'<span class="pt ld">'+esc(t.leader)+'</span>':'-')+'</td><td style="max-width:140px">'+((t.collaborators||[]).map(c=>'<span class="pt">'+esc(c)+'</span>').join('')||'-')+'</td>'+adCol+'<td>'+tc+'</td><td><span class="sb '+sc+'">'+sl+'</span></td><td style="font-size:12px;color:var(--t2)">'+esc(t.notes||'')+'</td>'+'<td style="white-space:nowrap"><span style="cursor:pointer;font-size:15px" title="'+(S.adm?'Chỉnh sửa':'Đề xuất sửa')+'" onclick="openEdit('+gi+')">'+(S.adm?'✏️':'📝')+'</span> <span style="cursor:pointer;font-size:15px" title="Xoá" onclick="delTask('+gi+')">🗑️</span></td></tr>';}).join('');}
 function chDL(gi,v){const i=gi-1;if(i<0||i>=S.tasks.length)return;S.tasks[i].deadline=v.replace('T',' ');if(S.tasks[i].status==='overdue'&&new Date(v)>new Date())S.tasks[i].status='doing';sv();fbSaveTask(i);rAll();toast('Đổi hạn CV #'+gi,'ok');}
@@ -919,7 +919,7 @@ if(d.name!==o.name)rows.push(['Nội dung',o.name,d.name]);
 if(d.leader!==o.leader)rows.push(['Phụ trách',o.leader,d.leader]);
 if(JSON.stringify(d.collaborators)!==JSON.stringify(o.collaborators))rows.push(['Phối hợp',(o.collaborators||[]).join(', '),(d.collaborators||[]).join(', ')]);
 if(d.status!==o.status)rows.push(['Trạng thái',o.status==='done'?'Hoàn thành':o.status==='overdue'?'Quá hạn':'Đang làm',d.status==='done'?'Hoàn thành':d.status==='overdue'?'Quá hạn':'Đang làm']);
-if(d.deadline!==o.deadline)rows.push(['Hạn HT',fDL(o.deadline),fDL(d.deadline)]);
+if(d.deadline!==o.deadline)rows.push(['Hạn HT',fDLt(o.deadline),fDLt(d.deadline)]);
 if(d.product!==o.product)rows.push(['Sản phẩm',o.product||'(trống)',d.product||'(trống)']);
 if(d.coefficient!==o.coefficient)rows.push(['Hệ số',o.coefficient,d.coefficient]);
 if(d.assignedDate!==o.assignedDate)rows.push(['Ngày giao',fD(o.assignedDate),fD(d.assignedDate)]);
@@ -982,9 +982,9 @@ if(r.lastNotified===today)return;
 const t=S.tasks.find(x=>String(x.id)===key);if(!t)return;
 const h=(new Date(r.deadline)-new Date())/36e5;
 let subj='',msg='';
-if(r.type==='overdue'){subj='[QUÁ HẠN] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDL(r.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.';}
-else if(r.type==='urgent'){subj='[GẤP] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDL(r.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!';}
-else{subj='[SẮP HẠN] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDL(r.deadline)+'\nCòn '+Math.round(h)+' giờ.';}
+if(r.type==='overdue'){subj='[QUÁ HẠN] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.';}
+else if(r.type==='urgent'){subj='[GẤP] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!';}
+else{subj='[SẮP HẠN] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nCòn '+Math.round(h)+' giờ.';}
 notifyTaskPeople(t,subj,msg);r.lastNotified=today;sent++;});
 if(sent){fbSaveMeta('reminders',S.reminders);console.log('[Reminders] Đã gửi '+sent+' thông báo nhắc việc');}}
 function getTaskEmails(t){const emails=[...S.ne];[t.leader,...(t.collaborators||[])].forEach(n=>{const m=S.mem.find(x=>x.name===n);if(m?.email&&!emails.includes(m.email))emails.push(m.email);});return emails;}
@@ -1025,7 +1025,8 @@ function log(m){S.hist.unshift({t:new Date().toISOString(),x:m});if(S.hist.lengt
 function rH(){const c=document.getElementById('hLog');if(!S.hist.length){c.innerHTML='<div class="empty"><div class="icon">📜</div><p>Trống</p></div>';return;}c.innerHTML=S.hist.slice(0,40).map(h=>'<div class="le"><span class="lt">'+fT(h.t)+'</span><span class="lx">'+esc(h.x)+'</span></div>').join('');}
 function clrH(){S.hist=[];sv();fbSaveMeta('hist',null);rH();}
 // Helpers
-function fDL(s){if(!s)return'-';try{const d=new Date(s);if(isNaN(d))return s;return p2(d.getHours())+':'+p2(d.getMinutes())+' '+p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear();}catch(e){return s;}}
+function fDL(s){if(!s)return'-';try{const d=new Date(s);if(isNaN(d))return s;return p2(d.getHours())+':'+p2(d.getMinutes())+'<br>'+p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear();}catch(e){return s;}}
+function fDLt(s){if(!s)return'-';try{const d=new Date(s);if(isNaN(d))return s;return p2(d.getHours())+':'+p2(d.getMinutes())+' '+p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear();}catch(e){return s;}}
 function fD(s){if(!s)return'-';try{const d=new Date(s);return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear();}catch(e){return s;}}
 function fT(s){try{const d=new Date(s);return p2(d.getHours())+':'+p2(d.getMinutes())+' '+p2(d.getDate())+'/'+p2(d.getMonth()+1);}catch(e){return'';}}
 function p2(n){return String(n).padStart(2,'0');}
