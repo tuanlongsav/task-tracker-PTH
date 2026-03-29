@@ -89,6 +89,14 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .cw textarea::placeholder{color:var(--t3)}
 .bsend{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;border:none;border-radius:6px;padding:10px 16px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
 .bsend:disabled{opacity:.5;cursor:not-allowed}
+.bmic,.bcam{background:var(--c);border:1px solid var(--b);color:var(--t1);border-radius:6px;padding:10px 12px;font-size:15px;cursor:pointer;transition:all .15s;flex-shrink:0}
+.bmic:hover,.bcam:hover{background:var(--ch);border-color:var(--blue)}
+.bmic.active{background:var(--red);border-color:var(--red);color:#fff;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.img-pv{display:none;position:relative;margin-bottom:6px}
+.img-pv.show{display:inline-block}
+.img-pv img{height:48px;border-radius:6px;border:1px solid var(--b)}
+.img-pv .xp{position:absolute;top:-6px;right:-6px;width:18px;height:18px;background:var(--red);color:#fff;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
 .ar{margin-top:8px;display:none}.ar.show{display:block}
 .am{background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px 12px;font-size:12px;line-height:1.5;color:var(--t2);animation:fi .2s ease}
 .am.ok{border-left:3px solid var(--green)}.am.er{border-left:3px solid var(--red)}.am.inf{border-left:3px solid var(--blue)}.am.pn{border-left:3px solid var(--amber)}.am.cl{border-left:3px solid var(--purple)}
@@ -370,7 +378,8 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <div class="isec"><div class="itabs"><button class="itab on" onclick="sInp(0)">🤖 Lệnh AI</button><button class="itab" onclick="sInp(1)">📝 Nhập thủ công</button></div>
 <div class="ibody">
 <div class="ipane on" id="ip0"><div class="ai-t">Ra lệnh tự nhiên <span class="gb">Gemini</span></div>
-<div class="cw"><textarea id="cmdIn" rows="1" placeholder='VD: ông Long chủ trì tham gia ý kiến VB XYZ, hạn 12h 30/3...'></textarea><button class="bsend" id="sBtn" onclick="handleCmd()"><span id="sTxt">Gửi ✨</span></button></div>
+<div class="img-pv" id="imgPv"><img id="imgPvImg" src="" alt="preview"/><span class="xp" onclick="clearImg()">✕</span></div>
+<div class="cw"><textarea id="cmdIn" rows="1" placeholder='VD: ông Long chủ trì tham gia ý kiến VB XYZ, hạn 12h 30/3...'></textarea><button class="bmic" id="micBtn" onclick="toggleVoice()" title="Nhập bằng giọng nói">🎤</button><button class="bcam" onclick="document.getElementById('imgInp').click()" title="Chụp/chọn ảnh gửi AI">📷</button><input type="file" id="imgInp" accept="image/*" capture="environment" style="display:none" onchange="onImgSelect(event)"/><button class="bsend" id="sBtn" onclick="handleCmd()"><span id="sTxt">Gửi ✨</span></button></div>
 <div id="aR" class="ar"></div></div>
 <div class="ipane" id="ip1"><div class="mf">
 <div class="fs mfg"><label>Nội dung *</label><input type="text" id="mi_n" placeholder="Nhập nội dung..."/></div>
@@ -738,10 +747,45 @@ if(!changes.length){closeEdit();toast('Không có thay đổi','wn');return;}
 const oldData={name:t.name,leader:t.leader,collaborators:[...(t.collaborators||[])],status:t.status,deadline:t.deadline||'',product:t.product||'',coefficient:t.coefficient,assignedDate:t.assignedDate||'',notes:t.notes||'',completedAt:t.completedAt||''};
 S.pend.push({id:Date.now(),from:S.u,cmd:'[Đề xuất sửa CV #'+gi+'] '+changes.join('; '),parsed:{action:'edit_task',data:{taskIndex:gi,...newData}},oldData:oldData,time:new Date().toISOString()});
 sv();fbSavePend();closeEdit();rPend();uSt();toast('Đã gửi đề xuất chỉnh sửa CV #'+gi+' chờ duyệt','ok');}}
+// Voice input (Web Speech API)
+let _speechRec=null,_isListening=false;
+function toggleVoice(){
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR){toast('Trình duyệt không hỗ trợ nhận giọng nói. Dùng Chrome hoặc Edge.','er');return;}
+const btn=document.getElementById('micBtn');
+if(_isListening){_speechRec.stop();return;}
+_speechRec=new SR();_speechRec.lang='vi-VN';_speechRec.continuous=false;_speechRec.interimResults=true;
+_speechRec.onstart=()=>{_isListening=true;btn.classList.add('active');btn.innerHTML='🔴';};
+_speechRec.onresult=(e)=>{let final='',interim='';
+for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)final+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
+const inp=document.getElementById('cmdIn');
+if(final){inp.value=inp.value+(inp.value?' ':'')+final;}
+else if(interim){inp.placeholder=interim+'...';}};
+_speechRec.onend=()=>{_isListening=false;btn.classList.remove('active');btn.innerHTML='🎤';
+document.getElementById('cmdIn').placeholder='VD: ông Long chủ trì tham gia ý kiến VB XYZ, hạn 12h 30/3...';};
+_speechRec.onerror=(e)=>{_isListening=false;btn.classList.remove('active');btn.innerHTML='🎤';
+if(e.error==='not-allowed')toast('Quyền micro bị từ chối. Cho phép trong cài đặt trình duyệt.','er');
+else if(e.error!=='aborted')toast('Lỗi giọng nói: '+e.error,'er');};
+_speechRec.start();}
+// Image input
+let _imgData=null;
+function onImgSelect(e){const file=e.target.files[0];if(!file)return;
+if(file.size>10*1024*1024){toast('Ảnh quá lớn (>10MB)','er');e.target.value='';return;}
+const reader=new FileReader();
+reader.onload=(ev)=>{const b64=ev.target.result;
+_imgData={base64:b64.split(',')[1],mimeType:file.type||'image/jpeg'};
+document.getElementById('imgPvImg').src=b64;
+document.getElementById('imgPv').classList.add('show');};
+reader.readAsDataURL(file);}
+function clearImg(){_imgData=null;document.getElementById('imgPv').classList.remove('show');
+document.getElementById('imgPvImg').src='';document.getElementById('imgInp').value='';}
 // Gemini
 async function callG(p){const ml=S.mem.map(m=>m.name+' ('+m.role+')').join(', ');const now=new Date();
 const sys='Bạn là trợ lý AI quản lý công việc phòng Tổng hợp KTNN KV1.\nThành viên: '+ml+'\nHôm nay: '+now.getFullYear()+'-'+p2(now.getMonth()+1)+'-'+p2(now.getDate())+'\n\nQuy tắc:\n- Tên viết tắt hoặc gọi tắt → đối chiếu danh sách → tên đầy đủ\n- Nhiều người khớp → dùng clarify\n- Không ghi năm → năm hiện tại\n- Không ghi giờ → mặc định 17:00\n- Nếu user nói "đã hoàn thành/đã xong" → status="done"\n\nTrả về DUY NHẤT 1 JSON object (KHÔNG markdown, KHÔNG giải thích).\n\nCác action:\n\n1. add_task: thêm công việc\n{"action":"add_task","data":{"name":"nội dung","leader":"người phụ trách","collaborators":["người phối hợp"],"deadline":"YYYY-MM-DD HH:mm","status":"doing hoặc done","notes":"ghi chú","product":"tên sản phẩm/công việc quy đổi","coefficient":100}}\nproduct: tên sản phẩm hoặc loại công việc (VD: Văn bản trả lời, Báo cáo...)\ncoefficient: hệ số quy đổi (100-300, mặc định 100)\n\n2. complete_task: đánh dấu hoàn thành CV có sẵn\n{"action":"complete_task","data":{"taskIndex":số thứ tự}}\n\n3. update_deadline: đổi hạn\n{"action":"update_deadline","data":{"taskIndex":số thứ tự,"newDeadline":"YYYY-MM-DD HH:mm"}}\n\n4. clarify: cần làm rõ\n{"action":"clarify","data":{"message":"câu hỏi","candidates":["tên1","tên2"],"originalCommand":"lệnh gốc"}}\n\n5. query: trả lời câu hỏi\n{"action":"query","data":{"answer":"câu trả lời"}}\n\n6. unknown: không hiểu\n{"action":"unknown","data":{"message":"lý do"}}\n\nDanh sách CV chưa xong:\n'+JSON.stringify(S.tasks.filter(t=>t.status!=='done').map((t,i)=>({stt:S.tasks.indexOf(t)+1,n:t.name.substring(0,50),l:t.leader})));
-const body={contents:[{parts:[{text:p}]}],systemInstruction:{parts:[{text:sys}]},generationConfig:{temperature:.1,maxOutputTokens:1024}};
+const parts=[];
+if(_imgData){parts.push({inlineData:{mimeType:_imgData.mimeType,data:_imgData.base64}});}
+parts.push({text:p||'Đọc nội dung ảnh này và trích xuất thông tin giao việc (người phụ trách, nội dung, hạn...). Nếu là bảng biểu thì trích xuất từng dòng.'});
+const body={contents:[{parts}],systemInstruction:{parts:[{text:sys}]},generationConfig:{temperature:.1,maxOutputTokens:2048}};
 const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+S.gmodel+':generateContent?key='+S.gk,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 if(!r.ok)throw new Error('Lỗi API: '+r.status+' '+r.statusText);
 const d=await r.json();if(d.error)throw new Error(d.error.message);
@@ -753,16 +797,18 @@ t=t.replace(/\r\n/g,' ').replace(/\n/g,' ').replace(/\r/g,' ').replace(/\t/g,' '
 const jm=t.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/);
 if(!jm){console.error('[Gemini parse fail] cleaned text:',t);throw new Error('AI không trả về JSON hợp lệ. Thử lại hoặc diễn đạt khác.');}
 try{return JSON.parse(jm[0]);}catch(e1){let f=jm[0];f=f.replace(/,\s*([}\]])/g,'$1');f=f.replace(/'/g,'"');f=f.replace(/([{,]\s*)([a-zA-Z_]\w*)\s*:/g,'$1"$2":');try{return JSON.parse(f);}catch(e2){console.error('[Gemini JSON fix fail]',f);throw new Error('AI trả lời không đúng định dạng. Hãy thử diễn đạt lại.');}}}
-async function handleCmd(){const inp=document.getElementById('cmdIn'),cmd=inp.value.trim();if(!cmd)return;
+async function handleCmd(){const inp=document.getElementById('cmdIn'),cmd=inp.value.trim();
+if(!cmd&&!_imgData)return;
 if(!S.gk){document.getElementById('aR').classList.add('show');document.getElementById('aR').innerHTML='<div class="am er">⚠️ Chưa có API Key → ⚙️ Cài đặt<br><a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--blue)">Tạo miễn phí</a></div>';return;}
+const hasImg=!!_imgData;
 const btn=document.getElementById('sBtn'),txt=document.getElementById('sTxt'),rd=document.getElementById('aR');
-btn.disabled=true;txt.innerHTML='<span class="spinner"></span>';rd.classList.add('show');rd.innerHTML='<div class="am inf">🤖 Xử lý...</div>';
+btn.disabled=true;txt.innerHTML='<span class="spinner"></span>';rd.classList.add('show');rd.innerHTML='<div class="am inf">🤖 '+(hasImg?'Đang phân tích ảnh...':'Xử lý...')+'</div>';
 try{const res=await callG(cmd);
 if(res.action==='clarify'){rd.innerHTML='<div class="am cl">❓ '+esc(res.data.message)+'<div class="co">'+((res.data.candidates||[]).map(c=>'<button class="cbtn" onclick="doClr(\''+esc(c).replace(/'/g,"\\'")+'\',\''+esc(res.data.originalCommand||'').replace(/'/g,"\\'")+'\')">'+esc(c)+'</button>').join(''))+'</div></div>';}
-else if(!S.adm){S.pend.push({id:Date.now(),from:S.u,cmd,parsed:res,time:new Date().toISOString()});sv();fbSavePend();rPend();uSt();rd.innerHTML='<div class="am pn">⏳ Gửi chờ duyệt</div>';}
-else exec(res,cmd,rd);
+else if(!S.adm){S.pend.push({id:Date.now(),from:S.u,cmd:cmd||(hasImg?'[Ảnh]':''),parsed:res,time:new Date().toISOString()});sv();fbSavePend();rPend();uSt();rd.innerHTML='<div class="am pn">⏳ Gửi chờ duyệt</div>';}
+else exec(res,cmd||(hasImg?'[Ảnh]':''),rd);
 }catch(e){rd.innerHTML='<div class="am er">❌ '+esc(e.message)+'</div>';}
-btn.disabled=false;txt.textContent='Gửi ✨';inp.value='';}
+btn.disabled=false;txt.textContent='Gửi ✨';inp.value='';clearImg();}
 async function doClr(n,o){const rd=document.getElementById('aR');rd.innerHTML='<div class="am inf">🤖 Xử lý...</div>';
 try{const res=await callG(o+'\nTên="'+n+'".');if(S.adm)exec(res,o,rd);else{S.pend.push({id:Date.now(),from:S.u,cmd:o+' [→'+n+']',parsed:res,time:new Date().toISOString()});sv();fbSavePend();rPend();uSt();rd.innerHTML='<div class="am pn">⏳ Chờ duyệt</div>';}}catch(e){rd.innerHTML='<div class="am er">❌ '+esc(e.message)+'</div>';}}
 function exec(res,cmd,rd){switch(res.action){
