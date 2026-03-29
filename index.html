@@ -775,7 +775,7 @@ if(kw)all=all.filter(t=>(t.name||'').toLowerCase().includes(kw)||(t.notes||'').t
 if(dFrom)all=all.filter(t=>{const d=t.assignedDate||t.date||'';return d>=dFrom;});
 if(dTo)all=all.filter(t=>{const d=t.assignedDate||t.date||'';return d<=dTo;});
 const inc=all.filter(t=>t.status!=='done').sort((a,b)=>{if(a.status==='overdue'&&b.status!=='overdue')return-1;if(b.status==='overdue'&&a.status!=='overdue')return 1;return new Date(a.deadline||'9999')-new Date(b.deadline||'9999');});
-const done=all.filter(t=>t.status==='done').sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+const done=all.filter(t=>t.status==='done').sort((a,b)=>new Date(b.completedAt||b.date||0)-new Date(a.completedAt||a.date||0));
 document.getElementById('cT').textContent=S.tasks.length;
 document.getElementById('tbI').innerHTML=tR(inc,false);document.getElementById('tbD').innerHTML=tR(done,true);}
 function tR(list,isDone){if(!list.length)return'<tr><td colspan="11"><div class="empty"><div class="icon">'+(isDone?'🎉':'📭')+'</div><p>'+(isDone?'Không có':'Không có CV')+'</p></div></td></tr>';
@@ -785,7 +785,7 @@ const tc=isDone?('<span class="dl">'+fDL(t.completedAt||t.date)+'</span>'):(S.ad
 const dateInfo=t.date?'<span style="font-size:9px;color:var(--t3);display:block" title="Nhập lúc '+t.date+'">📝 '+fD(t.date)+'</span>':'';
 return'<tr><td><span class="tid">#'+gi+'</span></td><td><div class="tn">'+esc(t.name)+dateInfo+'</div></td><td style="font-size:12px">'+esc(t.product||'')+'</td><td style="font-size:12px;text-align:center">'+(t.coefficient||'-')+'</td><td>'+(t.leader?'<span class="pt ld">'+esc(t.leader)+'</span>':'-')+'</td><td style="max-width:140px">'+((t.collaborators||[]).map(c=>'<span class="pt">'+esc(c)+'</span>').join('')||'-')+'</td>'+adCol+'<td>'+tc+'</td><td><span class="sb '+sc+'">'+sl+'</span></td><td style="font-size:12px;color:var(--t2)">'+esc(t.notes||'')+'</td>'+'<td style="white-space:nowrap"><span style="cursor:pointer;font-size:15px" title="'+(S.adm?'Chỉnh sửa':'Đề xuất sửa')+'" onclick="openEdit('+gi+')">'+(S.adm?'✏️':'📝')+'</span> <span style="cursor:pointer;font-size:15px" title="Xoá" onclick="delTask('+gi+')">🗑️</span></td></tr>';}).join('');}
 function chDL(gi,v){const i=gi-1;if(i<0||i>=S.tasks.length)return;S.tasks[i].deadline=v.replace('T',' ');if(S.tasks[i].status==='overdue'&&new Date(v)>new Date())S.tasks[i].status='doing';sv();fbSaveTask(i);rAll();toast('Đổi hạn CV #'+gi,'ok');}
-function delTask(gi){const i=gi-1;if(i<0||i>=S.tasks.length)return;const t=S.tasks[i];
+function delTask(gi){const i=gi-1;if(i<0||i>=S.tasks.length){toast('CV #'+gi+' không tồn tại (tổng: '+S.tasks.length+')','er');return;}const t=S.tasks[i];
 if(S.adm){if(!confirm('Xác nhận xoá CV #'+gi+': "'+t.name.substring(0,50)+'"?'))return;
 S.tasks.splice(i,1);sv();fbSaveTasks();rAll();toast('Đã xoá CV #'+gi,'ok');log('[🗑️] Admin xoá CV #'+gi+': '+t.name.substring(0,40));}
 else{const reason=prompt('Lý do xoá CV #'+gi+': "'+t.name.substring(0,50)+'"?\n\n(Bắt buộc nhập lý do để gửi chờ duyệt)');
