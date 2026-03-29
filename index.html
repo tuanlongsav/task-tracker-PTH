@@ -478,26 +478,38 @@ Object.assign(S,d,keep);
 Object.keys(localPw).forEach(k=>{if(!(S.tempPw&&S.tempPw[k])){S.passwords[k]=localPw[k];}});
 migrateTasks();try{localStorage.setItem('tt7',JSON.stringify(cleanForSave()));}catch(e){}if(S.u)rAll();}}).catch(e=>console.warn('[Firebase] Tải lần đầu lỗi:',e));}}
 function sv(){const clean=cleanForSave();try{localStorage.setItem('tt7',JSON.stringify(clean));}catch(e){}}
-function checkDupes(name,leader,collabs){const n=(name||'').toLowerCase();const l=(leader||'').toLowerCase();const cs=(collabs||[]).map(c=>c.toLowerCase());
-// Tách từ khoá từ nội dung CV mới (bỏ từ ngắn <3 ký tự)
-const stopWords=['và','của','cho','các','với','theo','về','trong','được','này','đã','có','không','từ','đến','việc','công'];
-const words=n.split(/[\s,;.\/\-()]+/).filter(w=>w.length>=3&&!stopWords.includes(w));
-const dupes=S.tasks.filter(t=>{const tn=(t.name||'').toLowerCase();
-// Kiểm tra nội dung: đếm từ khoá trùng
-const matchCount=words.filter(w=>tn.includes(w)).length;
-const nameMatch=words.length>0&&matchCount>=Math.ceil(words.length*0.5);
-// Kiểm tra cùng người phụ trách
-const leaderMatch=l&&(t.leader||'').toLowerCase()===l;
-// Kiểm tra người phối hợp trùng
-const tcs=(t.collaborators||[]).map(c=>c.toLowerCase());
-const collabMatch=cs.length&&cs.some(c=>tcs.includes(c));
-// Trùng nội dung HOẶC (cùng leader + nội dung gần giống)
-return nameMatch||(leaderMatch&&matchCount>=Math.ceil(words.length*0.3));});
+function checkDupes(name,leader,collabs){const n=(name||'').toLowerCase().trim();const l=(leader||'').toLowerCase();const cs=(collabs||[]).map(c=>c.toLowerCase());
+if(!n)return true;
+// Tách từ khoá (giữ cả từ ngắn ≥2 ký tự, giữ số/mã VB)
+const stopWords=['và','của','cho','các','với','theo','về','trong','được','này','đã','có','không','từ','đến','việc','công','một','để','là','tại','trên','khi','hay'];
+const words=n.split(/[\s,;.\/\-()]+/).filter(w=>w.length>=2&&!stopWords.includes(w));
+if(!words.length)return true;
+// Tách riêng số/mã (quan trọng để phân biệt VB khác nhau)
+const nums=words.filter(w=>/\d/.test(w));const textWords=words.filter(w=>!/\d/.test(w));
+// Chỉ so sánh với CV chưa hoàn thành (doing/overdue)
+const activeTasks=S.tasks.filter(t=>t.status!=='done');
+const dupes=activeTasks.filter(t=>{const tn=(t.name||'').toLowerCase();
+// Đếm từ text trùng
+const textMatch=textWords.length?textWords.filter(w=>tn.includes(w)).length:0;
+const textRate=textWords.length?textMatch/textWords.length:0;
+// Đếm số/mã trùng (quan trọng hơn)
+const numMatch=nums.length?nums.filter(w=>tn.includes(w)).length:0;
+const numRate=nums.length?numMatch/nums.length:0;
+// Cùng leader?
+const sameLeader=l&&(t.leader||'').toLowerCase()===l;
+// Logic phát hiện trùng:
+// 1. Nếu có số/mã VB: phải trùng ≥1 số VÀ ≥60% từ text
+if(nums.length>0){return numMatch>=1&&textRate>=0.6;}
+// 2. Không có số/mã: phải trùng ≥70% từ text (chặt hơn)
+if(textRate>=0.7)return true;
+// 3. Cùng leader + trùng ≥60% từ text
+if(sameLeader&&textRate>=0.6)return true;
+return false;});
 if(!dupes.length)return true;
-const list=dupes.map(t=>{const gi=S.tasks.indexOf(t)+1;const cls=(t.collaborators||[]).join(', ');
-return'  CV #'+gi+':\n    Nội dung: '+t.name+'\n    Phụ trách: '+(t.leader||'--')+'\n    Phối hợp: '+(cls||'--');}).join('\n\n');
+const list=dupes.map(t=>{const gi=S.tasks.indexOf(t)+1;const cls=(t.collaborators||[]).join(', ');const st=t.status==='overdue'?'⚠️ Quá hạn':'🔄 Đang làm';
+return'  CV #'+gi+' ['+st+']:\n    Nội dung: '+t.name+'\n    Phụ trách: '+(t.leader||'--')+'\n    Phối hợp: '+(cls||'--');}).join('\n\n');
 const newCls=(collabs||[]).join(', ');
-return confirm('⚠️ Phát hiện CV có thể trùng lặp!\n\n--- CV đã có ---\n'+list+'\n\n--- CV mới ---\n  Nội dung: '+name+'\n  Phụ trách: '+(leader||'--')+'\n  Phối hợp: '+(newCls||'--')+'\n\nVẫn muốn thêm?');}
+return confirm('⚠️ Phát hiện '+dupes.length+' CV có thể trùng lặp!\n\n--- CV đã có ---\n'+list+'\n\n--- CV mới ---\n  Nội dung: '+name+'\n  Phụ trách: '+(leader||'--')+'\n  Phối hợp: '+(newCls||'--')+'\n\nVẫn muốn thêm?');}
 function _fbW(path,data){if(!fbRef)return;fbSyncing=true;const ref=path?fbRef.child(path):fbRef;ref.set(data).then(()=>{fbSyncing=false;}).catch(e=>{fbSyncing=false;console.error('[Firebase] Lỗi:',path,e);});}
 function _cleanTask(t){const c=JSON.parse(JSON.stringify(t));delete c._warned12;delete c._warned2;delete c._overWarn;return c;}
 function fbSaveTask(i){if(i>=0&&i<S.tasks.length)_fbW('tasks/'+i,_cleanTask(S.tasks[i]));}
