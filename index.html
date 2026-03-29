@@ -308,10 +308,10 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 <select id="sumMode" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="quarter">Theo quý</option><option value="week">Theo tuần</option><option value="month">Theo tháng</option><option value="year">Theo năm</option></select>
 <select id="sumQ" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="1">Q1</option><option value="2">Q2</option><option value="3">Q3</option><option value="4">Q4</option></select>
 <select id="sumY" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"></select>
-<select id="sumSort" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="score">Sắp xếp: Điểm quy đổi</option><option value="done">Sắp xếp: CV hoàn thành</option></select>
-<select id="sumTpMode" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="dept">TP: Tính chung theo phòng</option><option value="personal">TP: Theo CV cụ thể</option></select>
+<select id="sumSort" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="score">Sắp xếp: HT đạt CL quy đổi</option><option value="total">Sắp xếp: SL CV được giao</option></select>
+<select id="sumTpMode" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="dept">Trưởng phòng: gồm cả theo phòng</option><option value="personal">Trưởng phòng: theo CV xử lý riêng</option></select>
 </div>
-<div class="tsc"><table id="sumTable"><thead><tr><th>STT</th><th>Họ tên</th><th>Chức vụ</th><th>Tổng CV</th><th style="color:var(--green)">Hoàn thành</th><th style="color:var(--blue)">Đang làm</th><th style="color:var(--red)">Quá hạn</th><th>Hệ số QĐ</th><th>HT quy đổi</th><th>Tỷ lệ %</th></tr></thead><tbody id="sumBody"></tbody></table></div>
+<div class="tsc"><table id="sumTable"><thead><tr><th>STT</th><th>Họ tên</th><th>Chức vụ</th><th>Tổng CV</th><th style="color:var(--blue)">Đang làm</th><th style="color:var(--red)">Quá hạn</th><th>Hệ số QĐ</th><th>HT quy đổi</th><th style="color:var(--green)">HT đạt CL QĐ</th><th>Tỷ lệ %</th></tr></thead><tbody id="sumBody"></tbody></table></div>
 </div>
 <div id="exportSec" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--b)">
 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -901,17 +901,19 @@ document.getElementById('sumQ').style.display=document.getElementById('sumMode')
 document.getElementById('sumY').style.display=document.getElementById('sumMode').value==='quarter'?'':'none';
 const tpMode=document.getElementById('sumTpMode').value;
 const rows=S.mem.map(m=>{const tasks=getPersonTasks(m.name,from,to,m.role==='Trưởng phòng'?tpMode:undefined);
-const tot=tasks.length,dn=tasks.filter(t=>t.status==='done').length,dg=tasks.filter(t=>t.status==='doing').length,ov=tasks.filter(t=>t.status==='overdue').length;
+const tot=tasks.length,dg=tasks.filter(t=>t.status==='doing').length,ov=tasks.filter(t=>t.status==='overdue').length;
 const totCf=tasks.reduce((s,t)=>s+(t.coefficient||200),0);
 const htCf=tasks.filter(t=>t.status==='done').reduce((s,t)=>s+(t.coefficient||200),0);
-const rate=totCf?Math.round(htCf/totCf*100):0;
-return{name:m.name,role:m.role,tot,dn,dg,ov,totCf,htCf,rate};});
-if(sortBy==='done')rows.sort((a,b)=>b.dn-a.dn||b.rate-a.rate);
-else rows.sort((a,b)=>b.htCf-a.htCf||b.rate-a.rate);
+// HT đạt chất lượng quy đổi: trừ 25% cho CV chậm tiến độ
+let clCf=0;tasks.forEach(t=>{if(t.status==='done'){const cf=t.coefficient||200;const late=isLate(t)?1:0;clCf+=r2(cf-(late*0.25*cf));}});
+const rate=totCf?Math.round(clCf/totCf*100):0;
+return{name:m.name,role:m.role,tot,dg,ov,totCf,htCf,clCf:r2(clCf),rate};});
+if(sortBy==='total')rows.sort((a,b)=>b.tot-a.tot||b.clCf-a.clCf);
+else rows.sort((a,b)=>b.clCf-a.clCf||b.rate-a.rate);
 const tb=document.getElementById('sumBody');
 if(!rows.length){tb.innerHTML='<tr><td colspan="10"><div class="empty"><div class="icon">📭</div><p>Không có dữ liệu</p></div></td></tr>';return;}
 tb.innerHTML=rows.map((r,i)=>{const rc=r.role==='Trưởng phòng'?'tp':r.role==='Phó Trưởng phòng'?'ptp':'tv';
-return'<tr><td style="text-align:center">'+(i+1)+'</td><td style="font-weight:600">'+esc(r.name)+'</td><td><span class="mr '+rc+'" style="font-size:10px">'+esc(r.role)+'</span></td><td style="text-align:center;font-weight:600">'+r.tot+'</td><td style="text-align:center;background:rgba(16,185,129,.12);color:var(--green);font-weight:600">'+r.dn+'</td><td style="text-align:center;background:rgba(59,130,246,.12);color:var(--blue);font-weight:600">'+r.dg+'</td><td style="text-align:center;background:rgba(239,68,68,.12);color:var(--red);font-weight:600">'+r.ov+'</td><td style="text-align:center">'+r.totCf+'</td><td style="text-align:center;font-weight:600">'+r.htCf+'</td><td style="text-align:center;font-weight:700;color:'+(r.rate>=80?'var(--green)':r.rate>=50?'var(--amber)':'var(--red)')+'">'+r.rate+'%</td></tr>';}).join('');}
+return'<tr><td style="text-align:center">'+(i+1)+'</td><td style="font-weight:600">'+esc(r.name)+'</td><td><span class="mr '+rc+'" style="font-size:10px">'+esc(r.role)+'</span></td><td style="text-align:center;font-weight:600">'+r.tot+'</td><td style="text-align:center;background:rgba(59,130,246,.12);color:var(--blue);font-weight:600">'+r.dg+'</td><td style="text-align:center;background:rgba(239,68,68,.12);color:var(--red);font-weight:600">'+r.ov+'</td><td style="text-align:center">'+r.totCf+'</td><td style="text-align:center;font-weight:600">'+r.htCf+'</td><td style="text-align:center;background:rgba(16,185,129,.12);color:var(--green);font-weight:700">'+r.clCf+'</td><td style="text-align:center;font-weight:700;color:'+(r.rate>=80?'var(--green)':r.rate>=50?'var(--amber)':'var(--red)')+'">'+r.rate+'%</td></tr>';}).join('');}
 // Export preview
 let _expData=null;
 function openExportPreview(){if(typeof XLSX==='undefined'){toast('Thư viện XLSX chưa tải','er');return;}
