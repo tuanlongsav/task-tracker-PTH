@@ -703,7 +703,8 @@ const sorted=sortByRole([...ns]);const o='<option value="all">Tất cả</option
 document.getElementById('fP').innerHTML='<option value="all">Tất cả người</option>'+sorted.map(n=>`<option>${esc(n)}</option>`).join('');document.getElementById('rpPr').innerHTML=o;
 const mo=sorted.map(n=>`<option>${esc(n)}</option>`).join('');
 document.getElementById('mi_l').innerHTML='<option value="">-- Chọn --</option>'+mo;updPrList();
-updMiCollab();}
+updMiCollab();
+if(!document.getElementById('mi_ad').value)document.getElementById('mi_ad').value=new Date().toISOString().slice(0,10);}
 function updPrList(){const prSet=new Set();S.tasks.forEach(t=>{if(t.product)prSet.add(t.product);});
 document.getElementById('dlPr').innerHTML=[...prSet].sort((a,b)=>a.localeCompare(b,'vi')).map(p=>'<option value="'+esc(p)+'">').join('');}
 function getChecked(containerId){return[...document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked')].map(cb=>cb.value);}
@@ -722,7 +723,8 @@ if(!S.adm){if(!checkDupes(name,l,cs)){toast('Đã huỷ do nghi trùng','wn');re
 S.pend.push({id:Date.now(),from:S.u,cmd:'[Thủ công] '+name,parsed:{action:'add_task',data:{name,leader:l,collaborators:cs,deadline:dl,notes:no,product:pr,coefficient:cf,assignedDate:ad}},time:new Date().toISOString()});sv();fbSavePend();rPend();uSt();toast('Gửi chờ duyệt','ok');return;}
 if(!checkDupes(name,l,cs)){toast('Đã huỷ do nghi trùng','wn');return;}
 S.tasks.push({id:Date.now(),name,leader:l,collaborators:cs,date:new Date().toISOString().slice(0,10),deadline:dl,status:st,completedAt:st==='done'?new Date().toISOString():'',notes:no,product:pr,coefficient:cf,assignedDate:ad});sv();fbSaveTasks();rAll();toast('CV #'+S.tasks.length+' đã thêm!','ok');
-['mi_n','mi_no','mi_pr'].forEach(i=>document.getElementById(i).value='');document.getElementById('mi_d').value='';document.getElementById('mi_cf').value='';document.getElementById('mi_ad').value='';}
+['mi_n','mi_no','mi_pr'].forEach(i=>document.getElementById(i).value='');document.getElementById('mi_d').value='';document.getElementById('mi_cf').value='';document.getElementById('mi_ad').value=new Date().toISOString().slice(0,10);
+document.getElementById('mi_l').value='';document.querySelectorAll('#mi_c input[type=checkbox]').forEach(cb=>cb.checked=false);updMiCollab();}
 // Edit
 function openEdit(gi){editIdx=gi-1;if(editIdx<0||editIdx>=S.tasks.length)return;const t=S.tasks[editIdx];
 document.getElementById('eN').value=t.name;
