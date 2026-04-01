@@ -425,7 +425,6 @@ tbody td{padding:8px;font-size:12px}
 <button class="tb" data-rt="rptDept" onclick="sRptTab('rptDept')" style="display:none">🏢 CV phòng</button>
 <button class="tb" data-rt="rptPers" onclick="sRptTab('rptPers')" style="display:none">👤 CV cá nhân</button>
 </div>
-<div id="rptMain" class="rptPane" style="display:block">
 <div class="rf">
 <select id="rpMode" onchange="onRM()"><option value="week">Theo tuần</option><option value="month">Theo tháng</option><option value="quarter">Theo quý</option><option value="year">Theo năm</option><option value="custom">Tự chọn</option></select>
 <select id="rpQuarter" onchange="rRpt();rTasks()" style="display:none"><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select>
@@ -435,6 +434,7 @@ tbody td{padding:8px;font-size:12px}
 <input type="date" id="rpF" onchange="rRpt();rTasks()" style="display:none"/><span id="rpDash" style="color:var(--t3);display:none">→</span><input type="date" id="rpT" onchange="rRpt();rTasks()" style="display:none"/>
 <select id="rpPr" onchange="syncFilter('rpPr');rAll()"><option value="all">Tất cả</option></select>
 </div>
+<div id="rptMain" class="rptPane" style="display:block">
 <div class="rrow"><div class="rnums" id="rpN"></div><div class="rch"><canvas id="rpC"></canvas></div></div>
 </div>
 <div id="rptMem" class="rptPane" style="display:none">
