@@ -242,7 +242,7 @@ tbody td{padding:8px;font-size:12px}
 <p class="ps" id="pwSub"></p>
 <input type="password" id="pwI" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')sPw()"/>
 <div class="perr" id="pwE"></div>
-<div class="pacts"><button class="btn btn-o btn-s" onclick="cPw()">Huỷ</button><button class="btn btn-p btn-s" onclick="sPw()">Xác nhận</button></div>
+<div class="pacts"><button class="btn btn-o btn-s" onclick="cPw()">Huỷ</button><button class="btn btn-p btn-s" id="bioBtn" onclick="bioLogin()" style="display:none;font-size:18px" title="Đăng nhập vân tay">🔓</button><button class="btn btn-p btn-s" onclick="sPw()">Xác nhận</button></div>
 <span class="pfg" id="pfgLink" onclick="fgPw()">Quên mật khẩu?</span>
 <div class="pfgok" id="fgO"></div>
 </div></div>
@@ -643,7 +643,10 @@ document.getElementById('pwSub').innerHTML=isFirst?(isDefault?'Lần đầu đă
 document.getElementById('pwI').placeholder='Mật khẩu...';
 const recE=S.recEmails[n]||mem?.email;const hasTg=!!(S.tgChats&&S.tgChats[n]);
 document.getElementById('pfgLink').style.display='inline-block';
-document.getElementById('pwO').classList.add('show');setTimeout(()=>document.getElementById('pwI').focus(),80);}
+showBioBtn();
+document.getElementById('pwO').classList.add('show');
+if(hasBio()&&getBioId(n)){setTimeout(()=>bioLogin(),300);}
+else{setTimeout(()=>document.getElementById('pwI').focus(),80);}}
 function needEmail(n){const mem=S.mem.find(x=>x.name===n);return!mem?.email&&!S.recEmails[n];}
 function showEmMethod(method){document.getElementById('emChoose').style.display='none';
 if(method==='email'){document.getElementById('emEmailForm').style.display='';document.getElementById('emTgForm').style.display='none';document.getElementById('emI').value='';document.getElementById('emE').style.display='none';setTimeout(()=>document.getElementById('emI').focus(),80);}
@@ -703,7 +706,36 @@ initRpt();popF();rAll();
 // Kiểm tra MK tạm: ưu tiên tham số truyền vào, fallback check S.tempPw
 const needForce=forceNewPw||(S.tempPw&&S.tempPw[n]);
 if(needForce){setTimeout(()=>forceChangePw(n),300);}
-if(S.adm){setTimeout(()=>{updateReminders();checkAndNotify();},2000);}}
+if(S.adm){setTimeout(()=>{updateReminders();checkAndNotify();},2000);}
+// Hỏi bật biometric nếu chưa đăng ký
+if(!needForce&&hasBio()&&!getBioId(n)){setTimeout(()=>{if(confirm('Bật đăng nhập bằng vân tay/khuôn mặt cho '+n+'?\n\nLần sau chỉ cần chọn tên → xác thực sinh trắc → vào luôn.')){registerBio(n);}},1500);}}
+// Biometric Authentication
+function hasBio(){return window.PublicKeyCredential&&window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable;}
+function getBioId(name){try{const d=JSON.parse(localStorage.getItem('bioIds')||'{}');return d[name]||null;}catch(e){return null;}}
+function saveBioId(name,id){try{const d=JSON.parse(localStorage.getItem('bioIds')||'{}');d[name]=id;localStorage.setItem('bioIds',JSON.stringify(d));}catch(e){}}
+function removeBioId(name){try{const d=JSON.parse(localStorage.getItem('bioIds')||'{}');delete d[name];localStorage.setItem('bioIds',JSON.stringify(d));}catch(e){}}
+async function registerBio(name){try{
+const uid=new TextEncoder().encode(name);
+const challenge=crypto.getRandomValues(new Uint8Array(32));
+const cred=await navigator.credentials.create({publicKey:{
+challenge,rp:{name:'Task Tracker PTH',id:location.hostname||'localhost'},
+user:{id:uid,name:name,displayName:name},
+pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},
+timeout:60000}});
+if(cred){saveBioId(name,btoa(String.fromCharCode(...new Uint8Array(cred.rawId))));toast('Đã bật đăng nhập sinh trắc cho '+name,'ok');}
+}catch(e){console.warn('Bio register:',e);if(e.name!=='NotAllowedError')toast('Không hỗ trợ sinh trắc trên thiết bị này','wn');}}
+async function bioLogin(){if(!pendL)return;
+try{const bioId=getBioId(pendL);if(!bioId)return;
+const rawId=Uint8Array.from(atob(bioId),c=>c.charCodeAt(0));
+const challenge=crypto.getRandomValues(new Uint8Array(32));
+const assertion=await navigator.credentials.get({publicKey:{
+challenge,allowCredentials:[{type:'public-key',id:rawId,transports:['internal']}],
+userVerification:'required',timeout:60000}});
+if(assertion){document.getElementById('pwO').classList.remove('show');loginAs(pendL,false);}
+}catch(e){console.warn('Bio login:',e);if(e.name!=='NotAllowedError')toast('Lỗi xác thực sinh trắc','er');}}
+function showBioBtn(){const btn=document.getElementById('bioBtn');
+if(btn&&pendL&&hasBio()&&getBioId(pendL)){btn.style.display='';btn.title='Đăng nhập vân tay cho '+pendL;}else if(btn){btn.style.display='none';}}
 function logout(){S.u=null;S.adm=false;document.getElementById('authScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('ns').value='';}
 function chPw(){const v=document.getElementById('nPw').value.trim();if(!v||v.length<4){toast('≥4 ký tự','er');return;}S.passwords[S.u]=v;if(S.tempPw)delete S.tempPw[S.u];sv();fbSaveTemps();document.getElementById('nPw').value='';toast('Đã đổi MK!','ok');}
 function forceChangePw(n){
