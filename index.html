@@ -188,7 +188,7 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 .ef input,.ef select,.ef textarea{width:100%;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:9px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none}
 .ef textarea{min-height:60px;resize:vertical}
 @media(max-width:768px){.rnums{grid-template-columns:repeat(2,1fr)}.rnb-tot{grid-column:span 2;flex-direction:row;gap:12px;padding:16px 24px}.rnb-tot .rv{font-size:64px}.rnb-tot .rl{font-size:20px;margin-top:0}.rrow{flex-direction:column}.cw{flex-direction:column}.bsend{width:100%}.main{padding:8px}.acard{padding:20px 14px}.mf,.ef{grid-template-columns:1fr}.pnl{width:100%}.rch{flex:1;max-width:100%}
-.logo span{display:none}.logo{flex:0 0 auto}
+.logo-full{display:none}.logo-short{display:inline!important}.logo{flex:0 0 auto}.logo span{font-size:13px}
 .hdr-in{flex-wrap:wrap;height:auto;padding:8px 0;gap:6px;justify-content:center}
 .hdr-r{flex-wrap:wrap;gap:6px;justify-content:center}
 .mode-btn{font-size:11px;padding:5px 10px}}
@@ -398,7 +398,7 @@ tbody td{padding:8px;font-size:12px}
 
 <div id="app" style="display:none">
 <div class="hdr"><div class="hdr-in">
-<div class="logo"><div class="logo-i">📋</div><span>Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I</span></div>
+<div class="logo"><div class="logo-i">📋</div><span class="logo-full">Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I</span><span class="logo-short" id="logoShort" style="display:none">TD tiến độ CV phòng TH</span></div>
 <div class="hdr-r">
 <div class="hb" onclick="openCal()" title="Lịch vạn niên">📅</div>
 <div class="hb" onclick="openHi()" title="Lịch sử">📜</div>
@@ -558,8 +558,9 @@ const btn=document.getElementById('modeBtn');
 if(S.mode==='personal'){btn.textContent='🏢 Phòng';btn.classList.add('personal');}
 else{btn.textContent='👤 Cá nhân';btn.classList.remove('personal');}
 // Cập nhật logo text
-const logoSpan=document.querySelector('.logo span');
-if(logoSpan)logoSpan.textContent=S.mode==='personal'?'Công việc cá nhân':'Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';
+const lf=document.querySelector('.logo-full'),ls=document.getElementById('logoShort');
+if(lf)lf.textContent=S.mode==='personal'?'Công việc cá nhân':'Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';
+if(ls)ls.textContent=S.mode==='personal'?'Công việc cá nhân':'TD tiến độ CV phòng TH';
 // Ẩn/hiện sections
 const deptOnly=S.mode==='personal';
 document.querySelectorAll('[data-rt="rptMem"]').forEach(el=>el.style.display=deptOnly?'none':'');
@@ -797,7 +798,8 @@ const rt=document.getElementById('rT');rt.textContent=S.adm?'QTV':'TV';rt.classN
 document.getElementById('aF').style.display=S.adm?'grid':'none';
 document.getElementById('stBtn').style.display='flex';
 S.mode='dept';document.getElementById('modeBtn').textContent='👤 Cá nhân';document.getElementById('modeBtn').classList.remove('personal');
-const logoSpan2=document.querySelector('.logo span');if(logoSpan2)logoSpan2.textContent='Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';
+const lf2=document.querySelector('.logo-full');if(lf2)lf2.textContent='Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';
+const ls2=document.getElementById('logoShort');if(ls2)ls2.textContent='TD tiến độ CV phòng TH';
 initFbPersonal();initRpt();popF();rAll();
 // Kiểm tra MK tạm: ưu tiên tham số truyền vào, fallback check S.tempPw
 const needForce=forceNewPw||(S.tempPw&&S.tempPw[n]);
