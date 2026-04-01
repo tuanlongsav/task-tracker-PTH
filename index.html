@@ -772,7 +772,9 @@ const ra=ro[ma?.role]??2,rb=ro[mb?.role]??2;if(ra!==rb)return ra-rb;return a.loc
 function popF(){const ns=new Set();S.mem.forEach(m=>ns.add(m.name));S.tasks.forEach(t=>{if(t.leader)ns.add(t.leader);(t.collaborators||[]).forEach(c=>ns.add(c));});
 const sorted=sortByRole([...ns]);const o='<option value="all">Tất cả</option>'+sorted.map(n=>`<option>${esc(n)}</option>`).join('');
 document.getElementById('fP').innerHTML='<option value="all">Tất cả người</option>'+sorted.map(n=>`<option>${esc(n)}</option>`).join('');document.getElementById('rpPr').innerHTML=o;
-const mo=sorted.map(n=>`<option>${esc(n)}</option>`).join('');
+// Dropdown phụ trách: lọc bỏ Test
+const realMem=sorted.filter(n=>{const m=S.mem.find(x=>x.name===n);return!isTestMem(m);});
+const mo=realMem.map(n=>`<option>${esc(n)}</option>`).join('');
 document.getElementById('mi_l').innerHTML='<option value="">-- Chọn --</option>'+mo;updPrList();
 updMiCollab();
 if(!document.getElementById('mi_ad').value)document.getElementById('mi_ad').value=new Date().toISOString().slice(0,10);}
@@ -780,11 +782,15 @@ function updPrList(){const prSet=new Set();S.tasks.forEach(t=>{if(t.product)prSe
 document.getElementById('dlPr').innerHTML=[...prSet].sort((a,b)=>a.localeCompare(b,'vi')).map(p=>'<option value="'+esc(p)+'">').join('');}
 function getChecked(containerId){return[...document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked')].map(cb=>cb.value);}
 function updMiCollab(){const leader=document.getElementById('mi_l').value;const prev=getChecked('mi_c');
-const ns=new Set();S.mem.forEach(m=>ns.add(m.name));S.tasks.forEach(t=>{if(t.leader)ns.add(t.leader);(t.collaborators||[]).forEach(c=>ns.add(c));});
+const ns=new Set();S.mem.forEach(m=>{if(!isTestMem(m))ns.add(m.name);});S.tasks.forEach(t=>{if(t.leader){const m=S.mem.find(x=>x.name===t.leader);if(!isTestMem(m))ns.add(t.leader);}});
 const sorted=sortByRole([...ns]).filter(n=>n!==leader);
-document.getElementById('mi_c').innerHTML=sorted.map(n=>`<label style="display:flex;align-items:center;gap:3px;font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;background:var(--c);border:1px solid var(--b)"><input type="checkbox" value="${esc(n)}"${prev.includes(n)?' checked':''} style="margin:0"/> ${esc(n)}</label>`).join('');}
+const container=document.getElementById('mi_c');
+container.innerHTML='<input type="text" id="mi_cs" placeholder="Tìm tên..." oninput="filterCollab()" style="width:100%;background:var(--bg);border:1px solid var(--b);border-radius:4px;padding:4px 8px;font-size:11px;color:var(--t1);outline:none;margin-bottom:4px"/>'+
+sorted.map(n=>`<label class="collab-item" style="display:flex;align-items:center;gap:3px;font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;background:var(--c);border:1px solid var(--b)"><input type="checkbox" value="${esc(n)}"${prev.includes(n)?' checked':''} style="margin:0"/> ${esc(n)}</label>`).join('');}
+function filterCollab(){const q=document.getElementById('mi_cs').value.toLowerCase();
+document.querySelectorAll('#mi_c .collab-item').forEach(el=>{const name=el.textContent.toLowerCase();el.style.display=name.includes(q)?'':'none';});}
 function updECollab(checkedList){const leader=document.getElementById('eL').value;const prev=checkedList||getChecked('eC');
-const ns=new Set();S.mem.forEach(m=>ns.add(m.name));const sorted=sortByRole([...ns]).filter(n=>n!==leader);
+const ns=new Set();S.mem.forEach(m=>{if(!isTestMem(m))ns.add(m.name);});const sorted=sortByRole([...ns]).filter(n=>n!==leader);
 document.getElementById('eC').innerHTML=sorted.map(n=>`<label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;padding:4px 8px;border-bottom:1px solid var(--b)"><input type="checkbox" value="${esc(n)}"${prev.includes(n)?' checked':''} style="margin:0;width:14px;height:14px"/> ${esc(n)}</label>`).join('');}
 // Manual add
 function mAdd(){const name=document.getElementById('mi_n').value.trim();if(!name){toast('Nhập nội dung','er');return;}
@@ -870,7 +876,7 @@ reader.readAsDataURL(file);}
 function clearImg(){_imgData=null;document.getElementById('imgPv').classList.remove('show');
 document.getElementById('imgPvImg').src='';document.getElementById('imgInp').value='';}
 // Gemini
-async function callG(p){const ml=S.mem.map(m=>m.name+' ('+m.role+')').join(', ');const now=new Date();
+async function callG(p){const ml=S.mem.filter(m=>!isTestMem(m)).map(m=>m.name+' ('+m.role+')').join(', ');const now=new Date();
 const sys='Bạn là trợ lý AI quản lý công việc phòng Tổng hợp KTNN KV1.\nThành viên: '+ml+'\nHôm nay: '+now.getFullYear()+'-'+p2(now.getMonth()+1)+'-'+p2(now.getDate())+'\n\nQuy tắc:\n- Tên viết tắt hoặc gọi tắt → đối chiếu danh sách → tên đầy đủ\n- Nhiều người khớp → dùng clarify\n- Không ghi năm → năm hiện tại\n- Không ghi giờ → mặc định 17:00\n- Nếu user nói "đã hoàn thành/đã xong" → status="done"\n\nTrả về DUY NHẤT 1 JSON object (KHÔNG markdown, KHÔNG giải thích).\n\nCác action:\n\n1. add_task: thêm công việc\n{"action":"add_task","data":{"name":"nội dung","leader":"người phụ trách","collaborators":["người phối hợp"],"deadline":"YYYY-MM-DD HH:mm","status":"doing hoặc done","notes":"ghi chú","product":"tên sản phẩm/công việc quy đổi","coefficient":100}}\nproduct: tên sản phẩm hoặc loại công việc (VD: Văn bản trả lời, Báo cáo...)\ncoefficient: hệ số quy đổi (100-300, mặc định 100)\n\n2. complete_task: đánh dấu hoàn thành CV có sẵn\n{"action":"complete_task","data":{"taskIndex":số thứ tự}}\n\n3. update_deadline: đổi hạn\n{"action":"update_deadline","data":{"taskIndex":số thứ tự,"newDeadline":"YYYY-MM-DD HH:mm"}}\n\n4. clarify: cần làm rõ\n{"action":"clarify","data":{"message":"câu hỏi","candidates":["tên1","tên2"],"originalCommand":"lệnh gốc"}}\n\n5. query: trả lời câu hỏi\n{"action":"query","data":{"answer":"câu trả lời"}}\n\n6. unknown: không hiểu\n{"action":"unknown","data":{"message":"lý do"}}\n\nDanh sách CV chưa xong:\n'+JSON.stringify(S.tasks.filter(t=>t.status!=='done').map((t,i)=>({stt:S.tasks.indexOf(t)+1,n:t.name.substring(0,50),l:t.leader})));
 const parts=[];
 if(_imgData){parts.push({inlineData:{mimeType:_imgData.mimeType,data:_imgData.base64}});}
