@@ -527,11 +527,17 @@ tbody td{padding:8px;font-size:12px}
 <button class="tb" data-t="pending" onclick="sTab('pending')">⏳ Chờ duyệt <span class="cn" id="cP">0</span></button>
 </div>
 <div id="t-tasks" class="tc on">
-<div id="pTaskTabs" style="display:none;margin-bottom:8px"><div style="display:flex;gap:3px;background:var(--bg2);border:1px solid var(--b);border-radius:6px;padding:3px">
+<div id="pTaskTabs" style="display:none;margin-bottom:8px">
+<div style="display:flex;gap:3px;background:var(--bg2);border:1px solid var(--b);border-radius:6px;padding:3px;margin-bottom:6px">
 <button class="tb on" data-pt="all" onclick="sTaskSub('all')">📊 Tất cả</button>
 <button class="tb" data-pt="dept" onclick="sTaskSub('dept')">🏢 CV phòng</button>
 <button class="tb" data-pt="pers" onclick="sTaskSub('pers')">👤 CV cá nhân</button>
-</div></div>
+</div>
+<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--t2)">
+<span>📅 CV hoàn thành theo:</span><span id="pTimeLabel" style="font-weight:600;color:var(--t1)"></span>
+<span style="color:var(--t3)">(đổi tại Tổng hợp theo dõi)</span>
+</div>
+</div>
 <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;padding:8px 10px;background:var(--c2);border-radius:8px;border:1px solid var(--b)">
 <input type="text" id="fSearch" placeholder="Tìm nội dung CV..." oninput="rAll()" style="flex:1;min-width:150px;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 10px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"/>
 <select id="fP" onchange="syncFilter('fP');rAll()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"><option value="all">Tất cả người</option></select>
@@ -1263,6 +1269,14 @@ if(dTo)done=done.filter(t=>{const dl=t.deadline||t.assignedDate||t.date||'';retu
 done.sort((a,b)=>new Date(b.completedAt||b.date||0)-new Date(a.completedAt||a.date||0));
 document.getElementById('cT').textContent=srcTasks.length;
 document.getElementById('fP').style.display=isP?'none':'';
+// Cập nhật label thời gian cho sub-tabs
+const ptl=document.getElementById('pTimeLabel');
+if(ptl&&isP){const m=document.getElementById('rpMode').value;const y=document.getElementById('rpYear').value;
+if(m==='week')ptl.textContent='Tuần '+document.getElementById('rpWeek').value+'/'+y;
+else if(m==='month')ptl.textContent='Tháng '+document.getElementById('rpMonth').value+'/'+y;
+else if(m==='quarter')ptl.textContent='Quý '+document.getElementById('rpQuarter').value+'/'+y;
+else if(m==='year')ptl.textContent='Năm '+y;
+else ptl.textContent=document.getElementById('rpF').value+' → '+document.getElementById('rpT').value;}
 // Render: sub=pers dùng tRP (không cột SP/Hệ số/Phụ trách), sub=dept hoặc all dùng tR
 if(isP&&usePersonalRender){
 document.getElementById('tbI').innerHTML=tRP(inc,false);
