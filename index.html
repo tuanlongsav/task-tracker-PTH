@@ -592,18 +592,22 @@ function initFbPersonal(){if(!fbInited||!S.u){console.warn('[Personal] Skip init
 const uid=S.u.replace(/[.#$/\[\]]/g,'_');
 console.log('[Personal] Init ref: appPersonal/'+uid);
 fbPersonalRef=firebase.database().ref('appPersonal/'+uid);
-fbPersonalRef.on('value',snap=>{if(fbSyncing)return;const d=snap.val();if(d){
-if(d.tasks&&Array.isArray(d.tasks)){S.personalTasks=d.tasks;migratePersonalTasks();}
+fbPersonalRef.on('value',snap=>{if(fbSyncing)return;const d=snap.val();
+console.log('[Personal] Realtime data:',d?'có '+((d.tasks||[]).length)+' tasks':'NULL');
+if(d){
+if(d.tasks){const arr=Array.isArray(d.tasks)?d.tasks:Object.values(d.tasks);S.personalTasks=arr;migratePersonalTasks();}
 if(d.reminders)S.personalReminders=d.reminders;
 try{localStorage.setItem('tt7',JSON.stringify(cleanForSave()));}catch(e){}
 if(S.u)rAll();
-console.log('[Firebase] Đồng bộ dữ liệu cá nhân');}});
+}},err=>{console.error('[Personal] Listener error:',err);});
 // Tải lần đầu
-fbPersonalRef.once('value').then(snap=>{const d=snap.val();if(d){
-if(d.tasks&&Array.isArray(d.tasks)){S.personalTasks=d.tasks;migratePersonalTasks();}
+fbPersonalRef.once('value').then(snap=>{const d=snap.val();
+console.log('[Personal] Once data:',d?'có '+((d.tasks||[]).length)+' tasks':'NULL');
+if(d){
+if(d.tasks){const arr=Array.isArray(d.tasks)?d.tasks:Object.values(d.tasks);S.personalTasks=arr;migratePersonalTasks();}
 if(d.reminders)S.personalReminders=d.reminders;
 try{localStorage.setItem('tt7',JSON.stringify(cleanForSave()));}catch(e){}
-if(S.u)rAll();}}).catch(e=>console.warn('[Firebase] Personal load err:',e));}
+if(S.u)rAll();}}).catch(e=>console.error('[Personal] Once error:',e));}
 function fbSavePersonalTask(i){if(!fbPersonalRef||i<0||i>=S.personalTasks.length)return;
 _fbWp('tasks/'+i,_cleanTask(S.personalTasks[i]));}
 function fbSavePersonalTasks(skipMerge){if(!fbPersonalRef){console.warn('[Personal] No ref, skip save');return;}
@@ -611,9 +615,10 @@ console.log('[Personal] Saving '+S.personalTasks.length+' tasks');
 _fbWp('tasks',S.personalTasks.map(t=>_cleanTask(t)));}
 function fbSavePersonalReminders(){if(!fbPersonalRef)return;
 _fbWp('reminders',Object.keys(S.personalReminders).length?S.personalReminders:null);}
-function _fbWp(path,data){if(!fbPersonalRef)return;fbSyncing=true;
+function _fbWp(path,data){if(!fbPersonalRef){console.warn('[Personal] No ref for write:',path);return;}fbSyncing=true;
+console.log('[Personal] Writing:',path,Array.isArray(data)?data.length+' items':'obj');
 const ref=path?fbPersonalRef.child(path):fbPersonalRef;
-ref.set(data).then(()=>{fbSyncing=false;}).catch(e=>{fbSyncing=false;console.error('[Firebase] Personal err:',path,e);});}
+ref.set(data).then(()=>{fbSyncing=false;console.log('[Personal] Write OK:',path);}).catch(e=>{fbSyncing=false;console.error('[Personal] Write FAIL:',path,e.code,e.message);});}
 function migratePersonalTasks(){S.personalTasks.forEach(t=>{if(t.product===undefined)t.product='';if(t.coefficient===undefined||t.coefficient===0)t.coefficient=200;
 if(t.assignedDate===undefined)t.assignedDate=t.date||'';});}
 function migrateTasks(){S.tasks.forEach(t=>{if(t.product===undefined)t.product='';if(t.coefficient===undefined||t.coefficient===0)t.coefficient=200;
