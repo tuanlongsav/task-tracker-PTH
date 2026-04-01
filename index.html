@@ -31,8 +31,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .hb{background:var(--c);border:1px solid var(--b);border-radius:7px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;position:relative;transition:all .1s}
 .hb:hover{background:var(--ch);border-color:var(--blue)}
 .hb .bdg{position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px}.hb .bdg.hd{display:none}
-.ub{display:flex;align-items:center;gap:6px;background:var(--c);border:1px solid var(--b);border-radius:14px;padding:5px 12px 5px 8px;font-size:14px;font-weight:500}
+.ub{display:flex;align-items:center;gap:6px;background:var(--c);border:1px solid var(--b);border-radius:14px;padding:5px 12px 5px 8px;font-size:14px;font-weight:500;position:relative}
 .ub .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 4px var(--green)}
+.user-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--c);border:1px solid var(--b);border-radius:8px;padding:8px;min-width:130px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:200;animation:fi .15s ease}
+.user-menu.show{display:block}
 .rt{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:2px 6px;border-radius:4px}
 .rt.a{background:var(--blg);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
 .rt.m{background:var(--ag);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
@@ -189,9 +191,9 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 .ef input,.ef select,.ef textarea{width:100%;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:9px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none}
 .ef textarea{min-height:60px;resize:vertical}
 @media(max-width:768px){.rnums{grid-template-columns:repeat(2,1fr)}.rnb-tot{grid-column:span 2;flex-direction:row;gap:12px;padding:16px 24px}.rnb-tot .rv{font-size:64px}.rnb-tot .rl{font-size:20px;margin-top:0}.rrow{flex-direction:column}.cw{flex-direction:column}.bsend{width:100%}.main{padding:8px}.acard{padding:20px 14px}.mf,.ef{grid-template-columns:1fr}.pnl{width:100%}.rch{flex:1;max-width:100%}
-.logo-full{display:none}.logo-short{display:inline!important}.logo{flex:0 0 auto}.logo span{font-size:13px}
-.hdr-in{flex-wrap:wrap;height:auto;padding:8px 0;gap:6px;justify-content:center}
-.hdr-r{flex-wrap:wrap;gap:6px;justify-content:center}
+.logo-full{display:none}.logo-short{display:inline!important}.logo{flex:1 1 100%;justify-content:flex-start}.logo span{font-size:13px;white-space:nowrap}
+.hdr-in{flex-wrap:wrap;height:auto;padding:8px 0;gap:6px}
+.hdr-r{flex-wrap:wrap;gap:6px;justify-content:center;width:100%}
 .mode-btn{font-size:11px;padding:5px 10px}}
 @media(max-width:420px){
 body{font-size:13px}
@@ -399,15 +401,16 @@ tbody td{padding:8px;font-size:12px}
 
 <div id="app" style="display:none">
 <div class="hdr"><div class="hdr-in">
-<div class="logo"><div class="logo-i">📋</div><span class="logo-full">Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I</span><span class="logo-short" id="logoShort" style="display:none">TD tiến độ CV phòng TH</span></div>
+<div class="logo"><div class="logo-i">📋</div><span class="logo-full">Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I</span><span class="logo-short" id="logoShort" style="display:none">Tiến độ công việc phòng Tổng hợp</span></div>
 <div class="hdr-r">
 <div class="hb" onclick="openCal()" title="Lịch vạn niên">📅</div>
 <div class="hb" onclick="openHi()" title="Lịch sử">📜</div>
 <div class="hb" id="stBtn" onclick="openSt()" title="Cài đặt" style="display:none">⚙️</div>
 <div class="hb" onclick="openNt()" title="Thông báo">🔔<span id="nC" class="bdg hd">0</span></div>
 <button class="mode-btn" id="modeBtn" onclick="toggleMode()" title="Chuyển chế độ Phòng / Cá nhân">👤 Cá nhân</button>
-<div class="ub"><span class="dot"></span><span id="dN">user</span><span id="rT" class="rt a">QTV</span></div>
-<button class="btn btn-s btn-o btn-logout" onclick="logout()">Thoát</button>
+<div class="ub" onclick="toggleUserMenu(event)" style="cursor:pointer;position:relative"><span class="dot"></span><span id="dN">user</span><span id="rT" class="rt a">QTV</span>
+<div class="user-menu" id="userMenu"><button class="btn btn-s btn-d" onclick="logout()" style="width:100%">🚪 Đăng xuất</button></div>
+</div>
 </div></div></div>
 <div class="main" id="mainC">
 <div class="rpt">
@@ -561,7 +564,7 @@ else{btn.textContent='👤 Cá nhân';btn.classList.remove('personal');}
 // Cập nhật logo text
 const lf=document.querySelector('.logo-full'),ls=document.getElementById('logoShort');
 if(lf)lf.textContent=S.mode==='personal'?'Công việc cá nhân':'Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';
-if(ls)ls.textContent=S.mode==='personal'?'Công việc cá nhân':'TD tiến độ CV phòng TH';
+if(ls)ls.textContent=S.mode==='personal'?'Công việc cá nhân':'Tiến độ công việc phòng Tổng hợp';
 // Ẩn/hiện sections
 const deptOnly=S.mode==='personal';
 document.querySelectorAll('[data-rt="rptMem"]').forEach(el=>el.style.display=deptOnly?'none':'');
@@ -803,7 +806,7 @@ if(_isPU){S.mode='personal';document.getElementById('modeBtn').style.display='no
 }else{S.mode='dept';document.getElementById('modeBtn').style.display='';document.getElementById('modeBtn').textContent='👤 Cá nhân';document.getElementById('modeBtn').classList.remove('personal');}
 const lf2=document.querySelector('.logo-full');const ls2=document.getElementById('logoShort');
 if(_isPU){if(lf2)lf2.textContent='Công việc cá nhân';if(ls2)ls2.textContent='Công việc cá nhân';}
-else{if(lf2)lf2.textContent='Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';if(ls2)ls2.textContent='TD tiến độ CV phòng TH';}
+else{if(lf2)lf2.textContent='Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';if(ls2)ls2.textContent='Tiến độ công việc phòng Tổng hợp';}
 initFbPersonal();initRpt();popF();rAll();
 // Kiểm tra MK tạm: ưu tiên tham số truyền vào, fallback check S.tempPw
 const needForce=forceNewPw||(S.tempPw&&S.tempPw[n]);
@@ -878,6 +881,8 @@ const box=document.createElement('div');box.className='pnl-ov show';box.onclick=
 box.innerHTML='<div class="pnl" style="max-width:360px"><h2>🔑 Mật khẩu tạm <span class="xp" onclick="this.closest(\'.pnl-ov\').remove()">✕</span></h2><p style="font-size:11px;color:var(--t2);margin-bottom:8px">Mật khẩu tạm cho <strong>'+esc(name)+'</strong>:</p><div style="background:var(--c3);padding:12px;border-radius:6px;text-align:center;font-size:18px;font-weight:700;font-family:JetBrains Mono,monospace;color:var(--blue);letter-spacing:2px;user-select:all">'+esc(pw)+'</div><p style="font-size:10px;color:var(--t3);margin-top:8px">Hãy gửi trực tiếp mật khẩu này cho thành viên (nhắn tin, gọi điện...).<br>Sau khi đăng nhập, hệ thống sẽ yêu cầu đổi mật khẩu ngay.</p></div>';
 document.body.appendChild(box);toast('Đã tạo MK tạm cho '+name,'ok');}
 // Panels
+function toggleUserMenu(e){e.stopPropagation();document.getElementById('userMenu').classList.toggle('show');}
+document.addEventListener('click',e=>{if(!e.target.closest('.ub'))document.getElementById('userMenu')?.classList.remove('show');});
 function openSt(){document.getElementById('stOv').classList.add('show');document.querySelectorAll('.admOnly').forEach(el=>el.style.display=S.adm?'':'none');const mem=S.mem.find(x=>x.name===S.u);const curE=S.recEmails[S.u]||mem?.email||'';document.getElementById('curEmail').textContent=curE?'Email hiện tại: '+curE:'Chưa có email';document.getElementById('myEmail').value='';const curTg=(S.tgChats&&S.tgChats[S.u])||'';document.getElementById('curTgId').textContent=curTg?'Chat ID hiện tại: '+curTg:'Chưa có Chat ID';document.getElementById('myTgId').value='';rSet();}
 function closeSt(){document.getElementById('stOv').classList.remove('show');}
 function openNt(){document.getElementById('ntOv').classList.add('show');rNt();}
