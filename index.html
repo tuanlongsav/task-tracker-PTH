@@ -197,24 +197,24 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 .ef textarea{min-height:60px;resize:vertical}
 @media(max-width:768px){.rnums{grid-template-columns:repeat(2,1fr)}.rnb-tot{grid-column:span 2;flex-direction:row;gap:12px;padding:16px 24px}.rnb-tot .rv{font-size:64px}.rnb-tot .rl{font-size:20px;margin-top:0}.rrow{flex-direction:column}.cw{flex-direction:column}.bsend{width:100%}.main{padding:8px}.acard{padding:20px 14px}.mf,.ef{grid-template-columns:1fr}.pnl{width:100%}.rch{flex:1;max-width:100%}
 .logo-full{display:none}.logo-short{display:none!important}.logo{flex:0 0 auto}
-.hdr-in{height:auto;padding:8px 0;gap:6px}
-.hdr-r{gap:5px}
-.mode-btn{font-size:10px;padding:0 8px;height:32px}
-.hb{width:32px;height:32px;font-size:14px}
-.ub{height:32px;font-size:12px;padding:0 8px 0 6px}
-.rt{font-size:8px;padding:1px 4px}}
+.hdr-in{height:44px;padding:0;gap:0}
+.hdr-r{gap:4px}
+.mode-btn{font-size:9px;padding:0 6px;height:32px;min-width:0}
+.hb{width:32px;height:32px;font-size:15px}
+.ub{height:32px;font-size:11px;padding:0 6px 0 5px;gap:3px}
+.rt{font-size:8px;padding:1px 3px}}
 @media(max-width:420px){
 body{font-size:13px}
-.hdr{padding:0 6px}
-.hdr-in{padding:5px 0;gap:3px}
-.logo-i{width:28px;height:28px}
+.hdr{padding:0 4px}
+.hdr-in{height:40px}
+.logo-i{width:26px;height:26px}
 .hdr-r{gap:3px}
-.hb{width:28px;height:28px;font-size:12px}
-.mode-btn{font-size:9px;padding:0 6px;height:28px}
-.ub{height:28px;font-size:10px;padding:0 6px 0 5px;gap:3px}
+.hb{width:28px;height:28px;font-size:13px}
+.mode-btn{font-size:8px;padding:0 5px;height:28px}
+.ub{height:28px;font-size:10px;padding:0 5px 0 4px;gap:2px}
 .ub .dot{width:5px;height:5px}
-.rt{font-size:7px;padding:1px 3px}
-.cal-ic-m{font-size:6px}.cal-ic-d{font-size:11px}
+.rt{font-size:7px;padding:1px 2px}
+.cal-ic-m{font-size:5px}.cal-ic-d{font-size:10px}
 .main{padding:6px}
 .rpt{padding:10px;border-radius:8px}
 .rpt h3{font-size:14px}
@@ -354,9 +354,6 @@ tbody td{padding:8px;font-size:12px}
 
 <div class="pnl-ov" id="stOv" onclick="if(event.target===this)closeSt()"><div class="pnl">
 <h2>⚙️ Cài đặt <span class="xp" onclick="closeSt()">✕</span></h2>
-<div class="sx"><h3>🔐 Đổi mật khẩu</h3><input type="password" id="nPw" placeholder="MK mới (≥4 ký tự)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:4px"/><button class="btn btn-s btn-p" onclick="chPw()">Đổi</button></div>
-<div class="sx"><h3>📧 Đổi email cá nhân</h3><div style="display:flex;gap:4px;align-items:center"><input type="email" id="myEmail" placeholder="Email mới..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="chMyEmail()">Đổi</button></div><p id="curEmail" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
-<div class="sx"><h3>📱 Telegram Chat ID</h3><p style="font-size:9px;color:var(--t3);margin-bottom:4px">Nhắn <b>/start</b> cho bot <b>@PTH_KV1_bot</b> rồi nhắn cho <b>@userinfobot</b> để lấy Chat ID.</p><div style="display:flex;gap:4px;align-items:center"><input type="text" id="myTgId" placeholder="Chat ID (vd: 123456789)" style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none"/><button class="btn btn-s btn-p" onclick="chMyTg()">Lưu</button></div><p id="curTgId" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
 <div class="sx admOnly"><h3>🏢 Thành viên</h3><p style="font-size:8px;color:var(--t3);margin-bottom:6px">Nhấn vào email để sửa. AI tự nhận tên viết tắt.</p><div id="mW" class="cl" style="flex-direction:column;align-items:stretch"></div>
 <div class="af" id="aF"><input type="text" id="mfN" placeholder="Họ tên *"/><select id="mfR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option><option>Cá nhân</option><option>Test</option></select><input type="email" id="mfE" placeholder="Email"/><input type="text" id="mfNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm</button></div></div>
 <div class="sx admOnly"><h3>📧 Email thông báo chung</h3>
@@ -840,7 +837,8 @@ function loginAs(n,forceNewPw){S.u=n;S.adm=S.admNames.includes(n);
 try{localStorage.setItem('lastUser',n);localStorage.setItem('loginTime',Date.now());
 sessionStorage.setItem('appActive','1');}catch(e){}
 if(!S.loggedOnce)S.loggedOnce={};if(!S.loggedOnce[n]){S.loggedOnce[n]=Date.now();sv();fbSaveMeta('loggedOnce',S.loggedOnce);}
-document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';document.getElementById('dN').textContent=n;
+document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';
+document.getElementById('dN').dataset.full=n;updateHeaderName();
 const rt=document.getElementById('rT');const _pu=isPersonalUser();const _tu=isTestUser();
 rt.textContent=S.adm?'QTV':_tu?'TEST':_pu?'CN':'TV';rt.className=S.adm?'rt a':_tu?'rt ts2':_pu?'rt cn2':'rt m';
 document.getElementById('aF').style.display=S.adm?'grid':'none';
@@ -931,13 +929,20 @@ box.innerHTML='<div class="pnl" style="max-width:360px"><h2>🔑 Mật khẩu t�
 document.body.appendChild(box);toast('Đã tạo MK tạm cho '+name,'ok');}
 // Panels
 function toggleUserMenu(e){e.stopPropagation();document.getElementById('userMenu').classList.toggle('show');}
+function shortName(n){if(!n)return'';const parts=n.trim().split(/\s+/);if(parts.length<=1)return n;return parts.map(p=>p.charAt(0).toUpperCase()).join('');}
+function updateHeaderName(){const el=document.getElementById('dN');if(!el)return;const full=el.dataset.full||el.textContent;
+el.textContent=window.innerWidth<=768?shortName(full):full;}
+window.addEventListener('resize',updateHeaderName);
 function _quickPopup(title,html){const old=document.getElementById('quickPopup');if(old)old.remove();
 const box=document.createElement('div');box.className='pnl-ov show';box.id='quickPopup';box.style.justifyContent='center';box.style.alignItems='center';
 box.onclick=function(e){if(e.target===box)box.remove();};
 box.innerHTML='<div style="background:var(--bg2);border:1px solid var(--b);border-radius:12px;padding:20px;max-width:340px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.6)"><h2 style="font-size:15px;margin-bottom:12px;display:flex;justify-content:space-between">'+title+'<span style="cursor:pointer;color:var(--t3)" onclick="this.closest(\'.pnl-ov\').remove()">✕</span></h2>'+html+'</div>';
 document.body.appendChild(box);}
-function openChPw(){_quickPopup('🔐 Đổi mật khẩu','<input type="password" id="_qPw" placeholder="MK mới (≥4 ký tự)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:14px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:8px"/><button class="btn btn-p" style="width:100%" onclick="chPw2()">Đổi mật khẩu</button>');setTimeout(()=>document.getElementById('_qPw')?.focus(),100);}
-function chPw2(){const v=document.getElementById('_qPw')?.value.trim();if(!v||v.length<4){toast('≥4 ký tự','er');return;}S.passwords[S.u]=v;if(S.tempPw)delete S.tempPw[S.u];sv();fbSaveTemps();document.getElementById('quickPopup')?.remove();toast('Đã đổi MK!','ok');}
+function openChPw(){_quickPopup('🔐 Đổi mật khẩu','<input type="password" id="_qPw1" placeholder="Mật khẩu mới (≥4 ký tự)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:14px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:8px"/><input type="password" id="_qPw2" placeholder="Nhập lại mật khẩu" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:14px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:4px"/><p id="_qPwErr" style="font-size:11px;color:#ef4444;display:none;margin-bottom:6px"></p><button class="btn btn-p" style="width:100%" onclick="chPw2()">Đổi mật khẩu</button>');setTimeout(()=>document.getElementById('_qPw1')?.focus(),100);}
+function chPw2(){const p1=document.getElementById('_qPw1')?.value.trim(),p2=document.getElementById('_qPw2')?.value.trim();const err=document.getElementById('_qPwErr');
+if(!p1||p1.length<4){err.textContent='Mật khẩu phải ≥4 ký tự';err.style.display='block';return;}
+if(p1!==p2){err.textContent='Mật khẩu không khớp';err.style.display='block';return;}
+S.passwords[S.u]=p1;if(S.tempPw)delete S.tempPw[S.u];sv();fbSaveTemps();document.getElementById('quickPopup')?.remove();toast('Đã đổi MK!','ok');}
 function openChEmail(){const mem=S.mem.find(x=>x.name===S.u);const cur=S.recEmails[S.u]||mem?.email||'';
 _quickPopup('📧 Đổi email','<p style="font-size:10px;color:var(--t3);margin-bottom:6px">'+(cur?'Hiện tại: '+cur:'Chưa có email')+'</p><input type="email" id="_qEm" placeholder="Email mới..." style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:14px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:8px"/><button class="btn btn-p" style="width:100%" onclick="chEmail2()">Đổi email</button>');}
 function chEmail2(){const v=document.getElementById('_qEm')?.value.trim();if(!v||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){toast('Email không hợp lệ','er');return;}const mem=S.mem.find(x=>x.name===S.u);if(mem){mem.email=v;fbSaveMeta('mem',S.mem);}S.recEmails[S.u]=v;sv();fbSaveMeta('recEmails',S.recEmails);document.getElementById('quickPopup')?.remove();toast('Đã đổi email!','ok');}
