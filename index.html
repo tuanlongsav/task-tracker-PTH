@@ -830,16 +830,20 @@ else{if(lf2)lf2.textContent='Báo cáo theo dõi tiến độ công việc của
 applyTestData();initFbPersonal();
 // Sync + debug personal Firebase
 setTimeout(()=>{
-if(!fbPersonalRef){toast('⚠️ Personal Firebase ref = null (fbInited='+fbInited+')','er');return;}
-toast('🔍 Personal ref OK, checking...','ok');
+const _dbg=[];
+_dbg.push('fbInited='+fbInited);
+_dbg.push('fbPersonalRef='+(fbPersonalRef?'OK':'NULL'));
+_dbg.push('localCV='+S.personalTasks.length);
+if(!fbPersonalRef){alert('[Debug Personal]\n'+_dbg.join('\n')+'\n\n→ Ref NULL, không thể sync');return;}
 fbPersonalRef.once('value').then(snap=>{
 const d=snap.val();
-if(d&&d.tasks){toast('✅ Firebase có '+((Array.isArray(d.tasks)?d.tasks:Object.values(d.tasks)).length)+' CV cá nhân','ok');}
-else if(S.personalTasks.length){
-toast('📤 Push '+S.personalTasks.length+' CV local → Firebase','wn');
-fbSavePersonalTasks();
-}else{toast('📭 Không có CV cá nhân (local=0, Firebase=0)','wn');}
-}).catch(e=>{toast('❌ Firebase read: '+e.code,'er');});
+const fbCount=d&&d.tasks?(Array.isArray(d.tasks)?d.tasks:Object.values(d.tasks)).length:0;
+_dbg.push('firebaseCV='+fbCount);
+if(fbCount>0){_dbg.push('→ Firebase có data, OK');}
+else if(S.personalTasks.length){_dbg.push('→ Push local lên Firebase...');fbSavePersonalTasks();}
+else{_dbg.push('→ Cả 2 đều trống');}
+alert('[Debug Personal]\n'+_dbg.join('\n'));
+}).catch(e=>{_dbg.push('ERROR: '+e.code+' '+e.message);alert('[Debug Personal]\n'+_dbg.join('\n'));});
 },2500);
 initRpt();popF();rAll();
 // Kiểm tra MK tạm: ưu tiên tham số truyền vào, fallback check S.tempPw
