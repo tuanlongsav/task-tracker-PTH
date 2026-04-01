@@ -406,7 +406,7 @@ tbody td{padding:8px;font-size:12px}
 
 <div id="app" style="display:none">
 <div class="hdr"><div class="hdr-in">
-<div class="logo"><div class="logo-i">📋</div><span class="logo-full">Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I</span><span class="logo-short" id="logoShort" style="display:none">Tiến độ công việc phòng Tổng hợp</span></div>
+<div class="logo"><div class="logo-i">📋</div><span class="logo-full">Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I</span><span class="logo-short" id="logoShort" style="display:none">TIẾN ĐỘ CÔNG VIỆC PHÒNG TỔNG HỢP</span></div>
 <div class="hdr-r">
 <div class="hb cal-icon" onclick="openCal()" title="Lịch vạn niên"><span class="cal-ic-m">T8</span><span class="cal-ic-d">01</span></div>
 <div class="hb" onclick="openHi()" title="Lịch sử">📜</div>
@@ -597,8 +597,8 @@ if(S.mode==='personal'){btn.textContent='🏢 Phòng';btn.classList.add('persona
 else{btn.textContent='👤 Cá nhân';btn.classList.remove('personal');}
 // Cập nhật logo text
 const lf=document.querySelector('.logo-full'),ls=document.getElementById('logoShort');
-if(lf)lf.textContent=S.mode==='personal'?'Công việc cá nhân':'Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';
-if(ls)ls.textContent=S.mode==='personal'?'Công việc cá nhân':'Tiến độ công việc phòng Tổng hợp';
+if(lf)lf.textContent=S.mode==='personal'?'CÔNG VIỆC CÁ NHÂN':'Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';
+if(ls)ls.textContent=S.mode==='personal'?'CÔNG VIỆC CÁ NHÂN':'TIẾN ĐỘ CÔNG VIỆC PHÒNG TỔNG HỢP';
 // Ẩn/hiện sections
 const deptOnly=S.mode==='personal';
 document.querySelectorAll('[data-rt="rptMem"]').forEach(el=>el.style.display=deptOnly?'none':'');
@@ -840,8 +840,8 @@ const _isPU=isPersonalUser();
 if(_isPU){S.mode='personal';document.getElementById('modeBtn').style.display='none';
 }else{S.mode='dept';document.getElementById('modeBtn').style.display='';document.getElementById('modeBtn').textContent='👤 Cá nhân';document.getElementById('modeBtn').classList.remove('personal');}
 const lf2=document.querySelector('.logo-full');const ls2=document.getElementById('logoShort');
-if(_isPU){if(lf2)lf2.textContent='Công việc cá nhân';if(ls2)ls2.textContent='Công việc cá nhân';}
-else{if(lf2)lf2.textContent='Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';if(ls2)ls2.textContent='Tiến độ công việc phòng Tổng hợp';}
+if(_isPU){if(lf2)lf2.textContent='CÔNG VIỆC CÁ NHÂN';if(ls2)ls2.textContent='CÔNG VIỆC CÁ NHÂN';}
+else{if(lf2)lf2.textContent='Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';if(ls2)ls2.textContent='TIẾN ĐỘ CÔNG VIỆC PHÒNG TỔNG HỢP';}
 applyTestData();initFbPersonal();
 // Auto-sync local personalTasks lên Firebase nếu Firebase trống
 setTimeout(()=>{if(fbPersonalRef&&S.personalTasks.length){
