@@ -470,8 +470,8 @@ tbody td{padding:8px;font-size:12px}
 <select id="exQ" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select>
 <select id="exY" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"></select>
 <select id="exPr" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"></select>
-<button class="btn btn-p" onclick="openExportPreview()">📊 Xem & Xuất Excel</button>
-<button class="btn btn-p" onclick="openSummaryExport()" style="background:linear-gradient(135deg,#2b5797,#3b82f6)">📋 Xuất TH Quý / Năm (Mẫu PL03)</button>
+<button class="btn btn-o" onclick="btnFlash(this);openExportPreview()">📊 Xem & Xuất Excel</button>
+<button class="btn btn-o" onclick="btnFlash(this);openSummaryExport()">📋 Xuất TH Quý / Năm (Mẫu PL03)</button>
 <button class="btn btn-o admOnly" id="exportPermBtn" onclick="openExportPerm()" style="display:none">🔐 Phân quyền</button>
 </div></div>
 <!-- Summary Export Overlay -->
@@ -504,9 +504,9 @@ tbody td{padding:8px;font-size:12px}
 <div id="sumExpPreview" style="overflow-x:auto;margin-bottom:12px"></div>
 <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
 <button class="btn btn-o" onclick="closeSumExp()">Đóng</button>
-<button class="btn btn-p" onclick="previewSumExp()">👁️ Xem trước</button>
-<button class="btn btn-p" onclick="doExportSummary('summary')" style="background:linear-gradient(135deg,#2b5797,#3b82f6)">📋 Xuất TH cả phòng</button>
-<button class="btn btn-p" onclick="doExportSummary('zip')">📦 Xuất tất cả (zip)</button>
+<button class="btn btn-o" onclick="btnFlash(this);previewSumExp()">👁️ Xem trước</button>
+<button class="btn btn-o" onclick="btnFlash(this);doExportSummary('summary')">📋 Xuất TH cả phòng</button>
+<button class="btn btn-o" onclick="btnFlash(this);doExportSummary('zip')">📦 Xuất tất cả (zip)</button>
 </div>
 </div></div></div>
 </div>
@@ -1314,9 +1314,8 @@ if(m==='quarter'){const q=+document.getElementById('fQuarter').value;return getQ
 if(m==='year')return{from:new Date(y,0,1),to:new Date(y,11,31,23,59,59)};
 if(m==='custom'){return{from:new Date(document.getElementById('fDateFrom').value||'2000-01-01'),to:(()=>{const d=new Date(document.getElementById('fDateTo').value||'2099-12-31');d.setHours(23,59,59);return d;})()};}
 return null;}
-function doSearch(){_searchActive=true;rTasks();
-const b=document.getElementById('doSearchBtn');if(b){b.classList.add('btn-p');b.classList.remove('btn-o');
-setTimeout(()=>{b.classList.remove('btn-p');b.classList.add('btn-o');},300);}}
+function btnFlash(b){if(!b)return;b.classList.add('btn-p');b.classList.remove('btn-o');setTimeout(()=>{b.classList.remove('btn-p');b.classList.add('btn-o');},300);}
+function doSearch(){_searchActive=true;rTasks();btnFlash(document.getElementById('doSearchBtn'));}
 function clearSearch(){_searchActive=false;
 document.getElementById('fSearch').value='';document.getElementById('fP').value='all';
 document.getElementById('fTimeMode').value='all';onFTimeMode();
