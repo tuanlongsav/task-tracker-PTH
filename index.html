@@ -588,8 +588,9 @@ if(deptOnly&&document.querySelector('.tb[data-t="pending"].on'))sTab('tasks');
 rAll();}
 function isPersonal(){return S.mode==='personal';}
 // Firebase personal
-function initFbPersonal(){if(!fbInited||!S.u)return;
-const uid=S.u.replace(/[.#$/\[\]\s]/g,'_');
+function initFbPersonal(){if(!fbInited||!S.u){console.warn('[Personal] Skip init: fbInited='+fbInited+' u='+S.u);return;}
+const uid=S.u.replace(/[.#$/\[\]]/g,'_');
+console.log('[Personal] Init ref: appPersonal/'+uid);
 fbPersonalRef=firebase.database().ref('appPersonal/'+uid);
 fbPersonalRef.on('value',snap=>{if(fbSyncing)return;const d=snap.val();if(d){
 if(d.tasks&&Array.isArray(d.tasks)){S.personalTasks=d.tasks;migratePersonalTasks();}
@@ -605,7 +606,8 @@ try{localStorage.setItem('tt7',JSON.stringify(cleanForSave()));}catch(e){}
 if(S.u)rAll();}}).catch(e=>console.warn('[Firebase] Personal load err:',e));}
 function fbSavePersonalTask(i){if(!fbPersonalRef||i<0||i>=S.personalTasks.length)return;
 _fbWp('tasks/'+i,_cleanTask(S.personalTasks[i]));}
-function fbSavePersonalTasks(skipMerge){if(!fbPersonalRef)return;
+function fbSavePersonalTasks(skipMerge){if(!fbPersonalRef){console.warn('[Personal] No ref, skip save');return;}
+console.log('[Personal] Saving '+S.personalTasks.length+' tasks');
 _fbWp('tasks',S.personalTasks.map(t=>_cleanTask(t)));}
 function fbSavePersonalReminders(){if(!fbPersonalRef)return;
 _fbWp('reminders',Object.keys(S.personalReminders).length?S.personalReminders:null);}
@@ -627,10 +629,9 @@ try{const app=firebase.initializeApp({apiKey:c.apiKey,authDomain:c.authDomain||'
 fbRef=firebase.database().ref('appData');fbInited=true;
 // Realtime listener - nhận thay đổi từ Firebase
 fbRef.on('value',snap=>{if(fbSyncing)return;const d=snap.val();if(d){
-const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs};
+const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs,personalTasks:S.personalTasks,personalReminders:S.personalReminders,mode:S.mode};
 const localPw=JSON.parse(JSON.stringify(S.passwords||{}));
 Object.assign(S,d,keep);
-// Passwords: giữ local, Firebase chỉ lưu hash (pwHash) để verify
 S.passwords=localPw;
 migrateTasks();try{localStorage.setItem('tt7',JSON.stringify(cleanForSave()));}catch(e){}
 if(S.u){rAll();}
@@ -646,7 +647,7 @@ migrateTasks();emailjs.init(S.ejs.pk);
 // Kết nối Firebase nếu có config
 initFb();
 // Nếu có Firebase, tải dữ liệu 1 lần
-if(fbRef){fbRef.once('value').then(snap=>{const d=snap.val();if(d){const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs};
+if(fbRef){fbRef.once('value').then(snap=>{const d=snap.val();if(d){const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs,personalTasks:S.personalTasks,personalReminders:S.personalReminders,mode:S.mode};
 const localPw=JSON.parse(JSON.stringify(S.passwords||{}));
 Object.assign(S,d,keep);
 S.passwords=localPw;
