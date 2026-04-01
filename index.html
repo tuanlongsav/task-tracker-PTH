@@ -425,7 +425,7 @@ tbody td{padding:8px;font-size:12px}
 <button class="tb" data-rt="rptDept" onclick="sRptTab('rptDept')" style="display:none">🏢 CV phòng</button>
 <button class="tb" data-rt="rptPers" onclick="sRptTab('rptPers')" style="display:none">👤 CV cá nhân</button>
 </div>
-<div class="rf">
+<div class="rf" id="rptFilter">
 <select id="rpMode" onchange="onRM()"><option value="week">Theo tuần</option><option value="month">Theo tháng</option><option value="quarter">Theo quý</option><option value="year">Theo năm</option><option value="custom">Tự chọn</option></select>
 <select id="rpQuarter" onchange="rRpt();rTasks()" style="display:none"><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select>
 <select id="rpWeek" onchange="rRpt();rTasks()"></select>
@@ -1551,7 +1551,9 @@ function dlC(dl,st){if(!dl||st==='done')return'';const h=(new Date(dl)-new Date(
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function toast(m,t){document.querySelectorAll('.toast').forEach(x=>x.remove());const el=document.createElement('div');el.className='toast '+t;el.innerHTML=m;document.body.appendChild(el);setTimeout(()=>el.remove(),3e3);}
 function syncFilter(src){const v=document.getElementById(src).value;if(src==='rpPr')document.getElementById('fP').value=v;else document.getElementById('rpPr').value=v;}
-function sRptTab(id){document.querySelectorAll('.rptPane').forEach(p=>p.style.display='none');document.getElementById(id).style.display='block';document.querySelectorAll('[data-rt]').forEach(b=>b.classList.toggle('on',b.dataset.rt===id));if(id==='rptMem')rSummary();}
+function sRptTab(id){document.querySelectorAll('.rptPane').forEach(p=>p.style.display='none');document.getElementById(id).style.display='block';document.querySelectorAll('[data-rt]').forEach(b=>b.classList.toggle('on',b.dataset.rt===id));
+document.getElementById('rptFilter').style.display=id==='rptMem'?'none':'';
+if(id==='rptMem')rSummary();}
 // Summary table
 function initSummary(){const now=new Date(),y=now.getFullYear(),m=now.getMonth();
 document.getElementById('sumY').innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>';
