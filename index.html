@@ -248,7 +248,7 @@ tbody td{padding:8px;font-size:12px}
 <p class="ps" id="pwSub"></p>
 <input type="password" id="pwI" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')sPw()"/>
 <div class="perr" id="pwE"></div>
-<div class="pacts"><button class="btn btn-o btn-s" onclick="cPw()">Huỷ</button><button class="btn btn-s" id="bioBtn" onclick="bioLogin()" style="display:none;font-size:16px;background:linear-gradient(135deg,#10b981,#059669);color:#fff" title="Đăng nhập vân tay">👆 Vân tay</button><button class="btn btn-p btn-s" onclick="sPw()">Xác nhận</button></div>
+<div class="pacts"><button class="btn btn-o btn-s" onclick="cPw()">Huỷ</button><button class="btn btn-s" id="bioBtn" onclick="bioLogin()" style="display:none;font-size:13px;background:linear-gradient(135deg,#10b981,#059669);color:#fff" title="Đăng nhập sinh trắc học">🔐 Sinh trắc học</button><button class="btn btn-p btn-s" onclick="sPw()">Xác nhận</button></div>
 <span class="pfg" id="pfgLink" onclick="fgPw()">Quên mật khẩu?</span>
 <div class="pfgok" id="fgO"></div>
 </div></div>
@@ -711,7 +711,7 @@ function _onBioError(msg){console.log('Bio error:',msg);}
 function getBioId(name){try{return JSON.parse(localStorage.getItem('bioIds')||'{}')[name]||null;}catch(e){return null;}}
 function saveBioId(name,id){try{const d=JSON.parse(localStorage.getItem('bioIds')||'{}');d[name]=id;localStorage.setItem('bioIds',JSON.stringify(d));}catch(e){}}
 async function registerBio(name){
-if(isAndroidApp()){setBioEnabled(name,true);toast('Đã bật đăng nhập vân tay cho '+name,'ok');return;}
+if(isAndroidApp()){setBioEnabled(name,true);toast('Đã bật đăng nhập sinh trắc học cho '+name,'ok');return;}
 try{const uid=new TextEncoder().encode(name);const challenge=crypto.getRandomValues(new Uint8Array(32));
 const cred=await navigator.credentials.create({publicKey:{challenge,rp:{name:'Task Tracker PTH',id:location.hostname||'localhost'},
 user:{id:uid,name:name,displayName:name},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
@@ -727,7 +727,7 @@ if(assertion){document.getElementById('pwO').classList.remove('show');loginAs(pe
 }catch(e){console.warn('Bio login:',e);if(e.name!=='NotAllowedError')toast('Lỗi xác thực sinh trắc','er');}}
 function showBioBtn(){const btn=document.getElementById('bioBtn');
 const enabled=pendL&&hasBio()&&getBioEnabled(pendL);
-if(btn&&enabled){btn.style.display='';btn.title='Đăng nhập vân tay cho '+pendL;}else if(btn){btn.style.display='none';}}
+if(btn&&enabled){btn.style.display='';btn.title='Đăng nhập sinh trắc cho '+pendL;}else if(btn){btn.style.display='none';}}
 function showFullLogin(){document.getElementById('quickLogin').style.display='none';document.getElementById('fullLogin').style.display='';document.getElementById('ns').value='';document.getElementById('ns').focus();}
 function initQuickLogin(){const lastUser=localStorage.getItem('lastUser');
 if(lastUser&&S.mem.find(m=>m.name===lastUser)){
