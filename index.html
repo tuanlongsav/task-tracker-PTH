@@ -428,11 +428,11 @@ tbody td{padding:8px;font-size:12px}
 <div id="rptMain" class="rptPane" style="display:block">
 <div class="rf">
 <select id="rpMode" onchange="onRM()"><option value="week">Theo tuần</option><option value="month">Theo tháng</option><option value="quarter">Theo quý</option><option value="year">Theo năm</option><option value="custom">Tự chọn</option></select>
-<select id="rpQuarter" onchange="rRpt()" style="display:none"><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select>
-<select id="rpWeek" onchange="rRpt()"></select>
-<select id="rpMonth" onchange="rRpt()" style="display:none"></select>
-<select id="rpYear" onchange="rRpt()"></select>
-<input type="date" id="rpF" onchange="rRpt()" style="display:none"/><span id="rpDash" style="color:var(--t3);display:none">→</span><input type="date" id="rpT" onchange="rRpt()" style="display:none"/>
+<select id="rpQuarter" onchange="rRpt();rTasks()" style="display:none"><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select>
+<select id="rpWeek" onchange="rRpt();rTasks()"></select>
+<select id="rpMonth" onchange="rRpt();rTasks()" style="display:none"></select>
+<select id="rpYear" onchange="rRpt();rTasks()"></select>
+<input type="date" id="rpF" onchange="rRpt();rTasks()" style="display:none"/><span id="rpDash" style="color:var(--t3);display:none">→</span><input type="date" id="rpT" onchange="rRpt();rTasks()" style="display:none"/>
 <select id="rpPr" onchange="syncFilter('rpPr');rAll()"><option value="all">Tất cả</option></select>
 </div>
 <div class="rrow"><div class="rnums" id="rpN"></div><div class="rch"><canvas id="rpC"></canvas></div></div>
@@ -1174,7 +1174,7 @@ document.getElementById('rpYear').style.display=m!=='custom'?'':'none';
 document.getElementById('rpF').style.display=m==='custom'?'':'none';
 document.getElementById('rpDash').style.display=m==='custom'?'':'none';
 document.getElementById('rpT').style.display=m==='custom'?'':'none';
-rRpt();}
+rRpt();rTasks();}
 function getRptRange(){const m=document.getElementById('rpMode').value;const y=+document.getElementById('rpYear').value;
 if(m==='week'){const w=+document.getElementById('rpWeek').value;const{from,to}=getWeekDates(y,w);to.setHours(23,59,59);return{from,to};}
 if(m==='month'){const mo=+document.getElementById('rpMonth').value-1;return{from:new Date(y,mo,1),to:new Date(y,mo+1,0,23,59,59)};}
