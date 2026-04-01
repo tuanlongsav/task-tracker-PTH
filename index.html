@@ -234,7 +234,13 @@ tbody td{padding:8px;font-size:12px}
 <div id="authScreen" class="auth"><div class="acard">
 <div class="logo-i">📋</div><h1>Báo cáo theo dõi tiến độ công việc</h1>
 <p class="sub">Phòng Tổng hợp - Kiểm toán Nhà nước khu vực I</p>
-<div class="swrap"><label>👤 Nhập tên của bạn</label>
+<!-- Quick login cho user đã đăng nhập trước -->
+<div id="quickLogin" style="display:none;margin-bottom:12px">
+<p style="font-size:12px;color:var(--t2);margin-bottom:8px">Đăng nhập lại với:</p>
+<button id="quickLoginBtn" class="btn btn-p" style="width:100%;padding:12px;font-size:15px" onclick="pickM(this.dataset.name)"></button>
+<button class="btn btn-o btn-s" style="margin-top:8px;width:100%" onclick="showFullLogin()">Đổi tài khoản khác</button>
+</div>
+<div id="fullLogin" class="swrap"><label>👤 Nhập tên của bạn</label>
 <input type="text" id="ns" placeholder="Gõ tên để tìm..." autocomplete="off" oninput="fN()" onfocus="fN()"/>
 <div class="dd" id="ndd"></div></div></div></div>
 
@@ -242,7 +248,7 @@ tbody td{padding:8px;font-size:12px}
 <p class="ps" id="pwSub"></p>
 <input type="password" id="pwI" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')sPw()"/>
 <div class="perr" id="pwE"></div>
-<div class="pacts"><button class="btn btn-o btn-s" onclick="cPw()">Huỷ</button><button class="btn btn-p btn-s" id="bioBtn" onclick="bioLogin()" style="display:none;font-size:18px" title="Đăng nhập vân tay">🔓</button><button class="btn btn-p btn-s" onclick="sPw()">Xác nhận</button></div>
+<div class="pacts"><button class="btn btn-o btn-s" onclick="cPw()">Huỷ</button><button class="btn btn-s" id="bioBtn" onclick="bioLogin()" style="display:none;font-size:16px;background:linear-gradient(135deg,#10b981,#059669);color:#fff" title="Đăng nhập vân tay">👆 Vân tay</button><button class="btn btn-p btn-s" onclick="sPw()">Xác nhận</button></div>
 <span class="pfg" id="pfgLink" onclick="fgPw()">Quên mật khẩu?</span>
 <div class="pfgok" id="fgO"></div>
 </div></div>
@@ -679,6 +685,7 @@ document.getElementById('emSub').innerHTML='<strong>'+esc(pendL)+'</strong>, ch�
 document.getElementById('emChoose').style.display='';document.getElementById('emEmailForm').style.display='none';document.getElementById('emTgForm').style.display='none';
 document.getElementById('pwO').classList.remove('show');document.getElementById('emO').classList.add('show');}
 function loginAs(n,forceNewPw){S.u=n;S.adm=S.admNames.includes(n);
+try{localStorage.setItem('lastUser',n);}catch(e){}
 if(!S.loggedOnce)S.loggedOnce={};if(!S.loggedOnce[n]){S.loggedOnce[n]=Date.now();sv();fbSaveMeta('loggedOnce',S.loggedOnce);}
 document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';document.getElementById('dN').textContent=n;
 const rt=document.getElementById('rT');rt.textContent=S.adm?'QTV':'TV';rt.className=S.adm?'rt a':'rt m';
@@ -689,8 +696,8 @@ initRpt();popF();rAll();
 const needForce=forceNewPw||(S.tempPw&&S.tempPw[n]);
 if(needForce){setTimeout(()=>forceChangePw(n),300);}
 if(S.adm){setTimeout(()=>{updateReminders();checkAndNotify();},2000);}
-// Hỏi bật biometric nếu chưa đăng ký
-if(!needForce&&hasBio()&&!getBioId(n)){setTimeout(()=>{if(confirm('Bật đăng nhập bằng vân tay/khuôn mặt cho '+n+'?\n\nLần sau chỉ cần chọn tên → xác thực sinh trắc → vào luôn.')){registerBio(n);}},1500);}}
+// Hỏi bật biometric nếu chưa đăng ký VÀ chưa bật
+if(!needForce&&hasBio()&&!getBioEnabled(n)){setTimeout(()=>{if(confirm('Bật đăng nhập bằng vân tay/khuôn mặt cho '+n+'?\n\nLần sau chỉ cần chọn tên → xác thực sinh trắc → vào luôn.')){registerBio(n);}},1500);}}
 // Biometric Authentication (Android native + WebAuthn fallback)
 function isAndroidApp(){return!!window.AndroidBio;}
 function hasBio(){if(isAndroidApp())return window.AndroidBio.isAvailable();
@@ -721,7 +728,15 @@ if(assertion){document.getElementById('pwO').classList.remove('show');loginAs(pe
 function showBioBtn(){const btn=document.getElementById('bioBtn');
 const enabled=pendL&&hasBio()&&getBioEnabled(pendL);
 if(btn&&enabled){btn.style.display='';btn.title='Đăng nhập vân tay cho '+pendL;}else if(btn){btn.style.display='none';}}
-function logout(){S.u=null;S.adm=false;document.getElementById('authScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('ns').value='';}
+function showFullLogin(){document.getElementById('quickLogin').style.display='none';document.getElementById('fullLogin').style.display='';document.getElementById('ns').value='';document.getElementById('ns').focus();}
+function initQuickLogin(){const lastUser=localStorage.getItem('lastUser');
+if(lastUser&&S.mem.find(m=>m.name===lastUser)){
+document.getElementById('quickLoginBtn').textContent='👤 '+lastUser;
+document.getElementById('quickLoginBtn').dataset.name=lastUser;
+document.getElementById('quickLogin').style.display='';
+document.getElementById('fullLogin').style.display='none';
+}else{document.getElementById('quickLogin').style.display='none';document.getElementById('fullLogin').style.display='';}}
+function logout(){S.u=null;S.adm=false;document.getElementById('authScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('ns').value='';initQuickLogin();}
 function chPw(){const v=document.getElementById('nPw').value.trim();if(!v||v.length<4){toast('≥4 ký tự','er');return;}S.passwords[S.u]=v;if(S.tempPw)delete S.tempPw[S.u];sv();fbSaveTemps();document.getElementById('nPw').value='';toast('Đã đổi MK!','ok');}
 function forceChangePw(n){
 // Xoá popup cũ nếu tồn tại
@@ -1687,6 +1702,6 @@ XLSX.writeFile(wb,'BangChamDiem_'+modeTag+'_'+pr.replace(/\s+/g,'_')+'.xlsx');
 toast('Đã xuất báo cáo cho '+pr+' ('+label+')','ok');}
 function rAll(){rTasks();rRpt();uSt();rPend();initExport();initSummary();updateReminders();}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&document.activeElement===document.getElementById('cmdIn')){e.preventDefault();handleCmd();}});
-ld();
+ld();initQuickLogin();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW:',e));}
 </script></body></html>
