@@ -419,9 +419,11 @@ tbody td{padding:8px;font-size:12px}
 </div></div></div>
 <div class="main" id="mainC">
 <div class="rpt">
-<div style="display:flex;gap:3px;margin-bottom:12px;background:var(--bg2);border:1px solid var(--b);border-radius:6px;padding:3px">
+<div id="rptTabs" style="display:flex;gap:3px;margin-bottom:12px;background:var(--bg2);border:1px solid var(--b);border-radius:6px;padding:3px">
 <button class="tb on" data-rt="rptMain" onclick="sRptTab('rptMain')">📊 Tổng hợp theo dõi</button>
 <button class="tb" data-rt="rptMem" onclick="sRptTab('rptMem')">👥 Tổng hợp theo thành viên</button>
+<button class="tb" data-rt="rptDept" onclick="sRptTab('rptDept')" style="display:none">🏢 CV phòng</button>
+<button class="tb" data-rt="rptPers" onclick="sRptTab('rptPers')" style="display:none">👤 CV cá nhân</button>
 </div>
 <div id="rptMain" class="rptPane" style="display:block">
 <div class="rf">
@@ -448,6 +450,12 @@ tbody td{padding:8px;font-size:12px}
 <select id="sumTpMode" onchange="rSummary()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="dept">Trưởng phòng: gồm cả theo phòng</option><option value="personal">Trưởng phòng: theo CV xử lý riêng</option></select>
 </div>
 <div class="tsc"><table id="sumTable"><thead><tr><th>STT</th><th>Họ tên</th><th>Chức vụ</th><th>Tổng CV</th><th style="color:var(--blue)">Đang làm</th><th style="color:var(--red)">Quá hạn</th><th>Hệ số QĐ</th><th>HT quy đổi</th><th style="color:var(--green)">HT đạt CL QĐ</th><th>Tỷ lệ %</th></tr></thead><tbody id="sumBody"></tbody></table></div>
+</div>
+<div id="rptDept" class="rptPane" style="display:none">
+<div class="rrow"><div class="rnums" id="rpND"></div><div class="rch"><canvas id="rpCD"></canvas></div></div>
+</div>
+<div id="rptPers" class="rptPane" style="display:none">
+<div class="rrow"><div class="rnums" id="rpNP"></div><div class="rch"><canvas id="rpCP"></canvas></div></div>
 </div>
 <div id="exportSec" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--b)">
 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -509,8 +517,9 @@ tbody td{padding:8px;font-size:12px}
 <div class="mfg"><label>Ngày giao việc</label><input type="date" id="mi_ad"/></div>
 <div class="mfg"><label>Hạn hoàn thành</label><input type="datetime-local" id="mi_d"/></div>
 <div class="mfg"><label>Trạng thái</label><select id="mi_s"><option value="doing">Đang thực hiện</option><option value="done">Hoàn thành</option></select></div>
-<div class="fs mfg"><label>Sản phẩm / Công việc</label><input type="text" id="mi_pr" placeholder="Tên sản phẩm..." list="dlPr" onfocus="updPrList()"/></div>
-<div class="mfg"><label>Hệ số quy đổi</label><input type="number" id="mi_cf" min="0" step="1" placeholder="100-300"/></div>
+<div class="fs mfg" id="mi_pr_wrap"><label>Sản phẩm / Công việc</label><input type="text" id="mi_pr" placeholder="Tên sản phẩm..." list="dlPr" onfocus="updPrList()"/></div>
+<div class="mfg" id="mi_cf_wrap"><label>Hệ số quy đổi</label><input type="number" id="mi_cf" min="0" step="1" placeholder="100-300"/></div>
+<div class="fs ptype-toggle" id="mi_evt_wrap" style="display:none"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;margin:0"><input type="checkbox" id="mi_evt" onchange="onEvtToggle()"/> ⏰ Nhắc nhở sự kiện <span style="font-size:10px;color:var(--t3)">(tự hoàn thành khi đến hạn)</span></label></div>
 <div class="fs mfg"><label>Ghi chú</label><input type="text" id="mi_no"/></div>
 <div class="fs"><button class="btn btn-p" onclick="mAdd()">➕ Thêm</button></div>
 </div></div></div></div>
@@ -977,15 +986,25 @@ function onCollabTick(){const s=document.getElementById('mi_cs');if(s){s.value='
 function updECollab(checkedList){const leader=document.getElementById('eL').value;const prev=checkedList||getChecked('eC');
 const ns=new Set();S.mem.forEach(m=>{if(!isTestMem(m)&&!isPersonalMem(m))ns.add(m.name);});const sorted=sortByRole([...ns]).filter(n=>n!==leader);
 document.getElementById('eC').innerHTML=sorted.map(n=>`<label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;padding:4px 8px;border-bottom:1px solid var(--b)"><input type="checkbox" value="${esc(n)}"${prev.includes(n)?' checked':''} style="margin:0;width:14px;height:14px"/> ${esc(n)}</label>`).join('');}
+// Event reminder toggle
+function onEvtToggle(){const isEvt=document.getElementById('mi_evt').checked;
+document.getElementById('mi_s').closest('.mfg').style.display=isEvt?'none':'';
+document.getElementById('mi_ad').closest('.mfg').style.display=isEvt?'none':'';}
 // Personal mode form toggle
 function onPtypeToggle(){const isDept=document.getElementById('mi_dept').checked;
 document.getElementById('mi_l_wrap').style.display=isDept?'':'none';
 document.getElementById('mi_c_wrap').style.display=isDept?'':'none';}
 function updateFormForMode(){const pt=document.getElementById('ptypeToggle');
 const lw=document.getElementById('mi_l_wrap');const cw2=document.getElementById('mi_c_wrap');
+const prW=document.getElementById('mi_pr_wrap');const cfW=document.getElementById('mi_cf_wrap');
+const evtW=document.getElementById('mi_evt_wrap');
 if(isPersonal()){pt.style.display='';document.getElementById('mi_dept').checked=false;
-lw.style.display='none';cw2.style.display='none';}
-else{pt.style.display='none';lw.style.display='';cw2.style.display='';}}
+lw.style.display='none';cw2.style.display='none';
+if(prW)prW.style.display='none';if(cfW)cfW.style.display='none';
+if(evtW)evtW.style.display='';}
+else{pt.style.display='none';lw.style.display='';cw2.style.display='';
+if(prW)prW.style.display='';if(cfW)cfW.style.display='';
+if(evtW)evtW.style.display='none';}}
 // Manual add
 function mAdd(){const name=document.getElementById('mi_n').value.trim();if(!name){toast('Nhập nội dung','er');return;}
 const dl=document.getElementById('mi_d').value?.replace('T',' ')||'',st=document.getElementById('mi_s').value,no=document.getElementById('mi_no').value.trim();
@@ -994,8 +1013,11 @@ const pr=document.getElementById('mi_pr').value.trim(),cf=parseFloat(document.ge
 const isDeptTask=!isPersonal()||document.getElementById('mi_dept').checked;
 if(!isDeptTask){
 // CV cá nhân → thêm thẳng, không qua hàng chờ
-S.personalTasks.push({id:Date.now(),name,leader:S.u,collaborators:[],date:new Date().toISOString().slice(0,10),deadline:dl,status:st,completedAt:st==='done'?new Date().toISOString():'',notes:no,product:pr,coefficient:cf,assignedDate:ad});
-sv();fbSavePersonalTasks();rAll();toast('CV cá nhân #'+S.personalTasks.length+' đã thêm!','ok');
+const isEvt=document.getElementById('mi_evt')?.checked;
+const taskObj={id:Date.now(),name,leader:S.u,collaborators:[],date:new Date().toISOString().slice(0,10),deadline:dl,status:st,completedAt:st==='done'?new Date().toISOString():'',notes:no,product:'',coefficient:200,assignedDate:ad};
+if(isEvt){taskObj.taskType='event';taskObj.status='doing';taskObj.completedAt='';}
+S.personalTasks.push(taskObj);
+sv();fbSavePersonalTasks();rAll();toast((isEvt?'⏰ Nhắc nhở':'CV cá nhân')+' #'+S.personalTasks.length+' đã thêm!','ok');
 _clearMiForm();return;}
 // Việc phòng (dept mode hoặc tick "Việc phòng")
 const l=document.getElementById('mi_l').value,cs=getChecked('mi_c');
@@ -1006,7 +1028,8 @@ S.tasks.push({id:Date.now(),name,leader:l,collaborators:cs,date:new Date().toISO
 _clearMiForm();}
 function _clearMiForm(){['mi_n','mi_no','mi_pr'].forEach(i=>document.getElementById(i).value='');document.getElementById('mi_d').value='';document.getElementById('mi_cf').value='';document.getElementById('mi_ad').value=new Date().toISOString().slice(0,10);
 document.getElementById('mi_l').value='';document.getElementById('mi_l_search').value='';document.querySelectorAll('#mi_c input[type=checkbox]').forEach(cb=>cb.checked=false);
-if(isPersonal())document.getElementById('mi_dept').checked=false;
+if(isPersonal()){document.getElementById('mi_dept').checked=false;
+const evtCb=document.getElementById('mi_evt');if(evtCb){evtCb.checked=false;onEvtToggle();}}
 updMiCollab();onPtypeToggle();}
 // Edit
 function openEdit(gi){editIdx=gi-1;if(editIdx<0||editIdx>=S.tasks.length)return;const t=S.tasks[editIdx];
@@ -1161,24 +1184,38 @@ if(m==='month'){const mo=+document.getElementById('rpMonth').value-1;return{from
 if(m==='quarter'){const q=+document.getElementById('rpQuarter').value;return getQRange(q,y);}
 if(m==='year')return{from:new Date(y,0,1),to:new Date(y,11,31,23,59,59)};
 return{from:new Date(document.getElementById('rpF').value||'2000-01-01'),to:(()=>{const d=new Date(document.getElementById('rpT').value||'2099-12-31');d.setHours(23,59,59);return d;})()};}
+let rpChartD=null,rpChartP=null;
 function rRpt(){const{from,to}=getRptRange();const pr=document.getElementById('rpPr').value;
-const now=new Date();
-const srcTasks=isPersonal()?S.personalTasks:S.tasks;
+const now=new Date();const isP=isPersonal();
+// Ẩn/hiện tabs theo mode
+document.querySelectorAll('[data-rt="rptMem"]').forEach(el=>el.style.display=isP?'none':'');
+document.querySelectorAll('[data-rt="rptDept"]').forEach(el=>el.style.display=isP?'':'none');
+document.querySelectorAll('[data-rt="rptPers"]').forEach(el=>el.style.display=isP?'':'none');
+document.getElementById('rpPr').style.display=isP?'none':'';
+// Nếu đang ở tab ẩn → chuyển về rptMain
+const activeTab=document.querySelector('[data-rt].tb.on');
+if(activeTab&&activeTab.style.display==='none')sRptTab('rptMain');
+// Main: source theo mode
+const srcTasks=isP?S.personalTasks:S.tasks;
 srcTasks.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
-const fl=srcTasks.filter(t=>{const d=new Date(t.date);if(d<from||d>to)return false;if(!isPersonal()&&pr!=='all'&&t.leader!==pr&&!(t.collaborators||[]).includes(pr))return false;return true;});
-// Ẩn tab TH thành viên khi personal
-document.querySelectorAll('[data-rt="rptMem"]').forEach(el=>el.style.display=isPersonal()?'none':'');
-document.getElementById('rpPr').style.display=isPersonal()?'none':'';
+const fl=srcTasks.filter(t=>{const d=new Date(t.date);if(d<from||d>to)return false;if(!isP&&pr!=='all'&&t.leader!==pr&&!(t.collaborators||[]).includes(pr))return false;return true;});
 const tot=fl.length,dn=fl.filter(t=>t.status==='done').length,dg=fl.filter(t=>t.status==='doing').length,ov=fl.filter(t=>t.status==='overdue').length,rate=tot?Math.round(dn/tot*100):0;
-document.getElementById('rpN').innerHTML=
-'<div class="rnb rnb-tot"><div class="rv" style="color:var(--blue)">'+tot+'</div><div class="rl">Công việc</div></div>'+
-'<div class="rnb"><div class="rv" style="color:var(--green)">'+dn+'</div><div class="rl">Xong</div></div>'+
-'<div class="rnb"><div class="rv" style="color:var(--amber)">'+dg+'</div><div class="rl">Đang làm</div></div>'+
-'<div class="rnb"><div class="rv" style="color:var(--red)">'+ov+'</div><div class="rl">Quá hạn</div></div>'+
-'<div class="rnb"><div class="rv" style="color:var(--purple)">'+rate+'%</div><div class="rl">Tỷ lệ</div></div>';
-// Chart
-if(rpChart)rpChart.destroy();
-rpChart=new Chart(document.getElementById('rpC'),{type:'doughnut',data:{labels:['Xong','Đang làm','Quá hạn'],datasets:[{data:[dn,dg,ov],backgroundColor:['#10b981','#3b82f6','#ef4444'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8b9dc3',font:{size:11},padding:8,boxWidth:12}}}}});}
+document.getElementById('rpN').innerHTML=_rptCards(tot,dn,dg,ov,rate);
+if(rpChart)rpChart.destroy();rpChart=_rptChart('rpC',dn,dg,ov);
+// Personal mode: render thêm tab CV phòng + CV cá nhân
+if(isP){
+// CV phòng (tasks mà user tham gia)
+const myDept=S.tasks.filter(t=>{const d=new Date(t.date);if(d<from||d>to)return false;return t.leader===S.u||(t.collaborators||[]).includes(S.u);});
+myDept.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
+const dTot=myDept.length,dDn=myDept.filter(t=>t.status==='done').length,dDg=myDept.filter(t=>t.status==='doing').length,dOv=myDept.filter(t=>t.status==='overdue').length,dRate=dTot?Math.round(dDn/dTot*100):0;
+document.getElementById('rpND').innerHTML=_rptCards(dTot,dDn,dDg,dOv,dRate);
+if(rpChartD)rpChartD.destroy();rpChartD=_rptChart('rpCD',dDn,dDg,dOv);
+// CV cá nhân
+const pTot=tot,pDn=dn,pDg=dg,pOv=ov,pRate=rate;
+document.getElementById('rpNP').innerHTML=_rptCards(pTot,pDn,pDg,pOv,pRate);
+if(rpChartP)rpChartP.destroy();rpChartP=_rptChart('rpCP',pDn,pDg,pOv);}}
+function _rptCards(tot,dn,dg,ov,rate){return'<div class="rnb rnb-tot"><div class="rv" style="color:var(--blue)">'+tot+'</div><div class="rl">Công việc</div></div><div class="rnb"><div class="rv" style="color:var(--green)">'+dn+'</div><div class="rl">Xong</div></div><div class="rnb"><div class="rv" style="color:var(--amber)">'+dg+'</div><div class="rl">Đang làm</div></div><div class="rnb"><div class="rv" style="color:var(--red)">'+ov+'</div><div class="rl">Quá hạn</div></div><div class="rnb"><div class="rv" style="color:var(--purple)">'+rate+'%</div><div class="rl">Tỷ lệ</div></div>';}
+function _rptChart(canvasId,dn,dg,ov){return new Chart(document.getElementById(canvasId),{type:'doughnut',data:{labels:['Xong','Đang làm','Quá hạn'],datasets:[{data:[dn,dg,ov],backgroundColor:['#10b981','#3b82f6','#ef4444'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8b9dc3',font:{size:11},padding:8,boxWidth:12}}}}});}
 // Render tasks
 function rTasks(){const fp=document.getElementById('fP').value;const now=new Date();
 const kw=(document.getElementById('fSearch').value||'').trim().toLowerCase();
@@ -1207,19 +1244,20 @@ const tc=isDone?('<span class="dl">'+fDL(t.completedAt||t.date)+'</span>'):(S.ad
 const dateInfo=t.date?'<span style="font-size:9px;color:var(--t3);display:block" title="Nhập lúc '+t.date+'">📝 '+fD(t.date)+'</span>':'';
 return'<tr><td><span class="tid">#'+gi+'</span></td><td><div class="tn">'+esc(t.name)+dateInfo+'</div></td><td style="font-size:12px">'+esc(t.product||'')+'</td><td style="font-size:12px;text-align:center">'+(t.coefficient||'-')+'</td><td>'+(t.leader?'<span class="pt ld">'+esc(t.leader)+'</span>':'-')+'</td><td style="max-width:140px">'+((t.collaborators||[]).map(c=>'<span class="pt">'+esc(c)+'</span>').join('')||'-')+'</td>'+adCol+'<td>'+tc+'</td><td><span class="sb '+sc+'">'+sl+'</span></td><td style="font-size:12px;color:var(--t2)">'+esc(t.notes||'')+'</td>'+'<td style="white-space:nowrap"><span style="cursor:pointer;font-size:15px" title="'+(S.adm?'Chỉnh sửa':'Đề xuất sửa')+'" onclick="openEdit('+gi+')">'+(S.adm?'✏️':'📝')+'</span> <span style="cursor:pointer;font-size:15px" title="Xoá" onclick="delTask('+gi+')">🗑️</span></td></tr>';}).join('');}
 // Render personal task rows (ẩn cột Phụ trách/Phối hợp)
-function tRP(list,isDone){if(!list.length)return'<tr><td colspan="9"><div class="empty"><div class="icon">'+(isDone?'🎉':'📭')+'</div><p>'+(isDone?'Không có':'Không có CV')+'</p></div></td></tr>';
+function tRP(list,isDone){if(!list.length)return'<tr><td colspan="7"><div class="empty"><div class="icon">'+(isDone?'🎉':'📭')+'</div><p>'+(isDone?'Không có':'Không có CV')+'</p></div></td></tr>';
 const src=S.personalTasks;
 return list.map(t=>{const gi=src.indexOf(t)+1;const sc=t.status==='done'?'done':t.status==='overdue'?'overdue':'doing';const sl=t.status==='done'?'✅':t.status==='overdue'?'🚨':'⏳';const dc=dlC(t.deadline,t.status);
+const isEvt=t.taskType==='event';const evtIcon=isEvt?'<span style="font-size:9px;background:var(--ag);color:var(--amber);padding:1px 4px;border-radius:3px;margin-left:4px">⏰ Nhắc nhở</span>':'';
 const adCol='<td><span class="dl">'+fD(t.assignedDate||t.date)+'</span></td>';
 const tc=isDone?('<span class="dl">'+fDL(t.completedAt||t.date)+'</span>'):('<span class="dl '+dc+'" style="cursor:pointer" title="Click để sửa hạn" onclick="this.style.display=\'none\';this.nextElementSibling.style.display=\'\'">'+fDL(t.deadline)+'</span><input type="datetime-local" class="dl-edit" style="display:none" value="'+(t.deadline?t.deadline.replace(' ','T'):'')+'" onchange="chDLP('+gi+',this.value)" onblur="this.style.display=\'none\';this.previousElementSibling.style.display=\'\'"/>');
-return'<tr><td><span class="tid">#'+gi+'</span></td><td><div class="tn">'+esc(t.name)+'</div></td><td style="font-size:12px">'+esc(t.product||'')+'</td><td style="font-size:12px;text-align:center">'+(t.coefficient||'-')+'</td>'+adCol+'<td>'+tc+'</td><td><span class="sb '+sc+'">'+sl+'</span></td><td style="font-size:12px;color:var(--t2)">'+esc(t.notes||'')+'</td><td style="white-space:nowrap"><span style="cursor:pointer;font-size:15px" title="Chỉnh sửa" onclick="openEditP('+gi+')">✏️</span> <span style="cursor:pointer;font-size:15px" title="Xoá" onclick="delTaskP('+gi+')">🗑️</span></td></tr>';}).join('');}
+return'<tr><td><span class="tid">#'+gi+'</span></td><td><div class="tn">'+esc(t.name)+evtIcon+'</div></td>'+adCol+'<td>'+tc+'</td><td><span class="sb '+sc+'">'+sl+'</span></td><td style="font-size:12px;color:var(--t2)">'+esc(t.notes||'')+'</td><td style="white-space:nowrap"><span style="cursor:pointer;font-size:15px" title="Chỉnh sửa" onclick="openEditP('+gi+')">✏️</span> <span style="cursor:pointer;font-size:15px" title="Xoá" onclick="delTaskP('+gi+')">🗑️</span></td></tr>';}).join('');}
 function updateTableHeaders(){const isP=isPersonal();
 const thI=document.getElementById('tbI').closest('table').querySelector('thead tr');
 const thD=document.getElementById('tbD').closest('table').querySelector('thead tr');
 const hDept='<th>STT</th><th>Nội dung</th><th>Sản phẩm</th><th>Hệ số</th><th>Phụ trách</th><th>Phối hợp</th><th>Ngày giao</th><th>Hạn HT</th><th>TT</th><th>Ghi chú</th><th>✏️</th>';
-const hPers='<th>STT</th><th>Nội dung</th><th>Sản phẩm</th><th>Hệ số</th><th>Ngày giao</th><th>Hạn HT</th><th>TT</th><th>Ghi chú</th><th>✏️</th>';
+const hPers='<th>STT</th><th>Nội dung</th><th>Ngày giao</th><th>Hạn HT</th><th>TT</th><th>Ghi chú</th><th>✏️</th>';
 const hDeptD='<th>STT</th><th>Nội dung</th><th>Sản phẩm</th><th>Hệ số</th><th>Phụ trách</th><th>Phối hợp</th><th>Ngày giao</th><th>Ngày HT</th><th>TT</th><th>Ghi chú</th><th>✏️</th>';
-const hPersD='<th>STT</th><th>Nội dung</th><th>Sản phẩm</th><th>Hệ số</th><th>Ngày giao</th><th>Ngày HT</th><th>TT</th><th>Ghi chú</th><th>✏️</th>';
+const hPersD='<th>STT</th><th>Nội dung</th><th>Ngày giao</th><th>Ngày HT</th><th>TT</th><th>Ghi chú</th><th>✏️</th>';
 if(thI)thI.innerHTML=isP?hPers:hDept;
 if(thD)thD.innerHTML=isP?hPersD:hDeptD;}
 // Personal task actions
@@ -1331,6 +1369,8 @@ S.personalTasks.forEach((t,i)=>{const key=String(t.id);
 if(t.status==='done'){if(S.personalReminders[key])delete S.personalReminders[key];return;}
 if(!t.deadline)return;
 const dl=new Date(t.deadline),h=(dl-now)/36e5;
+// Nhắc nhở sự kiện: tự hoàn thành khi đến hạn
+if(t.taskType==='event'&&h<=0){t.status='done';t.completedAt=t.deadline;changed=true;fbSavePersonalTask(i);if(S.personalReminders[key])delete S.personalReminders[key];return;}
 if(h<=0&&t.status!=='overdue'){t.status='overdue';changed=true;fbSavePersonalTask(i);}
 let type=null;
 if(h<=0)type='overdue';else if(h<=2)type='urgent';else if(h<=12)type='upcoming';
