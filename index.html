@@ -227,6 +227,33 @@ tbody td{padding:8px;font-size:12px}
 .sx{padding:10px}
 .ebox{padding:16px 14px;max-width:95vw}
 }
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-nav button{background:var(--c);border:1px solid var(--b);border-radius:6px;width:32px;height:32px;color:var(--t1);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.cal-nav button:hover{background:var(--ch);border-color:var(--blue)}
+.cal-nav .cal-title{font-size:15px;font-weight:700;cursor:pointer}
+.cal-nav .cal-title:hover{color:var(--blue)}
+.cal-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px}
+.cal-wk span{text-align:center;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;padding:4px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-cell{position:relative;text-align:center;padding:6px 2px;border-radius:6px;cursor:pointer;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid transparent;transition:all .1s}
+.cal-cell:hover{background:var(--ch);border-color:var(--b)}
+.cal-cell.other{opacity:.3}
+.cal-cell.today{background:var(--blg);border-color:var(--blue)}
+.cal-cell.selected{background:var(--pg);border-color:var(--purple)}
+.cal-cell .cd{font-size:15px;font-weight:700;line-height:1.2}
+.cal-cell .cl{font-size:9px;color:var(--t3);line-height:1.2}
+.cal-cell .cv-dot{position:absolute;top:3px;right:3px;min-width:14px;height:14px;background:var(--red);color:#fff;font-size:8px;font-weight:700;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 2px}
+.cal-detail{margin-top:12px;background:var(--c);border:1px solid var(--b);border-radius:8px;padding:12px}
+.cal-detail h3{font-size:14px;font-weight:700;margin-bottom:8px}
+.cal-info{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:12px;margin-bottom:8px}
+.cal-info .ci-label{color:var(--t3);font-weight:600;white-space:nowrap}
+.cal-info .ci-val{color:var(--t1)}
+.cal-hd{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.cal-hd span{background:var(--gg);color:var(--green);border:1px solid rgba(16,185,129,.3);border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600}
+.cal-tasks{margin-top:8px;border-top:1px solid var(--b);padding-top:8px}
+.cal-tasks .ct-title{font-size:11px;font-weight:700;color:var(--t2);margin-bottom:4px}
+.cal-tasks .ct-item{font-size:11px;padding:4px 6px;background:var(--inp);border:1px solid var(--b);border-radius:4px;margin-bottom:3px;display:flex;align-items:center;gap:4px}
+.cal-tasks .ct-item .ct-st{font-size:9px}
 .mode-btn{display:flex;align-items:center;gap:4px;background:var(--c);border:1px solid var(--b);border-radius:14px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;color:var(--t1);font-family:inherit;transition:all .15s;white-space:nowrap}
 .mode-btn:hover{background:var(--ch);border-color:var(--blue)}
 .mode-btn.personal{border-color:var(--purple);background:var(--pg)}
@@ -343,6 +370,11 @@ tbody td{padding:8px;font-size:12px}
 <div id="ntList"></div>
 </div></div>
 
+<div class="pnl-ov" id="calOv" onclick="if(event.target===this)closeCal()"><div class="pnl" style="width:480px">
+<h2>📅 Lịch vạn niên <span class="xp" onclick="closeCal()">✕</span></h2>
+<div id="calContent"></div>
+</div></div>
+
 <div class="pnl-ov" id="hiOv" onclick="if(event.target===this)closeHi()"><div class="pnl">
 <h2>📜 Lịch sử <span class="xp" onclick="closeHi()">✕</span></h2>
 <button class="btn btn-s btn-o" onclick="clrH()" style="margin-bottom:6px">Xóa</button><div id="hLog"></div>
@@ -352,6 +384,7 @@ tbody td{padding:8px;font-size:12px}
 <div class="hdr"><div class="hdr-in">
 <div class="logo"><div class="logo-i">📋</div><span>Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I</span></div>
 <div class="hdr-r">
+<div class="hb" onclick="openCal()" title="Lịch vạn niên">📅</div>
 <div class="hb" onclick="openHi()" title="Lịch sử">📜</div>
 <div class="hb" id="stBtn" onclick="openSt()" title="Cài đặt" style="display:none">⚙️</div>
 <div class="hb" onclick="openNt()" title="Thông báo">🔔<span id="nC" class="bdg hd">0</span></div>
@@ -1903,6 +1936,148 @@ XLSX.utils.book_append_sheet(wb,s4,'Ket qua');
 const modeTag=document.getElementById('exMode').value==='year'?'Nam'+y:'Q'+q+'_'+y;
 XLSX.writeFile(wb,'BangChamDiem_'+modeTag+'_'+pr.replace(/\s+/g,'_')+'.xlsx');
 toast('Đã xuất báo cáo cho '+pr+' ('+label+')','ok');}
+// === LỊCH VẠN NIÊN ===
+// Bảng dữ liệu âm lịch 1900-2100 (encode: bit 16=tháng nhuận 30 ngày?, bit 12-0=tháng 1-12 lớn/nhỏ, hex cuối=tháng nhuận)
+const LI=[0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
+0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
+0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
+0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
+0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
+0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,
+0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
+0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,
+0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,
+0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x05ac0,0x0ab60,0x096d5,0x092e0,
+0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,
+0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,
+0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,
+0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,
+0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,
+0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,
+0x092e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,
+0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,
+0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,
+0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a4d0,0x0d150,0x0f252,
+0x0d520];
+function lunarYearDays(y){let s=348;for(let i=0x8000;i>0x8;i>>=1)s+=(LI[y-1900]&i)?1:0;return s+lunarLeapDays(y);}
+function lunarLeapMonth(y){return LI[y-1900]&0xf;}
+function lunarLeapDays(y){return lunarLeapMonth(y)?(LI[y-1900]&0x10000?30:29):0;}
+function lunarMonthDays(y,m){return(LI[y-1900]&(0x10000>>m))?30:29;}
+function solarToLunar(yy,mm,dd){
+let offset=Math.floor((Date.UTC(yy,mm-1,dd)-Date.UTC(1900,0,31))/86400000);
+let ly=1900,temp=0;
+for(;ly<2101&&offset>0;ly++){temp=lunarYearDays(ly);offset-=temp;}
+if(offset<0){offset+=temp;ly--;}
+const leapM=lunarLeapMonth(ly);let isLeap=false,lm=1;
+for(;lm<13&&offset>0;lm++){
+if(leapM>0&&lm===(leapM+1)&&!isLeap){--lm;isLeap=true;temp=lunarLeapDays(ly);}
+else{temp=lunarMonthDays(ly,lm);}
+if(isLeap&&lm===(leapM+1))isLeap=false;
+offset-=temp;}
+if(offset===0&&leapM>0&&lm===leapM+1){if(isLeap){isLeap=false;}else{isLeap=true;--lm;}}
+if(offset<0){offset+=temp;--lm;}
+return{year:ly,month:lm,day:offset+1,leap:isLeap};}
+// Can Chi
+const CAN=['Giáp','Ất','Bính','Đinh','Mậu','Kỷ','Canh','Tân','Nhâm','Quý'];
+const CHI=['Tý','Sửu','Dần','Mão','Thìn','Tỵ','Ngọ','Mùi','Thân','Dậu','Tuất','Hợi'];
+const CHI_ICON=['🐀','🐂','🐅','🐇','🐉','🐍','🐴','🐐','🐒','🐓','🐕','🐖'];
+function canChiYear(ly){return CAN[(ly+6)%10]+' '+CHI[(ly+8)%12];}
+function canChiYearIcon(ly){return CHI_ICON[(ly+8)%12];}
+function canChiMonth(lm,ly){const idx=(ly*12+lm+3)%10;const chi=(lm+1)%12;return CAN[idx]+' '+CHI[chi];}
+function canChiDay(dd,mm,yy){const jd=Math.floor(Date.UTC(yy,mm-1,dd)/86400000)+2440588;const ci=(jd+9)%10;const zi=(jd+1)%12;return{text:CAN[ci]+' '+CHI[zi],ciIdx:ci,ziIdx:zi};}
+// Giờ hoàng đạo (dựa trên Chi của ngày)
+const HD_MAP=[[0,1,4,5,8,9],[2,3,6,7,10,11],[0,1,4,5,8,9],[2,3,6,7,10,11],[0,1,4,5,8,9],[2,3,6,7,10,11],
+[0,1,4,5,8,9],[2,3,6,7,10,11],[0,1,4,5,8,9],[2,3,6,7,10,11],[0,1,4,5,8,9],[2,3,6,7,10,11]];
+const GIO_CHI=['Tý (23-1h)','Sửu (1-3h)','Dần (3-5h)','Mão (5-7h)','Thìn (7-9h)','Tỵ (9-11h)',
+'Ngọ (11-13h)','Mùi (13-15h)','Thân (15-17h)','Dậu (17-19h)','Tuất (19-21h)','Hợi (21-23h)'];
+function gioHoangDao(ziIdx){return HD_MAP[ziIdx].map(i=>GIO_CHI[i]);}
+// Tiết khí
+const TIET_KHI=[
+[1,5,'Tiểu hàn'],[1,20,'Đại hàn'],[2,4,'Lập xuân'],[2,19,'Vũ thủy'],
+[3,6,'Kinh trập'],[3,21,'Xuân phân'],[4,5,'Thanh minh'],[4,20,'Cốc vũ'],
+[5,6,'Lập hạ'],[5,21,'Tiểu mãn'],[6,6,'Mang chủng'],[6,21,'Hạ chí'],
+[7,7,'Tiểu thử'],[7,23,'Đại thử'],[8,7,'Lập thu'],[8,23,'Xử thử'],
+[9,8,'Bạch lộ'],[9,23,'Thu phân'],[10,8,'Hàn lộ'],[10,23,'Sương giáng'],
+[11,7,'Lập đông'],[11,22,'Tiểu tuyết'],[12,7,'Đại tuyết'],[12,22,'Đông chí']];
+function getTietKhi(dd,mm){const tk=TIET_KHI.find(t=>t[0]===mm&&t[1]===dd);return tk?tk[2]:null;}
+// Tên âm lịch
+const AM_THANG=['Giêng','Hai','Ba','Tư','Năm','Sáu','Bảy','Tám','Chín','Mười','Mười Một','Chạp'];
+function lunarDayName(d){if(d<=10)return'Mùng '+d;if(d<20)return d+'';if(d===20)return'Hai mươi';if(d<=30)return'Hai mươi '+((d-20)||'');}
+function lunarDateStr(l){return(l.leap?'Nhuận ':'')+'Tháng '+AM_THANG[l.month-1]+', '+lunarDayName(l.day);}
+// === Lịch UI ===
+let calMonth,calYear,calSelDay;
+function openCal(){document.getElementById('calOv').classList.add('show');
+const now=new Date();calMonth=now.getMonth();calYear=now.getFullYear();calSelDay=now.getDate();rCal();}
+function closeCal(){document.getElementById('calOv').classList.remove('show');}
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}calSelDay=0;rCal();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}calSelDay=0;rCal();}
+function calToday(){const now=new Date();calMonth=now.getMonth();calYear=now.getFullYear();calSelDay=now.getDate();rCal();}
+function calPick(d){calSelDay=d;rCal();}
+function getTasksForDate(dateStr){
+const src=isPersonal()?S.personalTasks:S.tasks;
+return src.filter(t=>{if(!t.deadline)return false;
+const dl=t.deadline.substring(0,10);return dl===dateStr;});}
+function rCal(){const c=document.getElementById('calContent');
+const now=new Date();const todayD=now.getDate(),todayM=now.getMonth(),todayY=now.getFullYear();
+const first=new Date(calYear,calMonth,1);const startDow=(first.getDay()+6)%7;// 0=Mon
+const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+const prevDays=new Date(calYear,calMonth,0).getDate();
+// Nav
+let h='<div class="cal-nav"><button onclick="calPrev()">◀</button>';
+h+='<span class="cal-title" onclick="calToday()">Tháng '+(calMonth+1)+' / '+calYear+'</span>';
+h+='<button onclick="calNext()">▶</button></div>';
+// Weekday headers
+h+='<div class="cal-wk"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span style="color:var(--blue)">T7</span><span style="color:var(--red)">CN</span></div>';
+// Grid
+h+='<div class="cal-grid">';
+const totalCells=Math.ceil((startDow+daysInMonth)/7)*7;
+for(let i=0;i<totalCells;i++){
+let d,m=calMonth,y=calYear,isOther=false;
+if(i<startDow){d=prevDays-startDow+1+i;m=calMonth-1;if(m<0){m=11;y--;}isOther=true;}
+else if(i-startDow>=daysInMonth){d=i-startDow-daysInMonth+1;m=calMonth+1;if(m>11){m=0;y++;}isOther=true;}
+else{d=i-startDow+1;}
+const isToday=!isOther&&d===todayD&&calMonth===todayM&&calYear===todayY;
+const isSel=!isOther&&d===calSelDay;
+const lunar=solarToLunar(y,m+1,d);
+const lunarLabel=lunar.day===1?(lunar.leap?'N':'')+AM_THANG[lunar.month-1].substring(0,3):lunar.day;
+const dateStr=y+'-'+p2(m+1)+'-'+p2(d);
+const cvCount=isOther?0:getTasksForDate(dateStr).length;
+const cls='cal-cell'+(isOther?' other':'')+(isToday?' today':'')+(isSel?' selected':'');
+h+='<div class="'+cls+'"'+(isOther?'':' onclick="calPick('+d+')"')+'>';
+h+='<span class="cd">'+d+'</span>';
+h+='<span class="cl">'+lunarLabel+'</span>';
+if(cvCount>0)h+='<span class="cv-dot">'+cvCount+'</span>';
+h+='</div>';}
+h+='</div>';
+// Chi tiết ngày được chọn
+if(calSelDay>0){
+const sd=calSelDay,sm=calMonth+1,sy=calYear;
+const lunar=solarToLunar(sy,sm,sd);
+const dc=canChiDay(sd,sm,sy);
+const yearCC=canChiYear(lunar.year);
+const monthCC=canChiMonth(lunar.month,lunar.year);
+const hd=gioHoangDao(dc.ziIdx);
+const tk=getTietKhi(sd,sm);
+const dateStr=sy+'-'+p2(sm)+'-'+p2(sd);
+const tasks=getTasksForDate(dateStr);
+h+='<div class="cal-detail">';
+h+='<h3>'+canChiYearIcon(lunar.year)+' Ngày '+sd+'/'+sm+'/'+sy+'</h3>';
+h+='<div class="cal-info">';
+h+='<span class="ci-label">Âm lịch:</span><span class="ci-val">'+lunarDateStr(lunar)+' năm '+yearCC+'</span>';
+h+='<span class="ci-label">Ngày:</span><span class="ci-val">'+dc.text+'</span>';
+h+='<span class="ci-label">Tháng:</span><span class="ci-val">'+monthCC+'</span>';
+h+='<span class="ci-label">Năm:</span><span class="ci-val">'+yearCC+'</span>';
+if(tk)h+='<span class="ci-label">Tiết khí:</span><span class="ci-val" style="color:var(--amber);font-weight:600">'+tk+'</span>';
+h+='</div>';
+h+='<div style="font-size:11px;font-weight:600;color:var(--t2);margin-bottom:4px">Giờ hoàng đạo:</div>';
+h+='<div class="cal-hd">'+hd.map(g=>'<span>'+g+'</span>').join('')+'</div>';
+if(tasks.length){
+h+='<div class="cal-tasks"><div class="ct-title">📋 '+tasks.length+' công việc hạn ngày này:</div>';
+tasks.forEach(t=>{const stIcon=t.status==='done'?'✅':t.status==='overdue'?'🚨':'⏳';
+h+='<div class="ct-item"><span class="ct-st">'+stIcon+'</span><span>'+esc(t.name.substring(0,60))+'</span></div>';});
+h+='</div>';}
+h+='</div>';}
+c.innerHTML=h;}
 function rAll(){updateFormForMode();rTasks();rRpt();uSt();rPend();initExport();initSummary();updateReminders();}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&document.activeElement===document.getElementById('cmdIn')){e.preventDefault();handleCmd();}});
 // Gia hạn session khi user tương tác (click/gõ phím) — reset timeout 2h
