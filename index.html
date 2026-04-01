@@ -632,9 +632,10 @@ document.getElementById('pwI').placeholder='Mật khẩu...';
 const recE=S.recEmails[n]||mem?.email;const hasTg=!!(S.tgChats&&S.tgChats[n]);
 document.getElementById('pfgLink').style.display='inline-block';
 showBioBtn();
+// Nếu đã bật sinh trắc → thử sinh trắc trước, không hiện popup MK
+if(hasBio()&&getBioEnabled(n)){bioLogin();return;}
 document.getElementById('pwO').classList.add('show');
-if(hasBio()&&getBioId(n)){setTimeout(()=>bioLogin(),300);}
-else{setTimeout(()=>document.getElementById('pwI').focus(),80);}}
+setTimeout(()=>document.getElementById('pwI').focus(),80);}
 function needEmail(n){const mem=S.mem.find(x=>x.name===n);return!mem?.email&&!S.recEmails[n];}
 function showEmMethod(method){document.getElementById('emChoose').style.display='none';
 if(method==='email'){document.getElementById('emEmailForm').style.display='';document.getElementById('emTgForm').style.display='none';document.getElementById('emI').value='';document.getElementById('emE').style.display='none';setTimeout(()=>document.getElementById('emI').focus(),80);}
@@ -706,7 +707,10 @@ function getBioEnabled(name){try{return JSON.parse(localStorage.getItem('bioEnab
 function setBioEnabled(name,v){try{const d=JSON.parse(localStorage.getItem('bioEnabled')||'{}');d[name]=v;localStorage.setItem('bioEnabled',JSON.stringify(d));}catch(e){}}
 // Android native biometric callbacks
 function _onBioSuccess(name){document.getElementById('pwO').classList.remove('show');loginAs(name,false);}
-function _onBioError(msg){console.log('Bio error:',msg);}
+function _onBioError(msg){console.log('Bio error:',msg);
+// Sinh trắc thất bại → hiện popup nhập MK
+if(pendL){showBioBtn();document.getElementById('pwO').classList.add('show');
+setTimeout(()=>document.getElementById('pwI').focus(),80);}}
 // WebAuthn for browsers
 function getBioId(name){try{return JSON.parse(localStorage.getItem('bioIds')||'{}')[name]||null;}catch(e){return null;}}
 function saveBioId(name,id){try{const d=JSON.parse(localStorage.getItem('bioIds')||'{}');d[name]=id;localStorage.setItem('bioIds',JSON.stringify(d));}catch(e){}}
@@ -724,7 +728,10 @@ try{const bioId=getBioId(pendL);if(!bioId)return;
 const rawId=Uint8Array.from(atob(bioId),c=>c.charCodeAt(0));const challenge=crypto.getRandomValues(new Uint8Array(32));
 const assertion=await navigator.credentials.get({publicKey:{challenge,allowCredentials:[{type:'public-key',id:rawId,transports:['internal']}],userVerification:'required',timeout:60000}});
 if(assertion){document.getElementById('pwO').classList.remove('show');loginAs(pendL,false);}
-}catch(e){console.warn('Bio login:',e);if(e.name!=='NotAllowedError')toast('Lỗi xác thực sinh trắc','er');}}
+}catch(e){console.warn('Bio login:',e);
+// Sinh trắc thất bại → hiện popup nhập MK
+if(pendL){showBioBtn();document.getElementById('pwO').classList.add('show');
+setTimeout(()=>document.getElementById('pwI').focus(),80);}}}
 function showBioBtn(){const btn=document.getElementById('bioBtn');
 const enabled=pendL&&hasBio()&&getBioEnabled(pendL);
 if(btn&&enabled){btn.style.display='';btn.title='Đăng nhập sinh trắc cho '+pendL;}else if(btn){btn.style.display='none';}}
