@@ -654,9 +654,10 @@ document.getElementById('pwI').value='';document.getElementById('pwE').style.dis
 document.getElementById('pwTitle').textContent='🔐 Đăng nhập';document.getElementById('pwSub').innerHTML='Mật khẩu tạm đã gửi qua <strong>Email</strong><br>Vui lòng kiểm tra và nhập mật khẩu';document.getElementById('pwI').placeholder='Mật khẩu...';
 document.getElementById('pfgLink').style.display='inline-block';
 document.getElementById('pwO').classList.add('show');setTimeout(()=>document.getElementById('pwI').focus(),80);}
-function skipEm(){document.getElementById('emO').classList.remove('show');loginAs(pendL);}
+function skipEm(){document.getElementById('emO').classList.remove('show');loginAs(pendL,true);}
 function sPw(){const pw=document.getElementById('pwI').value;if(!pw){document.getElementById('pwE').textContent='❌ Vui lòng nhập mật khẩu';document.getElementById('pwE').style.display='block';return;}
-if(pw===S.passwords[pendL]){document.getElementById('pwO').classList.remove('show');loginAs(pendL);}
+if(pw===S.passwords[pendL]){document.getElementById('pwO').classList.remove('show');
+const isTempPw=S.tempPw&&S.tempPw[pendL];loginAs(pendL,isTempPw);}
 else{document.getElementById('pwE').textContent='❌ Sai mật khẩu';document.getElementById('pwE').style.display='block';document.getElementById('pwI').value='';document.getElementById('pwI').focus();}}
 function cPw(){document.getElementById('pwO').classList.remove('show');pendL=null;}
 function fgPw(){if(!pendL)return;const tgId=getPersonTgId(pendL);const mem=S.mem.find(x=>x.name===pendL);const recE=S.recEmails[pendL]||mem?.email;
@@ -674,19 +675,25 @@ document.getElementById('fgO').textContent='✅ Đã gửi MK tạm qua '+via;do
 document.getElementById('emSub').innerHTML='<strong>'+esc(pendL)+'</strong>, chọn cách nhận lại mật khẩu:';
 document.getElementById('emChoose').style.display='';document.getElementById('emEmailForm').style.display='none';document.getElementById('emTgForm').style.display='none';
 document.getElementById('pwO').classList.remove('show');document.getElementById('emO').classList.add('show');}
-function loginAs(n){S.u=n;S.adm=S.admNames.includes(n);
+function loginAs(n,forceNewPw){S.u=n;S.adm=S.admNames.includes(n);
 if(!S.loggedOnce)S.loggedOnce={};if(!S.loggedOnce[n]){S.loggedOnce[n]=Date.now();sv();fbSaveMeta('loggedOnce',S.loggedOnce);}
 document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';document.getElementById('dN').textContent=n;
 const rt=document.getElementById('rT');rt.textContent=S.adm?'QTV':'TV';rt.className=S.adm?'rt a':'rt m';
 document.getElementById('aF').style.display=S.adm?'grid':'none';
 document.getElementById('stBtn').style.display='flex';
 initRpt();popF();rAll();
-if(S.tempPw&&S.tempPw[n]){forceChangePw(n);}
+// Kiểm tra MK tạm: ưu tiên tham số truyền vào, fallback check S.tempPw
+const needForce=forceNewPw||(S.tempPw&&S.tempPw[n]);
+if(needForce){setTimeout(()=>forceChangePw(n),300);}
 if(S.adm){setTimeout(()=>{updateReminders();checkAndNotify();},2000);}}
 function logout(){S.u=null;S.adm=false;document.getElementById('authScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('ns').value='';}
 function chPw(){const v=document.getElementById('nPw').value.trim();if(!v||v.length<4){toast('≥4 ký tự','er');return;}S.passwords[S.u]=v;if(S.tempPw)delete S.tempPw[S.u];sv();fbSaveTemps();document.getElementById('nPw').value='';toast('Đã đổi MK!','ok');}
-function forceChangePw(n){const box=document.createElement('div');box.className='pnl-ov show';box.id='forcePwOv';
-box.innerHTML='<div class="pnl" style="max-width:360px"><h2>🔐 Đổi mật khẩu bắt buộc</h2><p style="font-size:11px;color:var(--t2);margin-bottom:8px">Bạn đang dùng mật khẩu tạm. Vui lòng đặt mật khẩu mới để tiếp tục.</p><input type="password" id="forcePw1" placeholder="Mật khẩu mới (≥4 ký tự)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:6px"/><input type="password" id="forcePw2" placeholder="Nhập lại mật khẩu" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:6px"/><p id="forcePwErr" style="font-size:10px;color:#ef4444;display:none;margin-bottom:6px"></p><button class="btn btn-p" style="width:100%" onclick="doForceChPw()">Đổi mật khẩu</button></div>';
+function forceChangePw(n){
+// Xoá popup cũ nếu tồn tại
+const old=document.getElementById('forcePwOv');if(old)old.remove();
+const box=document.createElement('div');box.className='pnl-ov show';box.id='forcePwOv';
+box.style.justifyContent='center';box.style.alignItems='center';
+box.innerHTML='<div style="background:var(--bg2);border:1px solid var(--b);border-radius:12px;padding:24px;max-width:360px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.6)"><h2 style="font-size:16px;font-weight:700;margin-bottom:8px">🔐 Đổi mật khẩu bắt buộc</h2><p style="font-size:12px;color:var(--t2);margin-bottom:12px">Bạn đang dùng mật khẩu tạm. Vui lòng đặt mật khẩu mới để tiếp tục sử dụng.</p><input type="password" id="forcePw1" placeholder="Mật khẩu mới (≥4 ký tự)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:14px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:8px"/><input type="password" id="forcePw2" placeholder="Nhập lại mật khẩu" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:14px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:8px"/><p id="forcePwErr" style="font-size:11px;color:#ef4444;display:none;margin-bottom:8px"></p><button class="btn btn-p" style="width:100%;padding:12px;font-size:14px" onclick="doForceChPw()">Đổi mật khẩu</button></div>';
 document.body.appendChild(box);setTimeout(()=>document.getElementById('forcePw1').focus(),100);}
 function doForceChPw(){const p1=document.getElementById('forcePw1').value.trim(),p2=document.getElementById('forcePw2').value.trim();const err=document.getElementById('forcePwErr');
 if(!p1||p1.length<4){err.textContent='Mật khẩu phải ≥4 ký tự';err.style.display='block';return;}
