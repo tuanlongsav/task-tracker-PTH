@@ -1,4 +1,4 @@
-const CACHE_NAME = 'task-pth-v1';
+const CACHE_NAME = 'task-pth-v2';
 const ASSETS = [
   './',
   './index.html',
