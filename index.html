@@ -821,8 +821,10 @@ function filterLeader(){const v=document.getElementById('mi_l_search').value.tri
 if(!v){dd.classList.remove('show');return;}
 const list=(window._leaderList||[]).filter(n=>n.toLowerCase().includes(v));
 if(!list.length){dd.innerHTML='<div class="ddi" style="color:var(--t3);font-size:11px">Không tìm thấy</div>';dd.classList.add('show');return;}
-dd.innerHTML=list.map(n=>{const m=S.mem.find(x=>x.name===n);const rc=m?(m.role==='Trưởng phòng'?'⭐':m.role==='Phó Trưởng phòng'?'🔹':'👤'):'👤';
-return'<div class="ddi" onclick="pickLeader(\''+esc(n).replace(/'/g,"\\'")+'\')">'+rc+' '+esc(n)+'</div>';}).join('');
+dd.innerHTML=list.map(n=>{const m=S.mem.find(x=>x.name===n);const isLD=m&&(m.role==='Trưởng phòng'||m.role==='Phó Trưởng phòng');
+const ic=isLD?'⭐':'👤';const nc=m?(m.role==='Trưởng phòng'?'#ef4444':m.role==='Phó Trưởng phòng'?'#10b981':'var(--t1)'):'var(--t1)';
+const rl=m?m.role:'';
+return'<div class="ddi" onclick="pickLeader(\''+esc(n).replace(/'/g,"\\'")+'\')">'+ic+' <span style="color:'+nc+'">'+esc(n)+'</span> <span style="font-size:9px;color:var(--t3);margin-left:4px">'+esc(rl)+'</span></div>';}).join('');
 dd.classList.add('show');}
 function pickLeader(n){document.getElementById('mi_l_search').value=n;document.getElementById('mi_l').value=n;
 document.getElementById('mi_l_dd').classList.remove('show');updMiCollab();}
@@ -835,9 +837,13 @@ const ns=new Set();S.mem.forEach(m=>{if(!isTestMem(m))ns.add(m.name);});S.tasks.
 const sorted=sortByRole([...ns]).filter(n=>n!==leader);
 const container=document.getElementById('mi_c');
 container.innerHTML='<input type="text" id="mi_cs" placeholder="Tìm tên..." oninput="filterCollab()" style="width:100%;background:var(--bg);border:1px solid var(--b);border-radius:4px;padding:4px 8px;font-size:11px;color:var(--t1);outline:none;margin-bottom:4px"/>'+
-sorted.map(n=>`<label class="collab-item" style="display:flex;align-items:center;gap:3px;font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;background:var(--c);border:1px solid var(--b)"><input type="checkbox" value="${esc(n)}"${prev.includes(n)?' checked':''} style="margin:0"/> ${esc(n)}</label>`).join('');}
+sorted.map(n=>{const m=S.mem.find(x=>x.name===n);const isLD=m&&(m.role==='Trưởng phòng'||m.role==='Phó Trưởng phòng');
+const ic=isLD?'⭐':'';const nc=m?(m.role==='Trưởng phòng'?'color:#ef4444':m.role==='Phó Trưởng phòng'?'color:#10b981':''):'';
+const rl=m?' <span style="font-size:9px;color:var(--t3)">'+esc(m.role)+'</span>':'';
+return`<label class="collab-item" style="display:flex;align-items:center;gap:3px;font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;background:var(--c);border:1px solid var(--b)"><input type="checkbox" value="${esc(n)}"${prev.includes(n)?' checked':''} style="margin:0" onchange="onCollabTick()"/> <span style="${nc}">${ic}${esc(n)}</span>${rl}</label>`;}).join('');}
 function filterCollab(){const q=document.getElementById('mi_cs').value.toLowerCase();
 document.querySelectorAll('#mi_c .collab-item').forEach(el=>{const name=el.textContent.toLowerCase();el.style.display=name.includes(q)?'':'none';});}
+function onCollabTick(){const s=document.getElementById('mi_cs');if(s){s.value='';filterCollab();}}
 function updECollab(checkedList){const leader=document.getElementById('eL').value;const prev=checkedList||getChecked('eC');
 const ns=new Set();S.mem.forEach(m=>{if(!isTestMem(m))ns.add(m.name);});const sorted=sortByRole([...ns]).filter(n=>n!==leader);
 document.getElementById('eC').innerHTML=sorted.map(n=>`<label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;padding:4px 8px;border-bottom:1px solid var(--b)"><input type="checkbox" value="${esc(n)}"${prev.includes(n)?' checked':''} style="margin:0;width:14px;height:14px"/> ${esc(n)}</label>`).join('');}
