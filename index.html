@@ -590,20 +590,20 @@ rAll();}
 function isPersonal(){return S.mode==='personal';}
 // Firebase personal
 function initFbPersonal(){if(!fbInited||!S.u)return;
-const uid=S.u.replace(/[.#$/\[\]]/g,'_');
+const uid=S.u.replace(/[.#$/\[\]\s]/g,'_');
 fbPersonalRef=firebase.database().ref('appPersonal/'+uid);
 fbPersonalRef.on('value',snap=>{if(fbSyncing)return;const d=snap.val();if(d){
 if(d.tasks&&Array.isArray(d.tasks)){S.personalTasks=d.tasks;migratePersonalTasks();}
 if(d.reminders)S.personalReminders=d.reminders;
 try{localStorage.setItem('tt7',JSON.stringify(cleanForSave()));}catch(e){}
-if(S.u&&isPersonal())rAll();
+if(S.u)rAll();
 console.log('[Firebase] Đồng bộ dữ liệu cá nhân');}});
 // Tải lần đầu
 fbPersonalRef.once('value').then(snap=>{const d=snap.val();if(d){
 if(d.tasks&&Array.isArray(d.tasks)){S.personalTasks=d.tasks;migratePersonalTasks();}
 if(d.reminders)S.personalReminders=d.reminders;
 try{localStorage.setItem('tt7',JSON.stringify(cleanForSave()));}catch(e){}
-if(S.u&&isPersonal())rAll();}}).catch(e=>console.warn('[Firebase] Personal load err:',e));}
+if(S.u)rAll();}}).catch(e=>console.warn('[Firebase] Personal load err:',e));}
 function fbSavePersonalTask(i){if(!fbPersonalRef||i<0||i>=S.personalTasks.length)return;
 _fbWp('tasks/'+i,_cleanTask(S.personalTasks[i]));}
 function fbSavePersonalTasks(skipMerge){if(!fbPersonalRef)return;
@@ -1195,10 +1195,17 @@ document.getElementById('rpPr').style.display=isP?'none':'';
 // Nếu đang ở tab ẩn → chuyển về rptMain
 const activeTab=document.querySelector('[data-rt].tb.on');
 if(activeTab&&activeTab.style.display==='none')sRptTab('rptMain');
-// Main: source theo mode
-const srcTasks=isP?S.personalTasks:S.tasks;
-srcTasks.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
-const fl=srcTasks.filter(t=>{const d=new Date(t.date);if(d<from||d>to)return false;if(!isP&&pr!=='all'&&t.leader!==pr&&!(t.collaborators||[]).includes(pr))return false;return true;});
+// Main: mode phòng = S.tasks, mode cá nhân = CV phòng(user) + CV cá nhân
+let fl;
+if(isP){
+// Gộp CV phòng mà user tham gia + CV cá nhân
+const myDeptAll=S.tasks.filter(t=>{const d=new Date(t.date);if(d<from||d>to)return false;return t.leader===S.u||(t.collaborators||[]).includes(S.u);});
+const myPersAll=S.personalTasks.filter(t=>{const d=new Date(t.date);return d>=from&&d<=to;});
+[...myDeptAll,...myPersAll].forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
+fl=[...myDeptAll,...myPersAll];
+}else{
+S.tasks.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
+fl=S.tasks.filter(t=>{const d=new Date(t.date);if(d<from||d>to)return false;if(pr!=='all'&&t.leader!==pr&&!(t.collaborators||[]).includes(pr))return false;return true;});}
 const tot=fl.length,dn=fl.filter(t=>t.status==='done').length,dg=fl.filter(t=>t.status==='doing').length,ov=fl.filter(t=>t.status==='overdue').length,rate=tot?Math.round(dn/tot*100):0;
 document.getElementById('rpN').innerHTML=_rptCards(tot,dn,dg,ov,rate);
 if(rpChart)rpChart.destroy();rpChart=_rptChart('rpC',dn,dg,ov);
