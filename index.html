@@ -463,7 +463,7 @@ tbody td{padding:8px;font-size:12px}
 const SEED_DATA=[];
 let S={u:null,adm:false,tasks:[],pend:[],hist:[],
 admNames:['Lê Huy Hoằng','Hoàng Tuấn Long'],
-passwords:{},loggedOnce:{},  // loggedOnce synced to Firebase to track first login
+passwords:{},loggedOnce:{},exportPerm:[],
 recEmails:{},
 ne:[],emailReminder:false,tempPw:{},reminders:{},tgBot:'',tgGroup:'',tgChats:{},
 mem:[
@@ -1047,7 +1047,7 @@ document.getElementById('fbUrl').value=fb.databaseURL||'';document.getElementByI
 document.getElementById('fbStatus').innerHTML=fbInited?'🟢 Đã kết nối Firebase':'⚪ Chưa kết nối';
 // Export permissions
 const epList=document.getElementById('exportPermList');
-if(epList&&S.adm){const perm=S.exportPerm||[];
+if(epList&&S.adm){const ep=S.exportPerm||[];const perm=Array.isArray(ep)?ep:Object.values(ep);
 epList.innerHTML=S.mem.filter(m=>!S.admNames.includes(m.name)).map(m=>{
 const chk=perm.includes(m.name)?'checked':'';
 return'<label style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:var(--c);border:1px solid var(--b);border-radius:4px;font-size:11px;cursor:pointer;white-space:nowrap"><input type="checkbox" class="expPermCb" value="'+esc(m.name)+'" '+chk+'/>'+esc(m.name)+'</label>';}).join('');}
@@ -1203,7 +1203,8 @@ function expExportOnly(){if(!_expData)return;const changes=_getExpChanges();
 if(changes.length){if(!confirm('Dữ liệu đã được chỉnh sửa nhưng chưa được phê duyệt.\nBạn có chắc chắn muốn xuất báo cáo với dữ liệu cũ (chưa chỉnh sửa)?'))return;}
 const{lates,redos}=_getExpLatesRedos();_doExportExcel(lates,redos);closeExpPv();}
 // Export
-function canExport(){return S.adm||(S.exportPerm&&S.exportPerm.includes(S.u));}
+function canExport(){if(S.adm)return true;const ep=S.exportPerm;if(!ep)return false;
+const arr=Array.isArray(ep)?ep:Object.values(ep);return arr.includes(S.u);}
 function toggleExMode(){const m=document.getElementById('exMode').value;document.getElementById('exQ').style.display=m==='quarter'?'':'none';}
 function getExRange(){const mode=document.getElementById('exMode').value;const y=+document.getElementById('exY').value;
 if(mode==='year')return{from:new Date(y,0,1),to:new Date(y,11,31,23,59,59),label:'Năm '+y};
