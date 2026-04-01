@@ -200,9 +200,10 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 .logo-i{width:34px;height:34px}
 .hdr-in{height:46px;padding:0;gap:0}
 .hdr-r{gap:4px}
-.mode-btn{font-size:9px;padding:0 6px;height:34px;min-width:0}
-.hb{min-width:34px;width:auto;height:34px;font-size:16px;padding:0 6px}
-.ub{height:34px;font-size:12px;padding:0 8px 0 6px;gap:4px}
+.mode-btn,.hb,.ub{height:34px!important}
+.mode-btn{font-size:9px;padding:0 6px;min-width:0}
+.hb{min-width:34px;width:auto;font-size:16px;padding:0 6px}
+.ub{font-size:12px;padding:0 8px 0 6px;gap:4px}
 .rt{font-size:8px;padding:1px 4px}}
 @media(max-width:420px){
 body{font-size:13px}
@@ -210,9 +211,10 @@ body{font-size:13px}
 .hdr-in{height:42px}
 .logo-i{width:30px;height:30px}
 .hdr-r{gap:3px}
-.hb{min-width:30px;width:auto;height:30px;font-size:14px;padding:0 5px}
+.mode-btn,.hb,.ub{height:30px!important}
+.hb{min-width:30px;width:auto;font-size:14px;padding:0 5px}
 .hb-out svg{width:14px;height:14px}
-.mode-btn{font-size:8px;padding:0 5px;height:30px}
+.mode-btn{font-size:8px;padding:0 5px}
 .ub{height:30px;font-size:10px;padding:0 6px 0 4px;gap:2px}
 .ub .dot{width:5px;height:5px}
 .rt{font-size:7px;padding:1px 2px}
@@ -356,8 +358,8 @@ tbody td{padding:8px;font-size:12px}
 
 <div class="pnl-ov" id="stOv" onclick="if(event.target===this)closeSt()"><div class="pnl">
 <h2>⚙️ Cài đặt <span class="xp" onclick="closeSt()">✕</span></h2>
-<div class="sx admOnly"><h3>🏢 Thành viên</h3><p style="font-size:8px;color:var(--t3);margin-bottom:6px">Nhấn vào email để sửa. AI tự nhận tên viết tắt.</p><div id="mW" class="cl" style="flex-direction:column;align-items:stretch"></div>
-<div class="af" id="aF"><input type="text" id="mfN" placeholder="Họ tên *"/><select id="mfR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option><option>Cá nhân</option><option>Test</option></select><input type="email" id="mfE" placeholder="Email"/><input type="text" id="mfNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm</button></div></div>
+<div class="sx admOnly"><h3>👥 Quản lý tài khoản</h3><p style="font-size:8px;color:var(--t3);margin-bottom:6px">Nhấn vào email để sửa. AI tự nhận tên viết tắt.</p><div id="mW" class="cl" style="flex-direction:column;align-items:stretch;max-height:300px;overflow-y:auto"></div>
+<div class="af" id="aF" style="margin-top:8px;border-top:1px solid var(--b);padding-top:8px"><input type="text" id="mfN" placeholder="Họ tên *"/><select id="mfR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option><option>Cá nhân</option><option>Test</option></select><input type="email" id="mfE" placeholder="Email"/><input type="text" id="mfNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm tài khoản</button></div></div>
 <div class="sx admOnly"><h3>📧 Email thông báo chung</h3>
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t2);cursor:pointer"><input type="checkbox" id="emailReminder" onchange="S.emailReminder=this.checked;sv();fbSaveMeta('emailReminder',S.emailReminder);" style="cursor:pointer"/>Bật nhắc việc qua email (tốn quota EmailJS)</label></div>
 <div id="nL" class="cl"></div><div style="display:flex;gap:4px;margin-top:4px"><input type="email" id="nNE" placeholder="Thêm..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:9px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="addNE()">+</button></div></div>
@@ -379,10 +381,6 @@ tbody td{padding:8px;font-size:12px}
 <input type="text" id="fbApp" placeholder="appId" style="background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:5px 7px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none"/>
 </div>
 <div style="margin-top:5px;display:flex;gap:4px;align-items:center"><span id="fbStatus" style="font-size:10px;color:var(--t3)">⚪ Chưa kết nối</span></div>
-</div>
-<div class="sx admOnly"><h3>📊 Phân quyền xuất báo cáo</h3>
-<p style="font-size:9px;color:var(--t3);margin-bottom:6px">Chọn thành viên được phép xuất báo cáo quý/năm (thay mặt admin). Admin luôn có quyền.</p>
-<div id="exportPermList" style="display:flex;flex-wrap:wrap;gap:4px;max-height:120px;overflow-y:auto;padding:6px;background:var(--inp);border:1px solid var(--b);border-radius:5px"></div>
 </div>
 <button class="btn btn-p admOnly" style="margin-top:3px" onclick="saveCfg()">💾 Lưu</button>
 </div></div>
@@ -474,6 +472,7 @@ tbody td{padding:8px;font-size:12px}
 <select id="exPr" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none"></select>
 <button class="btn btn-p" onclick="openExportPreview()">📊 Xem & Xuất Excel</button>
 <button class="btn btn-p" onclick="openSummaryExport()" style="background:linear-gradient(135deg,#2b5797,#3b82f6)">📋 Xuất TH Quý / Năm (Mẫu PL03)</button>
+<button class="btn btn-o admOnly" id="exportPermBtn" onclick="openExportPerm()" style="display:none">🔐 Phân quyền</button>
 </div></div>
 <!-- Summary Export Overlay -->
 <div id="sumExpOv" class="pnl-ov" onclick="if(event.target===this)closeSumExp()" style="justify-content:center;align-items:center">
@@ -1555,9 +1554,6 @@ rMem();}
 function addNE(){const inp=document.getElementById('nNE'),e=inp.value.trim().toLowerCase();if(!e||!e.includes('@'))return;if(S.ne.includes(e))return;S.ne.push(e);inp.value='';sv();fbSaveMeta('ne',S.ne);rSet();}
 function rmNE(i){S.ne.splice(i,1);sv();fbSaveMeta('ne',S.ne);rSet();}
 function saveCfg(){S.tgBot=document.getElementById('tgBotToken').value.trim();S.tgGroup=document.getElementById('tgGroupId').value.trim();S.gk=document.getElementById('gK').value.trim();S.gmodel=document.getElementById('gM').value;
-// Save export permissions
-S.exportPerm=[...document.querySelectorAll('.expPermCb:checked')].map(cb=>cb.value);
-fbSaveMeta('exportPerm',S.exportPerm.length?S.exportPerm:null);
 const newFb={apiKey:document.getElementById('fbKey').value.trim(),authDomain:document.getElementById('fbDomain').value.trim(),
 databaseURL:document.getElementById('fbUrl').value.trim(),projectId:document.getElementById('fbProject').value.trim(),
 appId:document.getElementById('fbApp').value.trim()};
@@ -1760,7 +1756,17 @@ const exPr=document.getElementById('exPr');
 if(S.adm){exPr.disabled=false;const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Cá nhân':3,'Test':4};
 const sorted=[...S.mem].filter(m=>!isTestMem(m)&&!isPersonalMem(m)).sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
 exPr.innerHTML='<option value="" disabled selected>Chọn thành viên...</option>'+sorted.map(m=>'<option>'+esc(m.name)+'</option>').join('');}
-else{exPr.innerHTML='<option>'+esc(S.u)+'</option>';exPr.disabled=true;}}
+else{exPr.innerHTML='<option>'+esc(S.u)+'</option>';exPr.disabled=true;}
+const epBtn=document.getElementById('exportPermBtn');if(epBtn)epBtn.style.display=S.adm?'':'none';}
+function openExportPerm(){if(!S.adm)return;
+const ep=S.exportPerm||[];const perm=Array.isArray(ep)?ep:Object.values(ep);
+const members=S.mem.filter(m=>!S.admNames.includes(m.name)&&!isTestMem(m)&&!isPersonalMem(m));
+const list=members.map(m=>{const chk=perm.includes(m.name)?'checked':'';
+return'<label style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--inp);border:1px solid var(--b);border-radius:6px;font-size:12px;cursor:pointer"><input type="checkbox" class="epCb2" value="'+esc(m.name)+'" '+chk+'/> '+esc(m.name)+' <span style="font-size:9px;color:var(--t3)">'+esc(m.role)+'</span></label>';}).join('');
+_quickPopup('🔐 Phân quyền xuất báo cáo','<p style="font-size:10px;color:var(--t3);margin-bottom:8px">Tick để cấp quyền xuất báo cáo quý/năm. Admin luôn có quyền.</p><div style="display:flex;flex-wrap:wrap;gap:4px;max-height:250px;overflow-y:auto;margin-bottom:10px">'+list+'</div><button class="btn btn-p" style="width:100%" onclick="saveExportPerm()">💾 Lưu phân quyền</button>');}
+function saveExportPerm(){S.exportPerm=[...document.querySelectorAll('.epCb2:checked')].map(cb=>cb.value);
+fbSaveMeta('exportPerm',S.exportPerm.length?S.exportPerm:null);sv();
+document.getElementById('quickPopup')?.remove();toast('Đã lưu phân quyền','ok');}
 function getQRange(q,y){const sm=(q-1)*3;return{from:new Date(y,sm,1),to:new Date(y,sm+3,0,23,59,59)};}
 function getPersonTasks(person,from,to,tpMode){const mem=S.mem.find(m=>m.name===person);const isTP=mem&&mem.role==='Trưởng phòng';
 return S.tasks.filter(t=>{const d=new Date(t.assignedDate||t.date);if(d<from||d>to)return false;if(isTP&&tpMode!=='personal')return true;return t.leader===person||(t.collaborators||[]).includes(person);});}
