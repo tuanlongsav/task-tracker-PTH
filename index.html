@@ -187,7 +187,7 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 .ef label{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;display:block}
 .ef input,.ef select,.ef textarea{width:100%;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:9px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none}
 .ef textarea{min-height:60px;resize:vertical}
-@media(max-width:768px){.rnums{grid-template-columns:repeat(2,1fr)}.rnb-tot{grid-column:span 2}.rrow{flex-direction:column}.cw{flex-direction:column}.bsend{width:100%}.main{padding:8px}.acard{padding:20px 14px}.mf,.ef{grid-template-columns:1fr}.pnl{width:100%}.rch{flex:1;max-width:100%}.logo span{display:none}}
+@media(max-width:768px){.rnums{grid-template-columns:repeat(2,1fr)}.rnb-tot{grid-column:span 2;flex-direction:row;gap:12px;padding:16px 24px}.rnb-tot .rv{font-size:64px}.rnb-tot .rl{font-size:20px;margin-top:0}.rrow{flex-direction:column}.cw{flex-direction:column}.bsend{width:100%}.main{padding:8px}.acard{padding:20px 14px}.mf,.ef{grid-template-columns:1fr}.pnl{width:100%}.rch{flex:1;max-width:100%}.logo span{display:none}}
 @media(max-width:420px){
 body{font-size:13px}
 .hdr{padding:0 10px}
@@ -203,6 +203,7 @@ body{font-size:13px}
 .rnb{padding:16px 8px;min-height:80px}
 .rnb .rv{font-size:32px}
 .rnb .rl{font-size:12px;margin-top:6px}
+.rnb-tot{padding:14px 20px}.rnb-tot .rv{font-size:48px}.rnb-tot .rl{font-size:16px}
 .rch{flex:0 0 auto;max-width:100%}
 .tabs{gap:2px;padding:2px}
 .tb{padding:7px 10px;font-size:11px}
@@ -989,7 +990,7 @@ const now=new Date();S.tasks.forEach(t=>{if(t.status==='doing'&&t.deadline&&new 
 const fl=S.tasks.filter(t=>{const d=new Date(t.date);if(d<from||d>to)return false;if(pr!=='all'&&t.leader!==pr&&!(t.collaborators||[]).includes(pr))return false;return true;});
 const tot=fl.length,dn=fl.filter(t=>t.status==='done').length,dg=fl.filter(t=>t.status==='doing').length,ov=fl.filter(t=>t.status==='overdue').length,rate=tot?Math.round(dn/tot*100):0;
 document.getElementById('rpN').innerHTML=
-'<div class="rnb rnb-tot"><div class="rv" style="color:var(--blue)">'+tot+'</div><div class="rl">Tổng</div></div>'+
+'<div class="rnb rnb-tot"><div class="rv" style="color:var(--blue)">'+tot+'</div><div class="rl">Tổng công việc</div></div>'+
 '<div class="rnb"><div class="rv" style="color:var(--green)">'+dn+'</div><div class="rl">Xong</div></div>'+
 '<div class="rnb"><div class="rv" style="color:var(--amber)">'+dg+'</div><div class="rl">Đang làm</div></div>'+
 '<div class="rnb"><div class="rv" style="color:var(--red)">'+ov+'</div><div class="rl">Quá hạn</div></div>'+
