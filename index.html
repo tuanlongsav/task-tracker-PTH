@@ -605,7 +605,8 @@ document.querySelectorAll('[data-rt="rptMem"]').forEach(el=>el.style.display=dep
 // exportSec ẩn/hiện được xử lý bởi initExport() trong rAll()
 // Tab chờ duyệt: ẩn khi personal
 document.querySelectorAll('.tb[data-t="pending"]').forEach(el=>el.style.display=deptOnly?'none':'');
-if(deptOnly&&document.querySelector('.tb[data-t="pending"].on'))sTab('tasks');
+// Reset về tab Công việc + đóng search panel
+sTab('tasks');_searchActive=false;
 rAll();}
 function isPersonal(){return S.mode==='personal';}
 // Firebase personal
@@ -954,7 +955,10 @@ return'<div class="rc" style="border-left:3px solid '+color+'"><div class="rh"><
 function openHi(){document.getElementById('hiOv').classList.add('show');rH();}
 function closeHi(){document.getElementById('hiOv').classList.remove('show');}
 // Tabs
-function sTab(t){document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('.tc').forEach(c=>c.classList.toggle('on',c.id==='t-'+t));}
+function sTab(t){document.querySelectorAll('.tabs .tb[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('.tc').forEach(c=>c.classList.toggle('on',c.id==='t-'+t));
+// Đóng search panel + tắt sáng nút tìm kiếm
+const sb=document.getElementById('searchTabBtn');if(sb)sb.classList.remove('on');
+const sp=document.getElementById('searchPanel');if(sp)sp.style.display='none';}
 function sInp(i){document.querySelectorAll('.itab').forEach((t,j)=>t.classList.toggle('on',j===i));document.querySelectorAll('.ipane').forEach((p,j)=>p.classList.toggle('on',j===i));}
 // Members
 function addM(){if(!S.adm)return;const n=document.getElementById('mfN').value.trim();if(!n){toast('Nhập tên','er');return;}S.mem.push({id:Date.now(),name:n,role:document.getElementById('mfR').value,email:document.getElementById('mfE').value.trim(),note:document.getElementById('mfNo').value.trim()});sv();fbSaveMeta('mem',S.mem);['mfN','mfE','mfNo'].forEach(i=>document.getElementById(i).value='');rMem();popF();toast('+'+n,'ok');}
@@ -1253,7 +1257,9 @@ let _taskSub='all',_searchActive=false;
 function toggleSearchPanel(){const p=document.getElementById('searchPanel');
 const show=p.style.display==='none';
 p.style.display=show?'':'none';
+// Tắt sáng các tab khác khi mở, bật lại Công việc khi đóng
 document.getElementById('searchTabBtn').classList.toggle('on',show);
+document.querySelectorAll('.tabs .tb[data-t]').forEach(b=>b.classList.toggle('on',!show&&b.dataset.t==='tasks'));
 if(show)initSearchSelects();}
 function initSearchSelects(){const y=new Date().getFullYear();
 const fY=document.getElementById('fYear');
