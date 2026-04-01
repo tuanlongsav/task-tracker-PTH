@@ -160,6 +160,7 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 .mr.tp{background:var(--rg);color:var(--red);border:1px solid rgba(239,68,68,.3)}
 .mr.ptp{background:var(--ag);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
 .mr.tv{background:var(--blg);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+.mr.ts{background:var(--pg);color:var(--purple);border:1px solid rgba(139,92,246,.3)}
 .mc .me{font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace}
 .mc .mx{position:absolute;top:4px;right:4px;cursor:pointer;color:var(--t3);font-size:14px}.mc .mx:hover{color:var(--red)}
 .mc .me-edit{background:var(--bg);border:1px solid var(--b);border-radius:4px;padding:4px 6px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none;width:100%;margin-top:3px}
@@ -288,7 +289,7 @@ tbody td{padding:8px;font-size:12px}
 <div class="sx"><h3>📧 Đổi email cá nhân</h3><div style="display:flex;gap:4px;align-items:center"><input type="email" id="myEmail" placeholder="Email mới..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="chMyEmail()">Đổi</button></div><p id="curEmail" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
 <div class="sx"><h3>📱 Telegram Chat ID</h3><p style="font-size:9px;color:var(--t3);margin-bottom:4px">Nhắn <b>/start</b> cho bot <b>@PTH_KV1_bot</b> rồi nhắn cho <b>@userinfobot</b> để lấy Chat ID.</p><div style="display:flex;gap:4px;align-items:center"><input type="text" id="myTgId" placeholder="Chat ID (vd: 123456789)" style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none"/><button class="btn btn-s btn-p" onclick="chMyTg()">Lưu</button></div><p id="curTgId" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
 <div class="sx admOnly"><h3>🏢 Thành viên</h3><p style="font-size:8px;color:var(--t3);margin-bottom:6px">Nhấn vào email để sửa. AI tự nhận tên viết tắt.</p><div id="mW" class="cl" style="flex-direction:column;align-items:stretch"></div>
-<div class="af" id="aF"><input type="text" id="mfN" placeholder="Họ tên *"/><select id="mfR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option></select><input type="email" id="mfE" placeholder="Email"/><input type="text" id="mfNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm</button></div></div>
+<div class="af" id="aF"><input type="text" id="mfN" placeholder="Họ tên *"/><select id="mfR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option><option>Test</option></select><input type="email" id="mfE" placeholder="Email"/><input type="text" id="mfNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm</button></div></div>
 <div class="sx admOnly"><h3>📧 Email thông báo chung</h3>
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t2);cursor:pointer"><input type="checkbox" id="emailReminder" onchange="S.emailReminder=this.checked;sv();fbSaveMeta('emailReminder',S.emailReminder);" style="cursor:pointer"/>Bật nhắc việc qua email (tốn quota EmailJS)</label></div>
 <div id="nL" class="cl"></div><div style="display:flex;gap:4px;margin-top:4px"><input type="email" id="nNE" placeholder="Thêm..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:9px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="addNE()">+</button></div></div>
@@ -745,12 +746,13 @@ function sInp(i){document.querySelectorAll('.itab').forEach((t,j)=>t.classList.t
 function addM(){if(!S.adm)return;const n=document.getElementById('mfN').value.trim();if(!n){toast('Nhập tên','er');return;}S.mem.push({id:Date.now(),name:n,role:document.getElementById('mfR').value,email:document.getElementById('mfE').value.trim(),note:document.getElementById('mfNo').value.trim()});sv();fbSaveMeta('mem',S.mem);['mfN','mfE','mfNo'].forEach(i=>document.getElementById(i).value='');rMem();popF();toast('+'+n,'ok');}
 function rmM(id){if(!S.adm)return;const m=S.mem.find(x=>x.id===id);if(!m)return;if(S.admNames.includes(m.name)){toast('Không thể xoá tài khoản quản trị','er');return;}if(!confirm('Xác nhận xoá thành viên "'+m.name+'"?'))return;S.mem=S.mem.filter(x=>x.id!==id);sv();fbSaveMeta('mem',S.mem);rMem();popF();toast('Đã xoá '+m.name,'ok');}
 function updMemEmail(id,v){const m=S.mem.find(x=>x.id===id);if(m){m.email=v.trim();sv();fbSaveMeta('mem',S.mem);}}
+function isTestMem(m){return m&&m.role==='Test';}
 function rMem(){const w=document.getElementById('mW');if(!S.mem.length){w.innerHTML='<p style="color:var(--t3);font-size:9px">Chưa có</p>';return;}
-const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};const sorted=[...S.mem].sort((a,b)=>(ro[a.role]||9)-(ro[b.role]||9));
-w.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:4px">'+sorted.map(m=>{const rc=m.role==='Trưởng phòng'?'tp':m.role==='Phó Trưởng phòng'?'ptp':'tv';
+const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Test':3};const sorted=[...S.mem].sort((a,b)=>(ro[a.role]||9)-(ro[b.role]||9));
+w.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:4px">'+sorted.map(m=>{const rc=m.role==='Trưởng phòng'?'tp':m.role==='Phó Trưởng phòng'?'ptp':m.role==='Test'?'ts':'tv';
 const isAdmMem=S.admNames.includes(m.name);
 return`<div class="mc">${S.adm&&!isAdmMem?`<span class="mx" onclick="rmM(${m.id})">✕</span>`:''}<span class="mr ${rc}">${esc(m.role)}</span><span class="mn">${esc(m.name)}</span>${S.adm?`<input class="me-edit" value="${esc(m.email)}" placeholder="email..." onchange="updMemEmail(${m.id},this.value)"/>${!isAdmMem?`<button class="btn btn-s btn-o" onclick="genTempPw('${esc(m.name)}')" style="font-size:9px;padding:3px 8px;white-space:nowrap" title="Tạo mật khẩu tạm">🔑 MK tạm</button>`:''}`:(m.email?`<span class="me">📧 ${esc(m.email)}</span>`:'')}</div>`;}).join('')+'</div>';}
-function sortByRole(names){const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};
+function sortByRole(names){const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Test':3};
 return names.sort((a,b)=>{const ma=S.mem.find(m=>m.name===a),mb=S.mem.find(m=>m.name===b);
 const ra=ro[ma?.role]??2,rb=ro[mb?.role]??2;if(ra!==rb)return ra-rb;return a.localeCompare(b,'vi');});}
 function popF(){const ns=new Set();S.mem.forEach(m=>ns.add(m.name));S.tasks.forEach(t=>{if(t.leader)ns.add(t.leader);(t.collaborators||[]).forEach(c=>ns.add(c));});
@@ -1059,7 +1061,7 @@ document.getElementById('fbStatus').innerHTML=fbInited?'🟢 Đã kết nối Fi
 // Export permissions
 const epList=document.getElementById('exportPermList');
 if(epList&&S.adm){const ep=S.exportPerm||[];const perm=Array.isArray(ep)?ep:Object.values(ep);
-epList.innerHTML=S.mem.filter(m=>!S.admNames.includes(m.name)).map(m=>{
+epList.innerHTML=S.mem.filter(m=>!S.admNames.includes(m.name)&&!isTestMem(m)).map(m=>{
 const chk=perm.includes(m.name)?'checked':'';
 return'<label style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:var(--c);border:1px solid var(--b);border-radius:4px;font-size:11px;cursor:pointer;white-space:nowrap"><input type="checkbox" class="expPermCb" value="'+esc(m.name)+'" '+chk+'/>'+esc(m.name)+'</label>';}).join('');}
 rMem();}
@@ -1132,7 +1134,7 @@ if(lbl){const f=p2(from.getDate())+'/'+p2(from.getMonth()+1)+'/'+from.getFullYea
 const t=p2(to.getDate())+'/'+p2(to.getMonth()+1)+'/'+to.getFullYear();
 lbl.textContent='('+f+' → '+t+')';}
 const tpMode=document.getElementById('sumTpMode').value;
-const rows=S.mem.map(m=>{const tasks=getPersonTasks(m.name,from,to,m.role==='Trưởng phòng'?tpMode:undefined);
+const rows=S.mem.filter(m=>!isTestMem(m)).map(m=>{const tasks=getPersonTasks(m.name,from,to,m.role==='Trưởng phòng'?tpMode:undefined);
 const tot=tasks.length,dg=tasks.filter(t=>t.status==='doing').length,ov=tasks.filter(t=>t.status==='overdue').length;
 const totCf=tasks.reduce((s,t)=>s+(t.coefficient||200),0);
 const htCf=tasks.filter(t=>t.status==='done').reduce((s,t)=>s+(t.coefficient||200),0);
@@ -1229,8 +1231,8 @@ document.getElementById('exY').innerHTML='<option value="'+y+'">'+y+'</option><o
 document.getElementById('exQ').value=Math.ceil((new Date().getMonth()+1)/3);
 document.getElementById('exMode').value='quarter';toggleExMode();
 const exPr=document.getElementById('exPr');
-if(S.adm){exPr.disabled=false;const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};
-const sorted=[...S.mem].sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
+if(S.adm){exPr.disabled=false;const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Test':3};
+const sorted=[...S.mem].filter(m=>!isTestMem(m)).sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
 exPr.innerHTML='<option value="" disabled selected>Chọn thành viên...</option>'+sorted.map(m=>'<option>'+esc(m.name)+'</option>').join('');}
 else{exPr.innerHTML='<option>'+esc(S.u)+'</option>';exPr.disabled=true;}}
 function getQRange(q,y){const sm=(q-1)*3;return{from:new Date(y,sm,1),to:new Date(y,sm+3,0,23,59,59)};}
@@ -1439,8 +1441,8 @@ const today=new Date();document.getElementById('sumExpDate').value=today.toISOSt
 onSumExpMode();
 document.getElementById('sumExpQ').onchange=updateSumExpTitle;
 document.getElementById('sumExpY').onchange=updateSumExpTitle;
-const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2};
-const sorted=[...S.mem].sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
+const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Test':3};
+const sorted=[...S.mem].filter(m=>!isTestMem(m)).sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
 const html=sorted.map(m=>'<label style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:var(--c);border:1px solid var(--b);border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap"><input type="checkbox" checked class="sumExpCb" value="'+esc(m.name)+'"/>'+esc(m.name)+' <span style="font-size:10px;color:var(--t3)">('+esc(getChucVu(m))+')</span></label>').join('');
 document.getElementById('sumExpMembers').innerHTML=html;
 document.getElementById('sumExpPreview').innerHTML='';
