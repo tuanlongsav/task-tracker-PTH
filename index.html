@@ -464,7 +464,7 @@ tbody td{padding:8px;font-size:12px}
 const SEED_DATA=[];
 let S={u:null,adm:false,tasks:[],pend:[],hist:[],
 admNames:['Lê Huy Hoằng','Hoàng Tuấn Long'],
-passwords:{},loggedOnce:{},exportPerm:[],
+passwords:{},pwSalt:{},loggedOnce:{},exportPerm:[],
 recEmails:{},
 ne:[],emailReminder:false,tempPw:{},reminders:{},tgBot:'',tgGroup:'',tgChats:{},
 mem:[
@@ -577,13 +577,17 @@ _fbW('tasks',S.tasks.map(t=>_cleanTask(t)));
 }).catch(e=>{console.error('[Firebase] Lỗi merge:',e);_fbW('tasks',S.tasks.map(t=>_cleanTask(t)));});}
 function fbSavePend(){_fbW('pend',S.pend.length?S.pend:null);}
 function fbSaveMeta(key,val){_fbW(key,val);}
-async function hashPw(pw){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+function genSalt(){const a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');}
+async function hashPw(pw,salt){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+pw));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 function fbSaveTemps(){const tp=S.tempPw&&Object.keys(S.tempPw).length?S.tempPw:null;_fbW('tempPw',tp);
-// Sync hash passwords lên Firebase (không lưu MK gốc)
 syncPwHash();}
-async function syncPwHash(){const hashes={};
-for(const k of Object.keys(S.passwords)){if(S.passwords[k])hashes[k]=await hashPw(S.passwords[k]);}
-_fbW('pwHash',Object.keys(hashes).length?hashes:null);}
+async function syncPwHash(){if(!S.pwSalt)S.pwSalt={};
+const hashes={};
+for(const k of Object.keys(S.passwords)){if(S.passwords[k]){
+if(!S.pwSalt[k])S.pwSalt[k]=genSalt();
+hashes[k]=await hashPw(S.passwords[k],S.pwSalt[k]);}}
+_fbW('pwHash',Object.keys(hashes).length?hashes:null);
+_fbW('pwSalt',Object.keys(S.pwSalt).length?S.pwSalt:null);}
 // Email
 function sendEmail(to,subject,message){if(!to)return;
 emailjs.send(S.ejs.sid,S.ejs.tid,{to_email:to,subject:subject,message:message}).then(()=>log('[📧] →'+to+': '+subject.substring(0,40)),e=>console.error('Email err:',e));}
@@ -667,7 +671,7 @@ function skipEm(){document.getElementById('emO').classList.remove('show');loginA
 async function sPw(){const pw=document.getElementById('pwI').value;if(!pw){document.getElementById('pwE').textContent='❌ Vui lòng nhập mật khẩu';document.getElementById('pwE').style.display='block';return;}
 // So sánh: 1) local password, 2) hash từ Firebase
 let match=pw===S.passwords[pendL];
-if(!match&&S.pwHash&&S.pwHash[pendL]){const h=await hashPw(pw);match=h===S.pwHash[pendL];}
+if(!match&&S.pwHash&&S.pwHash[pendL]&&S.pwSalt&&S.pwSalt[pendL]){const h=await hashPw(pw,S.pwSalt[pendL]);match=h===S.pwHash[pendL];}
 if(match){
 // Cập nhật local password nếu đăng nhập bằng hash Firebase
 if(!S.passwords[pendL]||S.passwords[pendL]!==pw){S.passwords[pendL]=pw;sv();}
