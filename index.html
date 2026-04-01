@@ -491,7 +491,6 @@ function migrateTasks(){S.tasks.forEach(t=>{if(t.product===undefined)t.product='
 if(t.assignedDate===undefined){if(t.deadline){try{const dd=new Date(t.deadline);dd.setDate(dd.getDate()-1);t.assignedDate=dd.toISOString().slice(0,10);}catch(e){t.assignedDate=t.date||'';}}else if(t.completedAt){try{const dd=new Date(t.completedAt);dd.setDate(dd.getDate()-1);t.assignedDate=dd.toISOString().slice(0,10);}catch(e){t.assignedDate=t.date||'';}}else{t.assignedDate=t.date||'';}}});}
 function cleanForSave(){const{u,adm,...r}=S;const clean=JSON.parse(JSON.stringify(r));if(clean.tasks)clean.tasks.forEach(t=>{delete t._warned;delete t._overWarn;});return clean;}
 function cleanForFirebase(){const c=cleanForSave();delete c.fb;delete c.ejs;
-if(c.passwords&&c.tempPw&&Object.keys(c.tempPw).length){const temp={};Object.keys(c.tempPw).forEach(k=>{if(c.passwords[k])temp[k]=c.passwords[k];});c.passwords=Object.keys(temp).length?temp:null;}else{delete c.passwords;}
 if(c.tempPw&&!Object.keys(c.tempPw).length)delete c.tempPw;
 return c;}
 function initFb(){
@@ -504,8 +503,9 @@ fbRef.on('value',snap=>{if(fbSyncing)return;const d=snap.val();if(d){
 const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs};
 const localPw=JSON.parse(JSON.stringify(S.passwords||{}));
 Object.assign(S,d,keep);
-// Giữ passwords local (chỉ nhận tempPw từ Firebase)
-Object.keys(localPw).forEach(k=>{if(!(S.tempPw&&S.tempPw[k])){S.passwords[k]=localPw[k];}});
+// Merge: Firebase password ưu tiên, local bổ sung nếu thiếu
+if(!S.passwords)S.passwords={};
+Object.keys(localPw).forEach(k=>{if(!S.passwords[k])S.passwords[k]=localPw[k];});
 migrateTasks();try{localStorage.setItem('tt7',JSON.stringify(cleanForSave()));}catch(e){}
 if(S.u){rAll();}
 console.log('[Firebase] Đồng bộ dữ liệu');}});
@@ -579,7 +579,9 @@ _fbW('tasks',S.tasks.map(t=>_cleanTask(t)));
 function fbSavePend(){_fbW('pend',S.pend.length?S.pend:null);}
 function fbSaveMeta(key,val){_fbW(key,val);}
 function fbSaveTemps(){const tp=S.tempPw&&Object.keys(S.tempPw).length?S.tempPw:null;_fbW('tempPw',tp);
-if(tp){const pw={};Object.keys(tp).forEach(k=>{if(S.passwords[k])pw[k]=S.passwords[k];});_fbW('passwords',Object.keys(pw).length?pw:null);}else{_fbW('passwords',null);}}
+// Sync tất cả passwords lên Firebase (để đồng bộ giữa các thiết bị)
+const pw={};Object.keys(S.passwords).forEach(k=>{if(S.passwords[k])pw[k]=S.passwords[k];});
+_fbW('passwords',Object.keys(pw).length?pw:null);}
 // Email
 function sendEmail(to,subject,message){if(!to)return;
 emailjs.send(S.ejs.sid,S.ejs.tid,{to_email:to,subject:subject,message:message}).then(()=>log('[📧] →'+to+': '+subject.substring(0,40)),e=>console.error('Email err:',e));}
