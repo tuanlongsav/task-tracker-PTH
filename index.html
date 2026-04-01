@@ -490,7 +490,7 @@ let rpChart=null,editIdx=-1,fbRef=null,fbInited=false,fbSyncing=false;
 function migrateTasks(){S.tasks.forEach(t=>{if(t.product===undefined)t.product='';if(t.coefficient===undefined||t.coefficient===0)t.coefficient=200;
 if(t.assignedDate===undefined){if(t.deadline){try{const dd=new Date(t.deadline);dd.setDate(dd.getDate()-1);t.assignedDate=dd.toISOString().slice(0,10);}catch(e){t.assignedDate=t.date||'';}}else if(t.completedAt){try{const dd=new Date(t.completedAt);dd.setDate(dd.getDate()-1);t.assignedDate=dd.toISOString().slice(0,10);}catch(e){t.assignedDate=t.date||'';}}else{t.assignedDate=t.date||'';}}});}
 function cleanForSave(){const{u,adm,...r}=S;const clean=JSON.parse(JSON.stringify(r));if(clean.tasks)clean.tasks.forEach(t=>{delete t._warned;delete t._overWarn;});return clean;}
-function cleanForFirebase(){const c=cleanForSave();delete c.fb;delete c.ejs;
+function cleanForFirebase(){const c=cleanForSave();delete c.fb;delete c.ejs;delete c.passwords;
 if(c.tempPw&&!Object.keys(c.tempPw).length)delete c.tempPw;
 return c;}
 function initFb(){
@@ -503,9 +503,8 @@ fbRef.on('value',snap=>{if(fbSyncing)return;const d=snap.val();if(d){
 const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs};
 const localPw=JSON.parse(JSON.stringify(S.passwords||{}));
 Object.assign(S,d,keep);
-// Merge: Firebase password ưu tiên, local bổ sung nếu thiếu
-if(!S.passwords)S.passwords={};
-Object.keys(localPw).forEach(k=>{if(!S.passwords[k])S.passwords[k]=localPw[k];});
+// Passwords: giữ local, Firebase chỉ lưu hash (pwHash) để verify
+S.passwords=localPw;
 migrateTasks();try{localStorage.setItem('tt7',JSON.stringify(cleanForSave()));}catch(e){}
 if(S.u){rAll();}
 console.log('[Firebase] Đồng bộ dữ liệu');}});
@@ -523,7 +522,7 @@ initFb();
 if(fbRef){fbRef.once('value').then(snap=>{const d=snap.val();if(d){const keep={u:S.u,adm:S.adm,fb:S.fb,ejs:S.ejs};
 const localPw=JSON.parse(JSON.stringify(S.passwords||{}));
 Object.assign(S,d,keep);
-Object.keys(localPw).forEach(k=>{if(!(S.tempPw&&S.tempPw[k])){S.passwords[k]=localPw[k];}});
+S.passwords=localPw;
 migrateTasks();try{localStorage.setItem('tt7',JSON.stringify(cleanForSave()));}catch(e){}if(S.u)rAll();}}).catch(e=>console.warn('[Firebase] Tải lần đầu lỗi:',e));}}
 function sv(){const clean=cleanForSave();try{localStorage.setItem('tt7',JSON.stringify(clean));}catch(e){}}
 function checkDupes(name,leader,collabs){const n=(name||'').toLowerCase().trim();const l=(leader||'').toLowerCase();const cs=(collabs||[]).map(c=>c.toLowerCase());
@@ -578,10 +577,13 @@ _fbW('tasks',S.tasks.map(t=>_cleanTask(t)));
 }).catch(e=>{console.error('[Firebase] Lỗi merge:',e);_fbW('tasks',S.tasks.map(t=>_cleanTask(t)));});}
 function fbSavePend(){_fbW('pend',S.pend.length?S.pend:null);}
 function fbSaveMeta(key,val){_fbW(key,val);}
+async function hashPw(pw){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 function fbSaveTemps(){const tp=S.tempPw&&Object.keys(S.tempPw).length?S.tempPw:null;_fbW('tempPw',tp);
-// Sync tất cả passwords lên Firebase (để đồng bộ giữa các thiết bị)
-const pw={};Object.keys(S.passwords).forEach(k=>{if(S.passwords[k])pw[k]=S.passwords[k];});
-_fbW('passwords',Object.keys(pw).length?pw:null);}
+// Sync hash passwords lên Firebase (không lưu MK gốc)
+syncPwHash();}
+async function syncPwHash(){const hashes={};
+for(const k of Object.keys(S.passwords)){if(S.passwords[k])hashes[k]=await hashPw(S.passwords[k]);}
+_fbW('pwHash',Object.keys(hashes).length?hashes:null);}
 // Email
 function sendEmail(to,subject,message){if(!to)return;
 emailjs.send(S.ejs.sid,S.ejs.tid,{to_email:to,subject:subject,message:message}).then(()=>log('[📧] →'+to+': '+subject.substring(0,40)),e=>console.error('Email err:',e));}
@@ -662,9 +664,14 @@ document.getElementById('pwTitle').textContent='🔐 Đăng nhập';document.get
 document.getElementById('pfgLink').style.display='inline-block';
 document.getElementById('pwO').classList.add('show');setTimeout(()=>document.getElementById('pwI').focus(),80);}
 function skipEm(){document.getElementById('emO').classList.remove('show');loginAs(pendL,true);}
-function sPw(){const pw=document.getElementById('pwI').value;if(!pw){document.getElementById('pwE').textContent='❌ Vui lòng nhập mật khẩu';document.getElementById('pwE').style.display='block';return;}
-if(pw===S.passwords[pendL]){document.getElementById('pwO').classList.remove('show');
-loginAs(pendL,_pendIsTempPw);}
+async function sPw(){const pw=document.getElementById('pwI').value;if(!pw){document.getElementById('pwE').textContent='❌ Vui lòng nhập mật khẩu';document.getElementById('pwE').style.display='block';return;}
+// So sánh: 1) local password, 2) hash từ Firebase
+let match=pw===S.passwords[pendL];
+if(!match&&S.pwHash&&S.pwHash[pendL]){const h=await hashPw(pw);match=h===S.pwHash[pendL];}
+if(match){
+// Cập nhật local password nếu đăng nhập bằng hash Firebase
+if(!S.passwords[pendL]||S.passwords[pendL]!==pw){S.passwords[pendL]=pw;sv();}
+document.getElementById('pwO').classList.remove('show');loginAs(pendL,_pendIsTempPw);}
 else{document.getElementById('pwE').textContent='❌ Sai mật khẩu';document.getElementById('pwE').style.display='block';document.getElementById('pwI').value='';document.getElementById('pwI').focus();}}
 function cPw(){document.getElementById('pwO').classList.remove('show');pendL=null;}
 function fgPw(){if(!pendL)return;const tgId=getPersonTgId(pendL);const mem=S.mem.find(x=>x.name===pendL);const recE=S.recEmails[pendL]||mem?.email;
