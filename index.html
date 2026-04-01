@@ -355,7 +355,7 @@ tbody td{padding:8px;font-size:12px}
 <div class="hb" onclick="openHi()" title="Lịch sử">📜</div>
 <div class="hb" id="stBtn" onclick="openSt()" title="Cài đặt" style="display:none">⚙️</div>
 <div class="hb" onclick="openNt()" title="Thông báo">🔔<span id="nC" class="bdg hd">0</span></div>
-<button class="mode-btn" id="modeBtn" onclick="toggleMode()" title="Chuyển chế độ Phòng / Cá nhân">🏢 Phòng</button>
+<button class="mode-btn" id="modeBtn" onclick="toggleMode()" title="Chuyển chế độ Phòng / Cá nhân">👤 Cá nhân</button>
 <div class="ub"><span class="dot"></span><span id="dN">user</span><span id="rT" class="rt a">QTV</span></div>
 <button class="btn btn-s btn-o" onclick="logout()">Thoát</button>
 </div></div></div>
@@ -506,8 +506,8 @@ let rpChart=null,editIdx=-1,fbRef=null,fbPersonalRef=null,fbInited=false,fbSynci
 // === Personal Mode ===
 function toggleMode(){S.mode=S.mode==='dept'?'personal':'dept';
 const btn=document.getElementById('modeBtn');
-if(S.mode==='personal'){btn.textContent='👤 Cá nhân';btn.classList.add('personal');}
-else{btn.textContent='🏢 Phòng';btn.classList.remove('personal');}
+if(S.mode==='personal'){btn.textContent='🏢 Phòng';btn.classList.add('personal');}
+else{btn.textContent='👤 Cá nhân';btn.classList.remove('personal');}
 // Cập nhật logo text
 const logoSpan=document.querySelector('.logo span');
 if(logoSpan)logoSpan.textContent=S.mode==='personal'?'Công việc cá nhân':'Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';
@@ -747,7 +747,7 @@ document.getElementById('authScreen').style.display='none';document.getElementBy
 const rt=document.getElementById('rT');rt.textContent=S.adm?'QTV':'TV';rt.className=S.adm?'rt a':'rt m';
 document.getElementById('aF').style.display=S.adm?'grid':'none';
 document.getElementById('stBtn').style.display='flex';
-S.mode='dept';document.getElementById('modeBtn').textContent='🏢 Phòng';document.getElementById('modeBtn').classList.remove('personal');
+S.mode='dept';document.getElementById('modeBtn').textContent='👤 Cá nhân';document.getElementById('modeBtn').classList.remove('personal');
 const logoSpan2=document.querySelector('.logo span');if(logoSpan2)logoSpan2.textContent='Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';
 initFbPersonal();initRpt();popF();rAll();
 // Kiểm tra MK tạm: ưu tiên tham số truyền vào, fallback check S.tempPw
