@@ -438,8 +438,8 @@ tbody td{padding:8px;font-size:12px}
 <div id="aR" class="ar"></div></div>
 <div class="ipane" id="ip1"><div class="mf">
 <div class="fs mfg"><label>Nội dung *</label><input type="text" id="mi_n" placeholder="Nhập nội dung..."/></div>
-<div class="mfg"><label>Phụ trách *</label><select id="mi_l" onchange="updMiCollab()"></select></div>
-<div class="fs mfg"><label>Phối hợp (chọn nhiều người)</label><div id="mi_c" style="display:flex;flex-wrap:wrap;gap:4px;max-height:100px;overflow-y:auto;padding:6px;background:var(--inp);border:1px solid var(--b);border-radius:5px"></div></div>
+<div class="mfg" style="position:relative"><label>Phụ trách *</label><input type="text" id="mi_l_search" placeholder="Gõ tên để tìm..." autocomplete="off" oninput="filterLeader()" onfocus="filterLeader()" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:8px 10px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"/><input type="hidden" id="mi_l"/><div class="dd" id="mi_l_dd" style="font-size:12px"></div></div>
+<div class="fs mfg"><label>Phối hợp (có thể chọn nhiều người)</label><div id="mi_c" style="display:flex;flex-wrap:wrap;gap:4px;max-height:100px;overflow-y:auto;padding:6px;background:var(--inp);border:1px solid var(--b);border-radius:5px"></div></div>
 <div class="mfg"><label>Ngày giao việc</label><input type="date" id="mi_ad"/></div>
 <div class="mfg"><label>Hạn hoàn thành</label><input type="datetime-local" id="mi_d"/></div>
 <div class="mfg"><label>Trạng thái</label><select id="mi_s"><option value="doing">Đang thực hiện</option><option value="done">Hoàn thành</option></select></div>
@@ -812,12 +812,21 @@ const ra=ro[ma?.role]??2,rb=ro[mb?.role]??2;if(ra!==rb)return ra-rb;return a.loc
 function popF(){const ns=new Set();S.mem.forEach(m=>ns.add(m.name));S.tasks.forEach(t=>{if(t.leader)ns.add(t.leader);(t.collaborators||[]).forEach(c=>ns.add(c));});
 const sorted=sortByRole([...ns]);const o='<option value="all">Tất cả</option>'+sorted.map(n=>`<option>${esc(n)}</option>`).join('');
 document.getElementById('fP').innerHTML='<option value="all">Tất cả người</option>'+sorted.map(n=>`<option>${esc(n)}</option>`).join('');document.getElementById('rpPr').innerHTML=o;
-// Dropdown phụ trách: lọc bỏ Test
-const realMem=sorted.filter(n=>{const m=S.mem.find(x=>x.name===n);return!isTestMem(m);});
-const mo=realMem.map(n=>`<option>${esc(n)}</option>`).join('');
-document.getElementById('mi_l').innerHTML='<option value="">-- Chọn --</option>'+mo;updPrList();
+// Danh sách phụ trách: lọc bỏ Test
+window._leaderList=sorted.filter(n=>{const m=S.mem.find(x=>x.name===n);return!isTestMem(m);});
+updPrList();
 updMiCollab();
 if(!document.getElementById('mi_ad').value)document.getElementById('mi_ad').value=new Date().toISOString().slice(0,10);}
+function filterLeader(){const v=document.getElementById('mi_l_search').value.trim().toLowerCase();const dd=document.getElementById('mi_l_dd');
+if(!v){dd.classList.remove('show');return;}
+const list=(window._leaderList||[]).filter(n=>n.toLowerCase().includes(v));
+if(!list.length){dd.innerHTML='<div class="ddi" style="color:var(--t3);font-size:11px">Không tìm thấy</div>';dd.classList.add('show');return;}
+dd.innerHTML=list.map(n=>{const m=S.mem.find(x=>x.name===n);const rc=m?(m.role==='Trưởng phòng'?'⭐':m.role==='Phó Trưởng phòng'?'🔹':'👤'):'👤';
+return'<div class="ddi" onclick="pickLeader(\''+esc(n).replace(/'/g,"\\'")+'\')">'+rc+' '+esc(n)+'</div>';}).join('');
+dd.classList.add('show');}
+function pickLeader(n){document.getElementById('mi_l_search').value=n;document.getElementById('mi_l').value=n;
+document.getElementById('mi_l_dd').classList.remove('show');updMiCollab();}
+document.addEventListener('click',e=>{if(!e.target.closest('#mi_l_search')&&!e.target.closest('#mi_l_dd'))document.getElementById('mi_l_dd').classList.remove('show');});
 function updPrList(){const prSet=new Set();S.tasks.forEach(t=>{if(t.product)prSet.add(t.product);});
 document.getElementById('dlPr').innerHTML=[...prSet].sort((a,b)=>a.localeCompare(b,'vi')).map(p=>'<option value="'+esc(p)+'">').join('');}
 function getChecked(containerId){return[...document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked')].map(cb=>cb.value);}
@@ -841,7 +850,7 @@ S.pend.push({id:Date.now(),from:S.u,cmd:'[Thủ công] '+name,parsed:{action:'ad
 if(!checkDupes(name,l,cs)){toast('Đã huỷ do nghi trùng','wn');return;}
 S.tasks.push({id:Date.now(),name,leader:l,collaborators:cs,date:new Date().toISOString().slice(0,10),deadline:dl,status:st,completedAt:st==='done'?new Date().toISOString():'',notes:no,product:pr,coefficient:cf,assignedDate:ad});sv();fbSaveTasks();rAll();toast('CV #'+S.tasks.length+' đã thêm!','ok');
 ['mi_n','mi_no','mi_pr'].forEach(i=>document.getElementById(i).value='');document.getElementById('mi_d').value='';document.getElementById('mi_cf').value='';document.getElementById('mi_ad').value=new Date().toISOString().slice(0,10);
-document.getElementById('mi_l').value='';document.querySelectorAll('#mi_c input[type=checkbox]').forEach(cb=>cb.checked=false);updMiCollab();}
+document.getElementById('mi_l').value='';document.getElementById('mi_l_search').value='';document.querySelectorAll('#mi_c input[type=checkbox]').forEach(cb=>cb.checked=false);updMiCollab();}
 // Edit
 function openEdit(gi){editIdx=gi-1;if(editIdx<0||editIdx>=S.tasks.length)return;const t=S.tasks[editIdx];
 document.getElementById('eN').value=t.name;
