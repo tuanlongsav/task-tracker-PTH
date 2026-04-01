@@ -38,6 +38,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .rt{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:2px 6px;border-radius:4px}
 .rt.a{background:var(--blg);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
 .rt.m{background:var(--ag);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
+.rt.ts2{background:var(--pg);color:var(--purple);border:1px solid rgba(139,92,246,.3)}
+.rt.cn2{background:var(--gg);color:var(--green);border:1px solid rgba(16,185,129,.3)}
 .auth{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));position:relative;z-index:1}
 .acard{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:36px 32px;max-width:420px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.5);text-align:center}
 .acard h1{font-size:20px;font-weight:700;margin:12px 0 5px}
@@ -191,7 +193,7 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 .ef input,.ef select,.ef textarea{width:100%;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:9px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none}
 .ef textarea{min-height:60px;resize:vertical}
 @media(max-width:768px){.rnums{grid-template-columns:repeat(2,1fr)}.rnb-tot{grid-column:span 2;flex-direction:row;gap:12px;padding:16px 24px}.rnb-tot .rv{font-size:64px}.rnb-tot .rl{font-size:20px;margin-top:0}.rrow{flex-direction:column}.cw{flex-direction:column}.bsend{width:100%}.main{padding:8px}.acard{padding:20px 14px}.mf,.ef{grid-template-columns:1fr}.pnl{width:100%}.rch{flex:1;max-width:100%}
-.logo-full{display:none}.logo-short{display:inline!important}.logo{flex:1 1 100%;justify-content:flex-start}.logo span{font-size:13px;white-space:nowrap}
+.logo-full{display:none}.logo-short{display:inline!important}.logo{flex:1 1 100%;justify-content:center}.logo span{font-size:14px;white-space:nowrap}
 .hdr-in{flex-wrap:wrap;height:auto;padding:8px 0;gap:6px}
 .hdr-r{flex-wrap:wrap;gap:6px;justify-content:center;width:100%}
 .mode-btn{font-size:11px;padding:5px 10px}}
@@ -798,7 +800,8 @@ try{localStorage.setItem('lastUser',n);localStorage.setItem('loginTime',Date.now
 sessionStorage.setItem('appActive','1');}catch(e){}
 if(!S.loggedOnce)S.loggedOnce={};if(!S.loggedOnce[n]){S.loggedOnce[n]=Date.now();sv();fbSaveMeta('loggedOnce',S.loggedOnce);}
 document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';document.getElementById('dN').textContent=n;
-const rt=document.getElementById('rT');const _pu=isPersonalUser();rt.textContent=S.adm?'QTV':_pu?'CN':'TV';rt.className=S.adm?'rt a':_pu?'rt m':'rt m';
+const rt=document.getElementById('rT');const _pu=isPersonalUser();const _tu=isTestUser();
+rt.textContent=S.adm?'QTV':_tu?'TEST':_pu?'CN':'TV';rt.className=S.adm?'rt a':_tu?'rt ts2':_pu?'rt cn2':'rt m';
 document.getElementById('aF').style.display=S.adm?'grid':'none';
 document.getElementById('stBtn').style.display='flex';
 const _isPU=isPersonalUser();
@@ -807,7 +810,7 @@ if(_isPU){S.mode='personal';document.getElementById('modeBtn').style.display='no
 const lf2=document.querySelector('.logo-full');const ls2=document.getElementById('logoShort');
 if(_isPU){if(lf2)lf2.textContent='Công việc cá nhân';if(ls2)ls2.textContent='Công việc cá nhân';}
 else{if(lf2)lf2.textContent='Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';if(ls2)ls2.textContent='Tiến độ công việc phòng Tổng hợp';}
-initFbPersonal();initRpt();popF();rAll();
+applyTestData();initFbPersonal();initRpt();popF();rAll();
 // Kiểm tra MK tạm: ưu tiên tham số truyền vào, fallback check S.tempPw
 const needForce=forceNewPw||(S.tempPw&&S.tempPw[n]);
 if(needForce){setTimeout(()=>forceChangePw(n),300);}
@@ -858,7 +861,7 @@ document.getElementById('quickLoginBtn').dataset.name=lastUser;
 document.getElementById('quickLogin').style.display='';
 document.getElementById('fullLogin').style.display='none';
 }else{document.getElementById('quickLogin').style.display='none';document.getElementById('fullLogin').style.display='';}}
-function logout(){S.u=null;S.adm=false;document.getElementById('authScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('ns').value='';initQuickLogin();}
+function logout(){restoreRealData();S.u=null;S.adm=false;document.getElementById('authScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('ns').value='';document.getElementById('userMenu')?.classList.remove('show');initQuickLogin();}
 function chPw(){const v=document.getElementById('nPw').value.trim();if(!v||v.length<4){toast('≥4 ký tự','er');return;}S.passwords[S.u]=v;if(S.tempPw)delete S.tempPw[S.u];sv();fbSaveTemps();document.getElementById('nPw').value='';toast('Đã đổi MK!','ok');}
 function forceChangePw(n){
 // Xoá popup cũ nếu tồn tại
@@ -1533,6 +1536,31 @@ if(changes.length){if(!confirm('Dữ liệu đã được chỉnh sửa nhưng c
 const{lates,redos}=_getExpLatesRedos();_doExportExcel(lates,redos);closeExpPv();}
 // Export
 function isTestUser(){const m=S.mem.find(x=>x.name===S.u);return isTestMem(m);}
+// Dữ liệu mẫu cho TK Test
+const TEST_MEM=[
+{id:90001,name:'Nguyễn Văn An',role:'Trưởng phòng',email:'',note:''},
+{id:90002,name:'Trần Thị Bình',role:'Phó Trưởng phòng',email:'',note:''},
+{id:90003,name:'Lê Hoàng Cường',role:'Thành viên',email:'',note:''},
+{id:90004,name:'Phạm Minh Đức',role:'Thành viên',email:'',note:''},
+{id:90005,name:'Vũ Thị Hoa',role:'Thành viên',email:'',note:''}];
+function genTestViewTasks(){const now=new Date(),y=now.getFullYear(),m=now.getMonth();
+const names=['Tham gia ý kiến dự thảo VB số 15/TB-KTNN','Xây dựng báo cáo tổng hợp kết quả kiểm toán Q1','Tham mưu xử lý đơn thư khiếu nại','Rà soát hồ sơ kiểm toán năm trước','Tổng hợp số liệu quyết toán NSNN','Phối hợp kiểm tra công tác tài chính','Xây dựng kế hoạch kiểm toán quý II','Dự thảo công văn trả lời đơn vị ABC','Báo cáo kết quả thực hiện nhiệm vụ tháng 3','Chuẩn bị tài liệu họp giao ban'];
+const products=['Văn bản trả lời','Báo cáo','Công văn','Hồ sơ','Báo cáo','Biên bản','Kế hoạch','Công văn','Báo cáo','Tài liệu'];
+const coefficients=[100,200,150,100,200,150,200,100,150,100];
+const leaders=['Nguyễn Văn An','Trần Thị Bình','Lê Hoàng Cường','Phạm Minh Đức','Vũ Thị Hoa','Nguyễn Văn An','Trần Thị Bình','Lê Hoàng Cường','Phạm Minh Đức','Vũ Thị Hoa'];
+const collabs=[['Trần Thị Bình'],['Lê Hoàng Cường','Phạm Minh Đức'],[],['Vũ Thị Hoa'],['Nguyễn Văn An'],[],['Phạm Minh Đức'],['Vũ Thị Hoa'],[],['Trần Thị Bình']];
+return names.map((n,i)=>{const d=new Date(y,m,1+i*2);const dl=new Date(d);dl.setDate(dl.getDate()+7+i);
+const done=i<6;const late=done&&i%3===0;
+return{id:800000+i,name:n,leader:leaders[i],collaborators:collabs[i],date:d.toISOString().slice(0,10),assignedDate:d.toISOString().slice(0,10),
+deadline:dl.getFullYear()+'-'+p2(dl.getMonth()+1)+'-'+p2(dl.getDate())+' 17:00',
+status:done?'done':(i<9?'doing':'overdue'),completedAt:done?(late?new Date(dl.getTime()+864e5*2):new Date(dl.getTime()-864e5)).toISOString():'',
+product:products[i],coefficient:coefficients[i],notes:'[Dữ liệu mẫu]'};});}
+let _testBackup=null;
+function applyTestData(){if(!isTestUser()||_testBackup)return;
+_testBackup={tasks:S.tasks,mem:S.mem,pend:S.pend};
+S.tasks=genTestViewTasks();S.mem=TEST_MEM;S.pend=[];}
+function restoreRealData(){if(!_testBackup)return;
+S.tasks=_testBackup.tasks;S.mem=_testBackup.mem;S.pend=_testBackup.pend;_testBackup=null;}
 function canExport(){if(S.adm)return true;if(isTestUser())return true;const ep=S.exportPerm;if(!ep)return false;
 const arr=Array.isArray(ep)?ep:Object.values(ep);return arr.includes(S.u);}
 function genSampleTasks(q,y){const{from}=getQRange(q,y);const names=['Tham gia ý kiến dự thảo VB số 01/TB','Xây dựng báo cáo tổng hợp kết quả kiểm toán','Tham mưu xử lý đơn thư khiếu nại KT','Rà soát hồ sơ kiểm toán năm trước','Tổng hợp số liệu quyết toán NSNN','Phối hợp kiểm tra công tác tài chính','Xây dựng kế hoạch kiểm toán quý','Dự thảo công văn trả lời đơn vị','Tham gia đoàn kiểm toán tại đơn vị ABC','Báo cáo kết quả thực hiện nhiệm vụ'];
