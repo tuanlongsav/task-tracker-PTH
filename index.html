@@ -2122,7 +2122,7 @@ const prevDays=new Date(calYear,calMonth,0).getDate();
 // Nav
 let h='<div class="cal-nav"><button onclick="calPrev()">◀</button>';
 h+='<span class="cal-title" onclick="calToday()">Tháng '+(calMonth+1)+' / '+calYear+'</span>';
-h+='<div style="display:flex;gap:4px"><button onclick="calNext()">▶</button><button onclick="toggleCalEvt()" title="Thêm nhắc nhở sự kiện" style="font-size:16px">⏰</button></div></div>';
+h+='<button onclick="calNext()">▶</button></div>';
 // Weekday headers
 h+='<div class="cal-wk"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span style="color:var(--blue)">T7</span><span style="color:var(--red)">CN</span></div>';
 // Grid
@@ -2146,6 +2146,8 @@ h+='<span class="cl">'+lunarLabel+'</span>';
 if(cvCount>0)h+='<span class="cv-dot">'+cvCount+'</span>';
 h+='</div>';}
 h+='</div>';
+// Nút thêm nhắc nhở
+h+='<div style="margin-top:8px;text-align:center"><button class="btn btn-s btn-o" onclick="toggleCalEvt()" style="font-size:12px">⏰ Thêm nhắc nhở</button></div>';
 // Chi tiết ngày được chọn
 if(calSelDay>0){
 const sd=calSelDay,sm=calMonth+1,sy=calYear;
