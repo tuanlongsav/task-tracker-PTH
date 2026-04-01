@@ -827,7 +827,13 @@ if(_isPU){S.mode='personal';document.getElementById('modeBtn').style.display='no
 const lf2=document.querySelector('.logo-full');const ls2=document.getElementById('logoShort');
 if(_isPU){if(lf2)lf2.textContent='Công việc cá nhân';if(ls2)ls2.textContent='Công việc cá nhân';}
 else{if(lf2)lf2.textContent='Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';if(ls2)ls2.textContent='Tiến độ công việc phòng Tổng hợp';}
-applyTestData();initFbPersonal();initRpt();popF();rAll();
+applyTestData();initFbPersonal();
+// Sync local personalTasks lên Firebase nếu có data local mà Firebase chưa có
+setTimeout(()=>{if(fbPersonalRef&&S.personalTasks.length){
+fbPersonalRef.child('tasks').once('value').then(snap=>{
+if(!snap.val()){console.log('[Personal] Pushing '+S.personalTasks.length+' local tasks to Firebase');fbSavePersonalTasks();}
+});}},2000);
+initRpt();popF();rAll();
 // Kiểm tra MK tạm: ưu tiên tham số truyền vào, fallback check S.tempPw
 const needForce=forceNewPw||(S.tempPw&&S.tempPw[n]);
 if(needForce){setTimeout(()=>forceChangePw(n),300);}
