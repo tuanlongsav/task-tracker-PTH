@@ -161,6 +161,7 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 .mr.ptp{background:var(--ag);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
 .mr.tv{background:var(--blg);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
 .mr.ts{background:var(--pg);color:var(--purple);border:1px solid rgba(139,92,246,.3)}
+.mr.cn{background:var(--gg);color:var(--green);border:1px solid rgba(16,185,129,.3)}
 .mc .me{font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace}
 .mc .mx{position:absolute;top:4px;right:4px;cursor:pointer;color:var(--t3);font-size:14px}.mc .mx:hover{color:var(--red)}
 .mc .me-edit{background:var(--bg);border:1px solid var(--b);border-radius:4px;padding:4px 6px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none;width:100%;margin-top:3px}
@@ -345,7 +346,7 @@ tbody td{padding:8px;font-size:12px}
 <div class="sx"><h3>📧 Đổi email cá nhân</h3><div style="display:flex;gap:4px;align-items:center"><input type="email" id="myEmail" placeholder="Email mới..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="chMyEmail()">Đổi</button></div><p id="curEmail" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
 <div class="sx"><h3>📱 Telegram Chat ID</h3><p style="font-size:9px;color:var(--t3);margin-bottom:4px">Nhắn <b>/start</b> cho bot <b>@PTH_KV1_bot</b> rồi nhắn cho <b>@userinfobot</b> để lấy Chat ID.</p><div style="display:flex;gap:4px;align-items:center"><input type="text" id="myTgId" placeholder="Chat ID (vd: 123456789)" style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none"/><button class="btn btn-s btn-p" onclick="chMyTg()">Lưu</button></div><p id="curTgId" style="font-size:9px;color:var(--t3);margin-top:4px"></p></div>
 <div class="sx admOnly"><h3>🏢 Thành viên</h3><p style="font-size:8px;color:var(--t3);margin-bottom:6px">Nhấn vào email để sửa. AI tự nhận tên viết tắt.</p><div id="mW" class="cl" style="flex-direction:column;align-items:stretch"></div>
-<div class="af" id="aF"><input type="text" id="mfN" placeholder="Họ tên *"/><select id="mfR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option><option>Test</option></select><input type="email" id="mfE" placeholder="Email"/><input type="text" id="mfNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm</button></div></div>
+<div class="af" id="aF"><input type="text" id="mfN" placeholder="Họ tên *"/><select id="mfR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option><option>Cá nhân</option><option>Test</option></select><input type="email" id="mfE" placeholder="Email"/><input type="text" id="mfNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm</button></div></div>
 <div class="sx admOnly"><h3>📧 Email thông báo chung</h3>
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t2);cursor:pointer"><input type="checkbox" id="emailReminder" onchange="S.emailReminder=this.checked;sv();fbSaveMeta('emailReminder',S.emailReminder);" style="cursor:pointer"/>Bật nhắc việc qua email (tốn quota EmailJS)</label></div>
 <div id="nL" class="cl"></div><div style="display:flex;gap:4px;margin-top:4px"><input type="email" id="nNE" placeholder="Thêm..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:9px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="addNE()">+</button></div></div>
@@ -794,12 +795,15 @@ try{localStorage.setItem('lastUser',n);localStorage.setItem('loginTime',Date.now
 sessionStorage.setItem('appActive','1');}catch(e){}
 if(!S.loggedOnce)S.loggedOnce={};if(!S.loggedOnce[n]){S.loggedOnce[n]=Date.now();sv();fbSaveMeta('loggedOnce',S.loggedOnce);}
 document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';document.getElementById('dN').textContent=n;
-const rt=document.getElementById('rT');rt.textContent=S.adm?'QTV':'TV';rt.className=S.adm?'rt a':'rt m';
+const rt=document.getElementById('rT');const _pu=isPersonalUser();rt.textContent=S.adm?'QTV':_pu?'CN':'TV';rt.className=S.adm?'rt a':_pu?'rt m':'rt m';
 document.getElementById('aF').style.display=S.adm?'grid':'none';
 document.getElementById('stBtn').style.display='flex';
-S.mode='dept';document.getElementById('modeBtn').textContent='👤 Cá nhân';document.getElementById('modeBtn').classList.remove('personal');
-const lf2=document.querySelector('.logo-full');if(lf2)lf2.textContent='Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';
-const ls2=document.getElementById('logoShort');if(ls2)ls2.textContent='TD tiến độ CV phòng TH';
+const _isPU=isPersonalUser();
+if(_isPU){S.mode='personal';document.getElementById('modeBtn').style.display='none';
+}else{S.mode='dept';document.getElementById('modeBtn').style.display='';document.getElementById('modeBtn').textContent='👤 Cá nhân';document.getElementById('modeBtn').classList.remove('personal');}
+const lf2=document.querySelector('.logo-full');const ls2=document.getElementById('logoShort');
+if(_isPU){if(lf2)lf2.textContent='Công việc cá nhân';if(ls2)ls2.textContent='Công việc cá nhân';}
+else{if(lf2)lf2.textContent='Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';if(ls2)ls2.textContent='TD tiến độ CV phòng TH';}
 initFbPersonal();initRpt();popF();rAll();
 // Kiểm tra MK tạm: ưu tiên tham số truyền vào, fallback check S.tempPw
 const needForce=forceNewPw||(S.tempPw&&S.tempPw[n]);
@@ -914,19 +918,21 @@ function rmM(id){if(!S.adm)return;const m=S.mem.find(x=>x.id===id);if(!m)return;
 function updMemEmail(id,v){const m=S.mem.find(x=>x.id===id);if(m){m.email=v.trim();sv();fbSaveMeta('mem',S.mem);}}
 function chRole(id,role){if(!S.adm)return;const m=S.mem.find(x=>x.id===id);if(!m)return;m.role=role;sv();fbSaveMeta('mem',S.mem);rMem();popF();toast(m.name+' → '+role,'ok');}
 function isTestMem(m){return m&&m.role==='Test';}
+function isPersonalMem(m){return m&&m.role==='Cá nhân';}
+function isPersonalUser(){const m=S.mem.find(x=>x.name===S.u);return isPersonalMem(m);}
 function rMem(){const w=document.getElementById('mW');if(!S.mem.length){w.innerHTML='<p style="color:var(--t3);font-size:9px">Chưa có</p>';return;}
-const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Test':3};const sorted=[...S.mem].sort((a,b)=>(ro[a.role]||9)-(ro[b.role]||9));
-w.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:4px">'+sorted.map(m=>{const rc=m.role==='Trưởng phòng'?'tp':m.role==='Phó Trưởng phòng'?'ptp':m.role==='Test'?'ts':'tv';
+const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Cá nhân':3,'Test':4};const sorted=[...S.mem].sort((a,b)=>(ro[a.role]||9)-(ro[b.role]||9));
+w.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:4px">'+sorted.map(m=>{const rc=m.role==='Trưởng phòng'?'tp':m.role==='Phó Trưởng phòng'?'ptp':m.role==='Test'?'ts':m.role==='Cá nhân'?'cn':'tv';
 const isAdmMem=S.admNames.includes(m.name);
-return`<div class="mc">${S.adm&&!isAdmMem?`<span class="mx" onclick="rmM(${m.id})">✕</span>`:''}<span class="mr ${rc}">${esc(m.role)}</span><span class="mn">${esc(m.name)}</span>${S.adm?`<input class="me-edit" value="${esc(m.email)}" placeholder="email..." onchange="updMemEmail(${m.id},this.value)"/><div style="display:flex;gap:3px;flex-wrap:wrap">${!isAdmMem?`<button class="btn btn-s btn-o" onclick="genTempPw('${esc(m.name)}')" style="font-size:9px;padding:3px 8px;white-space:nowrap" title="Tạo mật khẩu tạm">🔑 MK tạm</button><select onchange="chRole(${m.id},this.value)" style="font-size:9px;padding:3px 6px;background:var(--inp);border:1px solid var(--b);border-radius:4px;color:var(--t1);outline:none"><option value="Thành viên"${m.role==='Thành viên'?' selected':''}>Thành viên</option><option value="Phó Trưởng phòng"${m.role==='Phó Trưởng phòng'?' selected':''}>P. Trưởng phòng</option><option value="Trưởng phòng"${m.role==='Trưởng phòng'?' selected':''}>Trưởng phòng</option><option value="Test"${m.role==='Test'?' selected':''}>Test</option></select>`:''}</div>`:(m.email?`<span class="me">📧 ${esc(m.email)}</span>`:'')}</div>`;}).join('')+'</div>';}
-function sortByRole(names){const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Test':3};
+return`<div class="mc">${S.adm&&!isAdmMem?`<span class="mx" onclick="rmM(${m.id})">✕</span>`:''}<span class="mr ${rc}">${esc(m.role)}</span><span class="mn">${esc(m.name)}</span>${S.adm?`<input class="me-edit" value="${esc(m.email)}" placeholder="email..." onchange="updMemEmail(${m.id},this.value)"/><div style="display:flex;gap:3px;flex-wrap:wrap">${!isAdmMem?`<button class="btn btn-s btn-o" onclick="genTempPw('${esc(m.name)}')" style="font-size:9px;padding:3px 8px;white-space:nowrap" title="Tạo mật khẩu tạm">🔑 MK tạm</button><select onchange="chRole(${m.id},this.value)" style="font-size:9px;padding:3px 6px;background:var(--inp);border:1px solid var(--b);border-radius:4px;color:var(--t1);outline:none"><option value="Thành viên"${m.role==='Thành viên'?' selected':''}>Thành viên</option><option value="Phó Trưởng phòng"${m.role==='Phó Trưởng phòng'?' selected':''}>P. Trưởng phòng</option><option value="Trưởng phòng"${m.role==='Trưởng phòng'?' selected':''}>Trưởng phòng</option><option value="Cá nhân"${m.role==='Cá nhân'?' selected':''}>Cá nhân</option><option value="Test"${m.role==='Test'?' selected':''}>Test</option></select>`:''}</div>`:(m.email?`<span class="me">📧 ${esc(m.email)}</span>`:'')}</div>`;}).join('')+'</div>';}
+function sortByRole(names){const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Cá nhân':3,'Test':4};
 return names.sort((a,b)=>{const ma=S.mem.find(m=>m.name===a),mb=S.mem.find(m=>m.name===b);
 const ra=ro[ma?.role]??2,rb=ro[mb?.role]??2;if(ra!==rb)return ra-rb;return a.localeCompare(b,'vi');});}
 function popF(){const ns=new Set();S.mem.forEach(m=>ns.add(m.name));S.tasks.forEach(t=>{if(t.leader)ns.add(t.leader);(t.collaborators||[]).forEach(c=>ns.add(c));});
 const sorted=sortByRole([...ns]);const o='<option value="all">Tất cả</option>'+sorted.map(n=>`<option>${esc(n)}</option>`).join('');
 document.getElementById('fP').innerHTML='<option value="all">Tất cả người</option>'+sorted.map(n=>`<option>${esc(n)}</option>`).join('');document.getElementById('rpPr').innerHTML=o;
 // Danh sách phụ trách: lọc bỏ Test
-window._leaderList=sorted.filter(n=>{const m=S.mem.find(x=>x.name===n);return!isTestMem(m);});
+window._leaderList=sorted.filter(n=>{const m=S.mem.find(x=>x.name===n);return!isTestMem(m)&&!isPersonalMem(m);});
 updPrList();
 updMiCollab();
 if(!document.getElementById('mi_ad').value)document.getElementById('mi_ad').value=new Date().toISOString().slice(0,10);}
@@ -946,7 +952,7 @@ function updPrList(){const prSet=new Set();S.tasks.forEach(t=>{if(t.product)prSe
 document.getElementById('dlPr').innerHTML=[...prSet].sort((a,b)=>a.localeCompare(b,'vi')).map(p=>'<option value="'+esc(p)+'">').join('');}
 function getChecked(containerId){return[...document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked')].map(cb=>cb.value);}
 function updMiCollab(){const leader=document.getElementById('mi_l').value;const prev=getChecked('mi_c');
-const ns=new Set();S.mem.forEach(m=>{if(!isTestMem(m))ns.add(m.name);});S.tasks.forEach(t=>{if(t.leader){const m=S.mem.find(x=>x.name===t.leader);if(!isTestMem(m))ns.add(t.leader);}});
+const ns=new Set();S.mem.forEach(m=>{if(!isTestMem(m)&&!isPersonalMem(m))ns.add(m.name);});S.tasks.forEach(t=>{if(t.leader){const m=S.mem.find(x=>x.name===t.leader);if(!isTestMem(m)&&!isPersonalMem(m))ns.add(t.leader);}});
 const sorted=sortByRole([...ns]).filter(n=>n!==leader);
 const container=document.getElementById('mi_c');
 container.innerHTML='<input type="text" id="mi_cs" placeholder="Tìm tên..." oninput="filterCollab()" style="width:100%;background:var(--bg);border:1px solid var(--b);border-radius:4px;padding:4px 8px;font-size:11px;color:var(--t1);outline:none;margin-bottom:4px"/>'+
@@ -958,7 +964,7 @@ function filterCollab(){const q=document.getElementById('mi_cs').value.toLowerCa
 document.querySelectorAll('#mi_c .collab-item').forEach(el=>{const name=el.textContent.toLowerCase();el.style.display=name.includes(q)?'':'none';});}
 function onCollabTick(){const s=document.getElementById('mi_cs');if(s){s.value='';filterCollab();}}
 function updECollab(checkedList){const leader=document.getElementById('eL').value;const prev=checkedList||getChecked('eC');
-const ns=new Set();S.mem.forEach(m=>{if(!isTestMem(m))ns.add(m.name);});const sorted=sortByRole([...ns]).filter(n=>n!==leader);
+const ns=new Set();S.mem.forEach(m=>{if(!isTestMem(m)&&!isPersonalMem(m))ns.add(m.name);});const sorted=sortByRole([...ns]).filter(n=>n!==leader);
 document.getElementById('eC').innerHTML=sorted.map(n=>`<label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;padding:4px 8px;border-bottom:1px solid var(--b)"><input type="checkbox" value="${esc(n)}"${prev.includes(n)?' checked':''} style="margin:0;width:14px;height:14px"/> ${esc(n)}</label>`).join('');}
 // Personal mode form toggle
 function onPtypeToggle(){const isDept=document.getElementById('mi_dept').checked;
@@ -1066,7 +1072,7 @@ reader.readAsDataURL(file);}
 function clearImg(){_imgData=null;document.getElementById('imgPv').classList.remove('show');
 document.getElementById('imgPvImg').src='';document.getElementById('imgInp').value='';}
 // Gemini
-async function callG(p){const ml=S.mem.filter(m=>!isTestMem(m)).map(m=>m.name+' ('+m.role+')').join(', ');const now=new Date();
+async function callG(p){const ml=S.mem.filter(m=>!isTestMem(m)&&!isPersonalMem(m)).map(m=>m.name+' ('+m.role+')').join(', ');const now=new Date();
 const sys='Bạn là trợ lý AI quản lý công việc phòng Tổng hợp KTNN KV1.\nThành viên: '+ml+'\nHôm nay: '+now.getFullYear()+'-'+p2(now.getMonth()+1)+'-'+p2(now.getDate())+'\n\nQuy tắc:\n- Tên viết tắt hoặc gọi tắt → đối chiếu danh sách → tên đầy đủ\n- Nhiều người khớp → dùng clarify\n- Không ghi năm → năm hiện tại\n- Không ghi giờ → mặc định 17:00\n- Nếu user nói "đã hoàn thành/đã xong" → status="done"\n\nTrả về DUY NHẤT 1 JSON object (KHÔNG markdown, KHÔNG giải thích).\n\nCác action:\n\n1. add_task: thêm công việc\n{"action":"add_task","data":{"name":"nội dung","leader":"người phụ trách","collaborators":["người phối hợp"],"deadline":"YYYY-MM-DD HH:mm","status":"doing hoặc done","notes":"ghi chú","product":"tên sản phẩm/công việc quy đổi","coefficient":100}}\nproduct: tên sản phẩm hoặc loại công việc (VD: Văn bản trả lời, Báo cáo...)\ncoefficient: hệ số quy đổi (100-300, mặc định 100)\n\n2. complete_task: đánh dấu hoàn thành CV có sẵn\n{"action":"complete_task","data":{"taskIndex":số thứ tự}}\n\n3. update_deadline: đổi hạn\n{"action":"update_deadline","data":{"taskIndex":số thứ tự,"newDeadline":"YYYY-MM-DD HH:mm"}}\n\n4. clarify: cần làm rõ\n{"action":"clarify","data":{"message":"câu hỏi","candidates":["tên1","tên2"],"originalCommand":"lệnh gốc"}}\n\n5. query: trả lời câu hỏi\n{"action":"query","data":{"answer":"câu trả lời"}}\n\n6. unknown: không hiểu\n{"action":"unknown","data":{"message":"lý do"}}\n\n'+(isPersonal()?'CHẾ ĐỘ CÁ NHÂN: CV là của user, không cần leader/collaborators.\nDanh sách CV cá nhân chưa xong:\n'+JSON.stringify(S.personalTasks.filter(t=>t.status!=='done').map((t,i)=>({stt:S.personalTasks.indexOf(t)+1,n:t.name.substring(0,50)}))):'Danh sách CV chưa xong:\n'+JSON.stringify(S.tasks.filter(t=>t.status!=='done').map((t,i)=>({stt:S.tasks.indexOf(t)+1,n:t.name.substring(0,50),l:t.leader}))));
 const parts=[];
 if(_imgData){parts.push({inlineData:{mimeType:_imgData.mimeType,data:_imgData.base64}});}
@@ -1367,7 +1373,7 @@ document.getElementById('fbStatus').innerHTML=fbInited?'🟢 Đã kết nối Fi
 // Export permissions
 const epList=document.getElementById('exportPermList');
 if(epList&&S.adm){const ep=S.exportPerm||[];const perm=Array.isArray(ep)?ep:Object.values(ep);
-epList.innerHTML=S.mem.filter(m=>!S.admNames.includes(m.name)&&!isTestMem(m)).map(m=>{
+epList.innerHTML=S.mem.filter(m=>!S.admNames.includes(m.name)&&!isTestMem(m)&&!isPersonalMem(m)).map(m=>{
 const chk=perm.includes(m.name)?'checked':'';
 return'<label style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:var(--c);border:1px solid var(--b);border-radius:4px;font-size:11px;cursor:pointer;white-space:nowrap"><input type="checkbox" class="expPermCb" value="'+esc(m.name)+'" '+chk+'/>'+esc(m.name)+'</label>';}).join('');}
 rMem();}
@@ -1440,7 +1446,7 @@ if(lbl){const f=p2(from.getDate())+'/'+p2(from.getMonth()+1)+'/'+from.getFullYea
 const t=p2(to.getDate())+'/'+p2(to.getMonth()+1)+'/'+to.getFullYear();
 lbl.textContent='('+f+' → '+t+')';}
 const tpMode=document.getElementById('sumTpMode').value;
-const rows=S.mem.filter(m=>!isTestMem(m)).map(m=>{const tasks=getPersonTasks(m.name,from,to,m.role==='Trưởng phòng'?tpMode:undefined);
+const rows=S.mem.filter(m=>!isTestMem(m)&&!isPersonalMem(m)).map(m=>{const tasks=getPersonTasks(m.name,from,to,m.role==='Trưởng phòng'?tpMode:undefined);
 const tot=tasks.length,dg=tasks.filter(t=>t.status==='doing').length,ov=tasks.filter(t=>t.status==='overdue').length;
 const totCf=tasks.reduce((s,t)=>s+(t.coefficient||200),0);
 const htCf=tasks.filter(t=>t.status==='done').reduce((s,t)=>s+(t.coefficient||200),0);
@@ -1549,8 +1555,8 @@ document.getElementById('exMode').value='quarter';toggleExMode();
 if(isTestUser()){const exPr=document.getElementById('exPr');
 exPr.innerHTML='<option>'+esc(S.u)+'</option>';exPr.disabled=true;return;}
 const exPr=document.getElementById('exPr');
-if(S.adm){exPr.disabled=false;const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Test':3};
-const sorted=[...S.mem].filter(m=>!isTestMem(m)).sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
+if(S.adm){exPr.disabled=false;const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Cá nhân':3,'Test':4};
+const sorted=[...S.mem].filter(m=>!isTestMem(m)&&!isPersonalMem(m)).sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
 exPr.innerHTML='<option value="" disabled selected>Chọn thành viên...</option>'+sorted.map(m=>'<option>'+esc(m.name)+'</option>').join('');}
 else{exPr.innerHTML='<option>'+esc(S.u)+'</option>';exPr.disabled=true;}}
 function getQRange(q,y){const sm=(q-1)*3;return{from:new Date(y,sm,1),to:new Date(y,sm+3,0,23,59,59)};}
@@ -1763,8 +1769,8 @@ if(isTestUser()){
 // Test: chỉ hiện tên mình, dữ liệu mẫu
 document.getElementById('sumExpMembers').innerHTML='<label style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:var(--c);border:1px solid var(--b);border-radius:4px;font-size:12px;cursor:pointer"><input type="checkbox" checked class="sumExpCb" value="'+esc(S.u)+'"/>'+esc(S.u)+' <span style="font-size:10px;color:var(--purple)">(Test - dữ liệu mẫu)</span></label>';
 }else{
-const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Test':3};
-const sorted=[...S.mem].filter(m=>!isTestMem(m)).sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
+const ro={'Trưởng phòng':0,'Phó Trưởng phòng':1,'Thành viên':2,'Cá nhân':3,'Test':4};
+const sorted=[...S.mem].filter(m=>!isTestMem(m)&&!isPersonalMem(m)).sort((a,b)=>{const ra=ro[a.role]??2,rb=ro[b.role]??2;if(ra!==rb)return ra-rb;return a.name.localeCompare(b.name,'vi');});
 const html=sorted.map(m=>'<label style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:var(--c);border:1px solid var(--b);border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap"><input type="checkbox" checked class="sumExpCb" value="'+esc(m.name)+'"/>'+esc(m.name)+' <span style="font-size:10px;color:var(--t3)">('+esc(getChucVu(m))+')</span></label>').join('');
 document.getElementById('sumExpMembers').innerHTML=html;}
 document.getElementById('sumExpPreview').innerHTML='';
