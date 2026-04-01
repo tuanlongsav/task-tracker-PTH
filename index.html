@@ -687,7 +687,8 @@ document.getElementById('emSub').innerHTML='<strong>'+esc(pendL)+'</strong>, ch�
 document.getElementById('emChoose').style.display='';document.getElementById('emEmailForm').style.display='none';document.getElementById('emTgForm').style.display='none';
 document.getElementById('pwO').classList.remove('show');document.getElementById('emO').classList.add('show');}
 function loginAs(n,forceNewPw){S.u=n;S.adm=S.admNames.includes(n);
-try{localStorage.setItem('lastUser',n);}catch(e){}
+try{localStorage.setItem('lastUser',n);localStorage.setItem('loginTime',Date.now());
+sessionStorage.setItem('appActive','1');}catch(e){}
 if(!S.loggedOnce)S.loggedOnce={};if(!S.loggedOnce[n]){S.loggedOnce[n]=Date.now();sv();fbSaveMeta('loggedOnce',S.loggedOnce);}
 document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';document.getElementById('dN').textContent=n;
 const rt=document.getElementById('rT');rt.textContent=S.adm?'QTV':'TV';rt.className=S.adm?'rt a':'rt m';
@@ -1725,14 +1726,26 @@ XLSX.writeFile(wb,'BangChamDiem_'+modeTag+'_'+pr.replace(/\s+/g,'_')+'.xlsx');
 toast('Đã xuất báo cáo cho '+pr+' ('+label+')','ok');}
 function rAll(){rTasks();rRpt();uSt();rPend();initExport();initSummary();updateReminders();}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&document.activeElement===document.getElementById('cmdIn')){e.preventDefault();handleCmd();}});
+// Gia hạn session khi user tương tác (click/gõ phím) — reset timeout 2h
+['click','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{
+if(S.u)try{localStorage.setItem('loginTime',Date.now());}catch(e){}},{passive:true}));
 ld();
-// Auto-login: nếu đã đăng nhập trước + có MK local hoặc hash Firebase → vào luôn
+// Auto-login với bảo mật: timeout 2h + app tắt hẳn phải login lại
 (function autoLogin(){const last=localStorage.getItem('lastUser');
 if(!last)return initQuickLogin();
 const mem=S.mem.find(m=>m.name===last);if(!mem)return initQuickLogin();
 const hasPw=S.passwords[last];const hasHash=S.pwHash&&S.pwHash[last];
 const isTmp=S.tempPw&&S.tempPw[last];
-if((hasPw||hasHash)&&!isTmp){loginAs(last,false);}
-else{initQuickLogin();}})();
+if(!((hasPw||hasHash)&&!isTmp))return initQuickLogin();
+// Check timeout 2 giờ
+const loginTime=parseInt(localStorage.getItem('loginTime')||'0');
+const elapsed=Date.now()-loginTime;
+const SESSION_TIMEOUT=2*60*60*1000; // 2 giờ
+if(elapsed>SESSION_TIMEOUT){localStorage.removeItem('loginTime');return initQuickLogin();}
+// App APK: tắt hẳn (sessionStorage mất) → phải login lại
+const isApp=navigator.userAgent.includes('TaskTrackerPTH-Android');
+const appActive=sessionStorage.getItem('appActive');
+if(isApp&&!appActive){return initQuickLogin();}
+loginAs(last,false);})();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW:',e));}
 </script></body></html>
