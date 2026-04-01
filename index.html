@@ -519,7 +519,6 @@ tbody td{padding:8px;font-size:12px}
 <div class="mfg"><label>Trạng thái</label><select id="mi_s"><option value="doing">Đang thực hiện</option><option value="done">Hoàn thành</option></select></div>
 <div class="fs mfg" id="mi_pr_wrap"><label>Sản phẩm / Công việc</label><input type="text" id="mi_pr" placeholder="Tên sản phẩm..." list="dlPr" onfocus="updPrList()"/></div>
 <div class="mfg" id="mi_cf_wrap"><label>Hệ số quy đổi</label><input type="number" id="mi_cf" min="0" step="1" placeholder="100-300"/></div>
-<div class="fs ptype-toggle" id="mi_evt_wrap" style="display:none"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;margin:0"><input type="checkbox" id="mi_evt" onchange="onEvtToggle()"/> ⏰ Nhắc nhở sự kiện <span style="font-size:10px;color:var(--t3)">(tự hoàn thành khi đến hạn)</span></label></div>
 <div class="fs mfg"><label>Ghi chú</label><input type="text" id="mi_no"/></div>
 <div class="fs"><button class="btn btn-p" onclick="mAdd()">➕ Thêm</button></div>
 </div></div></div></div>
@@ -986,10 +985,6 @@ function onCollabTick(){const s=document.getElementById('mi_cs');if(s){s.value='
 function updECollab(checkedList){const leader=document.getElementById('eL').value;const prev=checkedList||getChecked('eC');
 const ns=new Set();S.mem.forEach(m=>{if(!isTestMem(m)&&!isPersonalMem(m))ns.add(m.name);});const sorted=sortByRole([...ns]).filter(n=>n!==leader);
 document.getElementById('eC').innerHTML=sorted.map(n=>`<label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;padding:4px 8px;border-bottom:1px solid var(--b)"><input type="checkbox" value="${esc(n)}"${prev.includes(n)?' checked':''} style="margin:0;width:14px;height:14px"/> ${esc(n)}</label>`).join('');}
-// Event reminder toggle
-function onEvtToggle(){const isEvt=document.getElementById('mi_evt').checked;
-document.getElementById('mi_s').closest('.mfg').style.display=isEvt?'none':'';
-document.getElementById('mi_ad').closest('.mfg').style.display=isEvt?'none':'';}
 // Personal mode form toggle
 function onPtypeToggle(){const isDept=document.getElementById('mi_dept').checked;
 document.getElementById('mi_l_wrap').style.display=isDept?'':'none';
@@ -997,14 +992,11 @@ document.getElementById('mi_c_wrap').style.display=isDept?'':'none';}
 function updateFormForMode(){const pt=document.getElementById('ptypeToggle');
 const lw=document.getElementById('mi_l_wrap');const cw2=document.getElementById('mi_c_wrap');
 const prW=document.getElementById('mi_pr_wrap');const cfW=document.getElementById('mi_cf_wrap');
-const evtW=document.getElementById('mi_evt_wrap');
 if(isPersonal()){pt.style.display='';document.getElementById('mi_dept').checked=false;
 lw.style.display='none';cw2.style.display='none';
-if(prW)prW.style.display='none';if(cfW)cfW.style.display='none';
-if(evtW)evtW.style.display='';}
+if(prW)prW.style.display='none';if(cfW)cfW.style.display='none';}
 else{pt.style.display='none';lw.style.display='';cw2.style.display='';
-if(prW)prW.style.display='';if(cfW)cfW.style.display='';
-if(evtW)evtW.style.display='none';}}
+if(prW)prW.style.display='';if(cfW)cfW.style.display='';}}
 // Manual add
 function mAdd(){const name=document.getElementById('mi_n').value.trim();if(!name){toast('Nhập nội dung','er');return;}
 const dl=document.getElementById('mi_d').value?.replace('T',' ')||'',st=document.getElementById('mi_s').value,no=document.getElementById('mi_no').value.trim();
@@ -1013,11 +1005,8 @@ const pr=document.getElementById('mi_pr').value.trim(),cf=parseFloat(document.ge
 const isDeptTask=!isPersonal()||document.getElementById('mi_dept').checked;
 if(!isDeptTask){
 // CV cá nhân → thêm thẳng, không qua hàng chờ
-const isEvt=document.getElementById('mi_evt')?.checked;
-const taskObj={id:Date.now(),name,leader:S.u,collaborators:[],date:new Date().toISOString().slice(0,10),deadline:dl,status:st,completedAt:st==='done'?new Date().toISOString():'',notes:no,product:'',coefficient:200,assignedDate:ad};
-if(isEvt){taskObj.taskType='event';taskObj.status='doing';taskObj.completedAt='';}
-S.personalTasks.push(taskObj);
-sv();fbSavePersonalTasks();rAll();toast((isEvt?'⏰ Nhắc nhở':'CV cá nhân')+' #'+S.personalTasks.length+' đã thêm!','ok');
+S.personalTasks.push({id:Date.now(),name,leader:S.u,collaborators:[],date:new Date().toISOString().slice(0,10),deadline:dl,status:st,completedAt:st==='done'?new Date().toISOString():'',notes:no,product:'',coefficient:200,assignedDate:ad});
+sv();fbSavePersonalTasks();rAll();toast('CV cá nhân #'+S.personalTasks.length+' đã thêm!','ok');
 _clearMiForm();return;}
 // Việc phòng (dept mode hoặc tick "Việc phòng")
 const l=document.getElementById('mi_l').value,cs=getChecked('mi_c');
@@ -1028,8 +1017,7 @@ S.tasks.push({id:Date.now(),name,leader:l,collaborators:cs,date:new Date().toISO
 _clearMiForm();}
 function _clearMiForm(){['mi_n','mi_no','mi_pr'].forEach(i=>document.getElementById(i).value='');document.getElementById('mi_d').value='';document.getElementById('mi_cf').value='';document.getElementById('mi_ad').value=new Date().toISOString().slice(0,10);
 document.getElementById('mi_l').value='';document.getElementById('mi_l_search').value='';document.querySelectorAll('#mi_c input[type=checkbox]').forEach(cb=>cb.checked=false);
-if(isPersonal()){document.getElementById('mi_dept').checked=false;
-const evtCb=document.getElementById('mi_evt');if(evtCb){evtCb.checked=false;onEvtToggle();}}
+if(isPersonal()){document.getElementById('mi_dept').checked=false;}
 updMiCollab();onPtypeToggle();}
 // Edit
 function openEdit(gi){editIdx=gi-1;if(editIdx<0||editIdx>=S.tasks.length)return;const t=S.tasks[editIdx];
@@ -1217,8 +1205,10 @@ myDept.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t
 const dTot=myDept.length,dDn=myDept.filter(t=>t.status==='done').length,dDg=myDept.filter(t=>t.status==='doing').length,dOv=myDept.filter(t=>t.status==='overdue').length,dRate=dTot?Math.round(dDn/dTot*100):0;
 document.getElementById('rpND').innerHTML=_rptCards(dTot,dDn,dDg,dOv,dRate);
 if(rpChartD)rpChartD.destroy();rpChartD=_rptChart('rpCD',dDn,dDg,dOv);
-// CV cá nhân
-const pTot=tot,pDn=dn,pDg=dg,pOv=ov,pRate=rate;
+// CV cá nhân (chỉ personalTasks, loại bỏ event nhắc nhở)
+const myPers=S.personalTasks.filter(t=>{if(t.taskType==='event')return false;const d=new Date(t.date);return d>=from&&d<=to;});
+myPers.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
+const pTot=myPers.length,pDn=myPers.filter(t=>t.status==='done').length,pDg=myPers.filter(t=>t.status==='doing').length,pOv=myPers.filter(t=>t.status==='overdue').length,pRate=pTot?Math.round(pDn/pTot*100):0;
 document.getElementById('rpNP').innerHTML=_rptCards(pTot,pDn,pDg,pOv,pRate);
 if(rpChartP)rpChartP.destroy();rpChartP=_rptChart('rpCP',pDn,pDg,pOv);}}
 function _rptCards(tot,dn,dg,ov,rate){return'<div class="rnb rnb-tot"><div class="rv" style="color:var(--blue)">'+tot+'</div><div class="rl">Công việc</div></div><div class="rnb"><div class="rv" style="color:var(--green)">'+dn+'</div><div class="rl">Xong</div></div><div class="rnb"><div class="rv" style="color:var(--amber)">'+dg+'</div><div class="rl">Đang làm</div></div><div class="rnb"><div class="rv" style="color:var(--red)">'+ov+'</div><div class="rl">Quá hạn</div></div><div class="rnb"><div class="rv" style="color:var(--purple)">'+rate+'%</div><div class="rl">Tỷ lệ</div></div>';}
@@ -1228,7 +1218,7 @@ function rTasks(){const fp=document.getElementById('fP').value;const now=new Dat
 const kw=(document.getElementById('fSearch').value||'').trim().toLowerCase();
 const dFrom=document.getElementById('fDateFrom').value;const dTo=document.getElementById('fDateTo').value;
 // Chọn nguồn dữ liệu theo mode
-const srcTasks=isPersonal()?S.personalTasks:S.tasks;
+const srcTasks=isPersonal()?S.personalTasks.filter(t=>t.taskType!=='event'):S.tasks;
 srcTasks.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
 let all=[...srcTasks];
 if(!isPersonal()&&fp!=='all')all=all.filter(t=>t.leader===fp||(t.collaborators||[]).includes(fp));
@@ -2132,7 +2122,7 @@ const prevDays=new Date(calYear,calMonth,0).getDate();
 // Nav
 let h='<div class="cal-nav"><button onclick="calPrev()">◀</button>';
 h+='<span class="cal-title" onclick="calToday()">Tháng '+(calMonth+1)+' / '+calYear+'</span>';
-h+='<button onclick="calNext()">▶</button></div>';
+h+='<div style="display:flex;gap:4px"><button onclick="calNext()">▶</button><button onclick="toggleCalEvt()" title="Thêm nhắc nhở sự kiện" style="font-size:16px">⏰</button></div></div>';
 // Weekday headers
 h+='<div class="cal-wk"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span style="color:var(--blue)">T7</span><span style="color:var(--red)">CN</span></div>';
 // Grid
@@ -2178,13 +2168,50 @@ if(tk)h+='<span class="ci-label">Tiết khí:</span><span class="ci-val" style="
 h+='</div>';
 h+='<div style="font-size:11px;font-weight:600;color:var(--t2);margin-bottom:4px">Giờ hoàng đạo:</div>';
 h+='<div class="cal-hd">'+hd.map(g=>'<span>'+g+'</span>').join('')+'</div>';
-if(tasks.length){
-h+='<div class="cal-tasks"><div class="ct-title">📋 '+tasks.length+' công việc hạn ngày này:</div>';
-tasks.forEach(t=>{const stIcon=t.status==='done'?'✅':t.status==='overdue'?'🚨':'⏳';
+const tasksCv=tasks.filter(t=>t.taskType!=='event');const tasksEvt=tasks.filter(t=>t.taskType==='event');
+if(tasksCv.length){
+h+='<div class="cal-tasks"><div class="ct-title">📋 '+tasksCv.length+' công việc hạn ngày này:</div>';
+tasksCv.forEach(t=>{const stIcon=t.status==='done'?'✅':t.status==='overdue'?'🚨':'⏳';
 h+='<div class="ct-item"><span class="ct-st">'+stIcon+'</span><span>'+esc(t.name.substring(0,60))+'</span></div>';});
 h+='</div>';}
+if(tasksEvt.length){
+h+='<div class="cal-tasks"><div class="ct-title">⏰ '+tasksEvt.length+' nhắc nhở:</div>';
+tasksEvt.forEach(t=>{const stIcon=t.status==='done'?'✅':'🔔';
+h+='<div class="ct-item" style="border-left:2px solid var(--amber)"><span class="ct-st">'+stIcon+'</span><span>'+esc(t.name.substring(0,60))+'</span></div>';});
+h+='</div>';}
+h+='</div>';}
+// Form thêm nhắc nhở (ẩn mặc định)
+h+='<div id="calEvtForm" style="display:none;margin-top:10px;background:var(--c);border:1px solid var(--b);border-radius:8px;padding:12px">';
+h+='<div style="font-size:13px;font-weight:700;margin-bottom:8px">⏰ Thêm nhắc nhở sự kiện</div>';
+h+='<input type="text" id="calEvtName" placeholder="Nội dung nhắc nhở..." style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:6px"/>';
+h+='<input type="datetime-local" id="calEvtTime" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:6px"/>';
+h+='<input type="text" id="calEvtNote" placeholder="Ghi chú (tuỳ chọn)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:6px"/>';
+h+='<button class="btn btn-p btn-s" onclick="addCalEvt()">➕ Thêm nhắc nhở</button></div>';
+// Danh sách nhắc nhở sự kiện
+const evts=S.personalTasks.filter(t=>t.taskType==='event').sort((a,b)=>new Date(a.deadline||'9999')-new Date(b.deadline||'9999'));
+if(evts.length){
+h+='<div style="margin-top:10px"><div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px">⏰ Nhắc nhở sự kiện ('+evts.length+')</div>';
+evts.forEach((t,idx)=>{const gi=S.personalTasks.indexOf(t);const isDone=t.status==='done';
+const dlDate=t.deadline?new Date(t.deadline):null;const isPast=dlDate&&dlDate<now;
+const stIcon=isDone?'✅':isPast?'⏰':'🔔';
+const stColor=isDone?'var(--green)':isPast?'var(--t3)':'var(--amber)';
+h+='<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--inp);border:1px solid var(--b);border-radius:6px;margin-bottom:4px;font-size:11px'+(isDone?';opacity:.6':'')+'"><span>'+stIcon+'</span><div style="flex:1"><div style="font-weight:500">'+esc(t.name)+'</div><div style="font-size:10px;color:'+stColor+'">'+fDLt(t.deadline)+(t.notes?' · '+esc(t.notes):'')+'</div></div><span style="cursor:pointer;font-size:13px" onclick="delCalEvt('+gi+')" title="Xoá">🗑️</span></div>';});
 h+='</div>';}
 c.innerHTML=h;}
+function toggleCalEvt(){const f=document.getElementById('calEvtForm');if(f)f.style.display=f.style.display==='none'?'':'none';
+// Pre-fill time nếu đang chọn ngày
+if(calSelDay>0){const dt=document.getElementById('calEvtTime');
+if(dt&&!dt.value)dt.value=calYear+'-'+p2(calMonth+1)+'-'+p2(calSelDay)+'T09:00';}}
+function addCalEvt(){const name=document.getElementById('calEvtName')?.value.trim();
+const time=document.getElementById('calEvtTime')?.value;const note=document.getElementById('calEvtNote')?.value.trim()||'';
+if(!name){toast('Nhập nội dung nhắc nhở','er');return;}if(!time){toast('Chọn thời gian','er');return;}
+S.personalTasks.push({id:Date.now(),name:name,leader:S.u||'',collaborators:[],date:new Date().toISOString().slice(0,10),
+assignedDate:new Date().toISOString().slice(0,10),deadline:time.replace('T',' '),status:'doing',completedAt:'',
+notes:note,product:'',coefficient:200,taskType:'event'});
+sv();fbSavePersonalTasks();toast('⏰ Đã thêm nhắc nhở','ok');rCal();}
+function delCalEvt(gi){if(gi<0||gi>=S.personalTasks.length)return;
+if(!confirm('Xoá nhắc nhở "'+S.personalTasks[gi].name.substring(0,40)+'"?'))return;
+fbSyncing=true;S.personalTasks.splice(gi,1);sv();fbSavePersonalTasks();rCal();toast('Đã xoá nhắc nhở','ok');}
 function rAll(){updateFormForMode();rTasks();rRpt();uSt();rPend();initExport();initSummary();updateReminders();}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&document.activeElement===document.getElementById('cmdIn')){e.preventDefault();handleCmd();}});
 // Gia hạn session khi user tương tác (click/gõ phím) — reset timeout 2h
