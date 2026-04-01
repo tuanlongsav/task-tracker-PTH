@@ -597,16 +597,17 @@ d.innerHTML=m.map(x=>{const isA=S.admNames.includes(x.name);const ic=x.role==='T
 return`<div class="ddi" onclick="pickM('${esc(x.name).replace(/'/g,"\\'")}')">${ic}<span><strong>${esc(x.name)}</strong><br><span class="ddr">${esc(x.role)}${isA?' • QTV':''}</span></span></div>`;}).join('');d.classList.add('show');}
 document.addEventListener('click',e=>{if(!e.target.closest('.swrap'))document.getElementById('ndd').classList.remove('show');});
 function genPw(){const c='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';let p='';for(let i=0;i<8;i++)p+=c[Math.floor(Math.random()*c.length)];return p;}
-function pickM(n){document.getElementById('ndd').classList.remove('show');document.getElementById('ns').value=n;pendL=n;
+let _pendIsTempPw=false;
+function pickM(n){document.getElementById('ndd').classList.remove('show');document.getElementById('ns').value=n;pendL=n;_pendIsTempPw=false;
 let hasPw=S.passwords[n];
 const mem=S.mem.find(x=>x.name===n);
 const everLogged=S.loggedOnce&&S.loggedOnce[n];
 // Lần đầu thực sự: chưa từng đăng nhập (theo Firebase) → gán MK mặc định
-if(!hasPw&&!everLogged){S.passwords[n]='123456@';if(!S.tempPw)S.tempPw={};S.tempPw[n]=true;sv();fbSaveTemps();hasPw=true;}
+if(!hasPw&&!everLogged){S.passwords[n]='123456@';if(!S.tempPw)S.tempPw={};S.tempPw[n]=true;_pendIsTempPw=true;sv();fbSaveTemps();hasPw=true;}
 // Máy mới nhưng đã từng đăng nhập → tạo MK tạm gửi tự động nếu có thông tin liên hệ
 if(!hasPw&&everLogged){
 const tgId=getPersonTgId(n);const hasTgOk=tgId&&S.tgBot;const recE=S.recEmails[n]||mem?.email;
-if(hasTgOk||recE){const pw=genPw();S.passwords[n]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[n]=true;sv();fbSaveTemps();hasPw=true;
+if(hasTgOk||recE){const pw=genPw();S.passwords[n]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[n]=true;_pendIsTempPw=true;sv();fbSaveTemps();hasPw=true;
 const via=hasTgOk?'Telegram':'Email';
 if(hasTgOk){sendTg(tgId,'<b>[MẬT KHẨU TẠM]</b>\n\nXin chào '+n+',\n\nĐăng nhập máy mới.\nMật khẩu tạm: <code>'+pw+'</code>\n\nVui lòng đổi MK ngay sau khi đăng nhập.');}
 else{sendEmail(recE,'[MẬT KHẨU TẠM] Phòng TH KTNN KV1','Xin chào '+n+',\n\nĐăng nhập máy mới.\nMật khẩu tạm của bạn là: '+pw+'\n\nVui lòng đổi mật khẩu ngay sau khi đăng nhập.');}
@@ -657,7 +658,7 @@ document.getElementById('pwO').classList.add('show');setTimeout(()=>document.get
 function skipEm(){document.getElementById('emO').classList.remove('show');loginAs(pendL,true);}
 function sPw(){const pw=document.getElementById('pwI').value;if(!pw){document.getElementById('pwE').textContent='❌ Vui lòng nhập mật khẩu';document.getElementById('pwE').style.display='block';return;}
 if(pw===S.passwords[pendL]){document.getElementById('pwO').classList.remove('show');
-const isTempPw=S.tempPw&&S.tempPw[pendL];loginAs(pendL,isTempPw);}
+loginAs(pendL,_pendIsTempPw);}
 else{document.getElementById('pwE').textContent='❌ Sai mật khẩu';document.getElementById('pwE').style.display='block';document.getElementById('pwI').value='';document.getElementById('pwI').focus();}}
 function cPw(){document.getElementById('pwO').classList.remove('show');pendL=null;}
 function fgPw(){if(!pendL)return;const tgId=getPersonTgId(pendL);const mem=S.mem.find(x=>x.name===pendL);const recE=S.recEmails[pendL]||mem?.email;
