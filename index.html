@@ -572,7 +572,7 @@ mem:[
 ],gk:'',gmodel:'gemini-2.5-flash',
 fb:{apiKey:'AIzaSyDa0e23K-e52afXRCLyeZgQqO9SBvKVCNk',authDomain:'task-tracker-pth.firebaseapp.com',databaseURL:'https://task-tracker-pth-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'task-tracker-pth',appId:'1:662467825576:web:2e0089a1db8e8bd9cfceb5'},
 ejs:{sid:'service_iqw0148',tid:'template_1324jql',pk:'AN0aw6R_Ck3-Nz9tM'}};
-S.mode='dept';S.personalTasks=[];S.personalReminders={};
+S.mode='dept';S.personalTasks=[];S.personalReminders={};S.deptEvents=[];
 let rpChart=null,editIdx=-1,fbRef=null,fbPersonalRef=null,fbInited=false,fbSyncing=false;
 // === Personal Mode ===
 function toggleMode(){S.mode=S.mode==='dept'?'personal':'dept';
@@ -1192,31 +1192,40 @@ document.getElementById('rpPr').style.display=isP?'none':'';
 // Nếu đang ở tab ẩn → chuyển về rptMain
 const activeTab=document.querySelector('[data-rt].tb.on');
 if(activeTab&&activeTab.style.display==='none')sRptTab('rptMain');
-// Main: mode phòng = S.tasks, mode cá nhân = CV phòng(user) + CV cá nhân
+// Filter helper: done theo hạn CV trong khoảng thời gian, doing/overdue hiện tất cả
+function _filterByDeadline(tasks,from,to,personFilter){
+let src=tasks;
+if(personFilter&&personFilter!=='all')src=src.filter(t=>t.leader===personFilter||(t.collaborators||[]).includes(personFilter));
+const doing=src.filter(t=>t.status!=='done');
+const done=src.filter(t=>{if(t.status!=='done')return false;const dl=t.deadline?new Date(t.deadline):new Date(t.date);return dl>=from&&dl<=to;});
+return[...doing,...done];}
+// Main
 let fl;
 if(isP){
-// Gộp CV phòng mà user tham gia + CV cá nhân
-const myDeptAll=S.tasks.filter(t=>{const d=new Date(t.date);if(d<from||d>to)return false;return t.leader===S.u||(t.collaborators||[]).includes(S.u);});
-const myPersAll=S.personalTasks.filter(t=>{const d=new Date(t.date);return d>=from&&d<=to;});
-[...myDeptAll,...myPersAll].forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
-fl=[...myDeptAll,...myPersAll];
+const myDeptAll=S.tasks.filter(t=>t.leader===S.u||(t.collaborators||[]).includes(S.u));
+const myPersAll=S.personalTasks.filter(t=>t.taskType!=='event');
+const allP=[...myDeptAll,...myPersAll];
+allP.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
+fl=_filterByDeadline(allP,from,to);
 }else{
 S.tasks.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
-fl=S.tasks.filter(t=>{const d=new Date(t.date);if(d<from||d>to)return false;if(pr!=='all'&&t.leader!==pr&&!(t.collaborators||[]).includes(pr))return false;return true;});}
+fl=_filterByDeadline(S.tasks,from,to,pr);}
 const tot=fl.length,dn=fl.filter(t=>t.status==='done').length,dg=fl.filter(t=>t.status==='doing').length,ov=fl.filter(t=>t.status==='overdue').length,rate=tot?Math.round(dn/tot*100):0;
 document.getElementById('rpN').innerHTML=_rptCards(tot,dn,dg,ov,rate);
 if(rpChart)rpChart.destroy();rpChart=_rptChart('rpC',dn,dg,ov);
 // Personal mode: render thêm tab CV phòng + CV cá nhân
 if(isP){
 // CV phòng (tasks mà user tham gia)
-const myDept=S.tasks.filter(t=>{const d=new Date(t.date);if(d<from||d>to)return false;return t.leader===S.u||(t.collaborators||[]).includes(S.u);});
-myDept.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
+const myDeptSrc=S.tasks.filter(t=>t.leader===S.u||(t.collaborators||[]).includes(S.u));
+myDeptSrc.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
+const myDept=_filterByDeadline(myDeptSrc,from,to);
 const dTot=myDept.length,dDn=myDept.filter(t=>t.status==='done').length,dDg=myDept.filter(t=>t.status==='doing').length,dOv=myDept.filter(t=>t.status==='overdue').length,dRate=dTot?Math.round(dDn/dTot*100):0;
 document.getElementById('rpND').innerHTML=_rptCards(dTot,dDn,dDg,dOv,dRate);
 if(rpChartD)rpChartD.destroy();rpChartD=_rptChart('rpCD',dDn,dDg,dOv);
-// CV cá nhân (chỉ personalTasks, loại bỏ event nhắc nhở)
-const myPers=S.personalTasks.filter(t=>{if(t.taskType==='event')return false;const d=new Date(t.date);return d>=from&&d<=to;});
-myPers.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
+// CV cá nhân
+const myPersSrc=S.personalTasks.filter(t=>t.taskType!=='event');
+myPersSrc.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now)t.status='overdue';});
+const myPers=_filterByDeadline(myPersSrc,from,to);
 const pTot=myPers.length,pDn=myPers.filter(t=>t.status==='done').length,pDg=myPers.filter(t=>t.status==='doing').length,pOv=myPers.filter(t=>t.status==='overdue').length,pRate=pTot?Math.round(pDn/pTot*100):0;
 document.getElementById('rpNP').innerHTML=_rptCards(pTot,pDn,pDg,pOv,pRate);
 if(rpChartP)rpChartP.destroy();rpChartP=_rptChart('rpCP',pDn,pDg,pOv);}}
@@ -1244,10 +1253,12 @@ srcTasks.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now
 let all=[...srcTasks];
 if(!isP&&fp!=='all')all=all.filter(t=>t.leader===fp||(t.collaborators||[]).includes(fp));
 if(kw)all=all.filter(t=>(t.name||'').toLowerCase().includes(kw)||(t.notes||'').toLowerCase().includes(kw)||(t.product||'').toLowerCase().includes(kw));
-if(dFrom)all=all.filter(t=>{const d=t.assignedDate||t.date||'';return d>=dFrom;});
-if(dTo)all=all.filter(t=>{const d=t.assignedDate||t.date||'';return d<=dTo;});
+// CV chưa xong: hiện tất cả (chỉ filter keyword/người), CV done: filter theo deadline trong khoảng ngày
 const inc=all.filter(t=>t.status!=='done').sort((a,b)=>{if(a.status==='overdue'&&b.status!=='overdue')return-1;if(b.status==='overdue'&&a.status!=='overdue')return 1;return new Date(a.deadline||'9999')-new Date(b.deadline||'9999');});
-const done=all.filter(t=>t.status==='done').sort((a,b)=>new Date(b.completedAt||b.date||0)-new Date(a.completedAt||a.date||0));
+let done=all.filter(t=>t.status==='done');
+if(dFrom)done=done.filter(t=>{const dl=t.deadline||t.assignedDate||t.date||'';return dl>=dFrom;});
+if(dTo)done=done.filter(t=>{const dl=t.deadline||t.assignedDate||t.date||'';return dl<=dTo+'T23:59:59';});
+done.sort((a,b)=>new Date(b.completedAt||b.date||0)-new Date(a.completedAt||a.date||0));
 document.getElementById('cT').textContent=srcTasks.length;
 document.getElementById('fP').style.display=isP?'none':'';
 // Render: sub=pers dùng tRP (không cột SP/Hệ số/Phụ trách), sub=dept hoặc all dùng tR
@@ -2136,8 +2147,10 @@ function calToday(){const now=new Date();calMonth=now.getMonth();calYear=now.get
 function calPick(d){calSelDay=d;rCal();}
 function getTasksForDate(dateStr){
 const src=isPersonal()?S.personalTasks:S.tasks;
-return src.filter(t=>{if(!t.deadline)return false;
-const dl=t.deadline.substring(0,10);return dl===dateStr;});}
+const result=src.filter(t=>{if(!t.deadline)return false;return t.deadline.substring(0,10)===dateStr;});
+// Thêm nhắc nhở phòng
+if(S.deptEvents){S.deptEvents.forEach(t=>{if(t.deadline&&t.deadline.substring(0,10)===dateStr)result.push({...t,taskType:'event',_isDept:true});});}
+return result;}
 function rCal(){const c=document.getElementById('calContent');
 const now=new Date();const todayD=now.getDate(),todayM=now.getMonth(),todayY=now.getFullYear();
 const first=new Date(calYear,calMonth,1);const startDow=(first.getDay()+6)%7;// 0=Mon
@@ -2171,7 +2184,7 @@ if(cvCount>0)h+='<span class="cv-dot">'+cvCount+'</span>';
 h+='</div>';}
 h+='</div>';
 // Nút thêm nhắc nhở
-h+='<div style="margin-top:8px;text-align:center"><button class="btn btn-s btn-o" onclick="toggleCalEvt()" style="font-size:12px">⏰ Thêm nhắc nhở</button><div style="font-size:9px;color:var(--t3);margin-top:2px">Nhắc riêng cho bạn, không ảnh hưởng phòng</div></div>';
+h+='<div style="margin-top:8px;text-align:center"><button class="btn btn-s btn-o" onclick="toggleCalEvt()" style="font-size:12px">⏰ Thêm nhắc nhở</button><div style="font-size:9px;color:var(--t3);margin-top:2px">'+(isPersonal()?'Nhắc riêng cho bạn':'Nhắc cho cả phòng (ghi tên người tạo)')+'</div></div>';
 // Chi tiết ngày được chọn
 if(calSelDay>0){
 const sd=calSelDay,sm=calMonth+1,sy=calYear;
@@ -2213,15 +2226,23 @@ h+='<input type="text" id="calEvtName" placeholder="Nội dung nhắc nhở..." 
 h+='<input type="datetime-local" id="calEvtTime" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:6px"/>';
 h+='<input type="text" id="calEvtNote" placeholder="Ghi chú (tuỳ chọn)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:6px"/>';
 h+='<button class="btn btn-p btn-s" onclick="addCalEvt()">➕ Thêm nhắc nhở</button></div>';
-// Danh sách nhắc nhở sự kiện
-const evts=S.personalTasks.filter(t=>t.taskType==='event').sort((a,b)=>new Date(a.deadline||'9999')-new Date(b.deadline||'9999'));
-if(evts.length){
-h+='<div style="margin-top:10px"><div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px">⏰ Nhắc nhở sự kiện ('+evts.length+')</div>';
-evts.forEach((t,idx)=>{const gi=S.personalTasks.indexOf(t);const isDone=t.status==='done';
+// Danh sách nhắc nhở
+const allEvts=[];
+// Nhắc nhở phòng
+if(S.deptEvents){S.deptEvents.forEach((t,i)=>{allEvts.push({...t,_idx:i,_isDept:true});});}
+// Nhắc nhở cá nhân
+S.personalTasks.filter(t=>t.taskType==='event').forEach(t=>{allEvts.push({...t,_idx:S.personalTasks.indexOf(t),_isDept:false});});
+allEvts.sort((a,b)=>new Date(a.deadline||'9999')-new Date(b.deadline||'9999'));
+if(allEvts.length){
+h+='<div style="margin-top:10px"><div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px">⏰ Nhắc nhở ('+allEvts.length+')</div>';
+allEvts.forEach(t=>{const isDone=t.status==='done';
 const dlDate=t.deadline?new Date(t.deadline):null;const isPast=dlDate&&dlDate<now;
 const stIcon=isDone?'✅':isPast?'⏰':'🔔';
 const stColor=isDone?'var(--green)':isPast?'var(--t3)':'var(--amber)';
-h+='<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--inp);border:1px solid var(--b);border-radius:6px;margin-bottom:4px;font-size:11px'+(isDone?';opacity:.6':'')+'"><span>'+stIcon+'</span><div style="flex:1"><div style="font-weight:500">'+esc(t.name)+'</div><div style="font-size:10px;color:'+stColor+'">'+fDLt(t.deadline)+(t.notes?' · '+esc(t.notes):'')+'</div></div><span style="cursor:pointer;font-size:13px" onclick="delCalEvt('+gi+')" title="Xoá">🗑️</span></div>';});
+const tag=t._isDept?'<span style="font-size:8px;background:var(--blg);color:var(--blue);padding:1px 4px;border-radius:3px;margin-left:4px">Phòng</span>':'<span style="font-size:8px;background:var(--pg);color:var(--purple);padding:1px 4px;border-radius:3px;margin-left:4px">Cá nhân</span>';
+const creator=t._isDept&&t.creator?'<span style="font-size:9px;color:var(--t3)"> · '+esc(t.creator)+'</span>':'';
+const canDel=t._isDept?S.adm||t.creator===S.u:true;
+h+='<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--inp);border:1px solid var(--b);border-radius:6px;margin-bottom:4px;font-size:11px'+(isDone?';opacity:.6':'')+'"><span>'+stIcon+'</span><div style="flex:1"><div style="font-weight:500">'+esc(t.name)+tag+'</div><div style="font-size:10px;color:'+stColor+'">'+fDLt(t.deadline)+creator+(t.notes?' · '+esc(t.notes):'')+'</div></div>'+(canDel?'<span style="cursor:pointer;font-size:13px" onclick="delCalEvt('+t._idx+','+t._isDept+')" title="Xoá">🗑️</span>':'')+'</div>';});
 h+='</div>';}
 c.innerHTML=h;}
 function toggleCalEvt(){const f=document.getElementById('calEvtForm');if(f)f.style.display=f.style.display==='none'?'':'none';
@@ -2231,13 +2252,22 @@ if(dt&&!dt.value)dt.value=calYear+'-'+p2(calMonth+1)+'-'+p2(calSelDay)+'T09:00';
 function addCalEvt(){const name=document.getElementById('calEvtName')?.value.trim();
 const time=document.getElementById('calEvtTime')?.value;const note=document.getElementById('calEvtNote')?.value.trim()||'';
 if(!name){toast('Nhập nội dung nhắc nhở','er');return;}if(!time){toast('Chọn thời gian','er');return;}
-S.personalTasks.push({id:Date.now(),name:name,leader:S.u||'',collaborators:[],date:new Date().toISOString().slice(0,10),
-assignedDate:new Date().toISOString().slice(0,10),deadline:time.replace('T',' '),status:'doing',completedAt:'',
-notes:note,product:'',coefficient:200,taskType:'event'});
-sv();fbSavePersonalTasks();toast('⏰ Đã thêm nhắc nhở','ok');rCal();}
-function delCalEvt(gi){if(gi<0||gi>=S.personalTasks.length)return;
+const evt={id:Date.now(),name:name,creator:S.u||'',deadline:time.replace('T',' '),notes:note,status:'doing',completedAt:'',date:new Date().toISOString().slice(0,10),taskType:'event'};
+if(isPersonal()){
+S.personalTasks.push({...evt,leader:S.u||'',collaborators:[],assignedDate:new Date().toISOString().slice(0,10),product:'',coefficient:200});
+sv();fbSavePersonalTasks();
+}else{
+if(!S.deptEvents)S.deptEvents=[];
+S.deptEvents.push(evt);sv();fbSaveMeta('deptEvents',S.deptEvents);}
+toast('⏰ Đã thêm nhắc nhở','ok');rCal();}
+function delCalEvt(gi,isDept){
+if(isDept){if(!S.deptEvents||gi<0||gi>=S.deptEvents.length)return;
+if(!confirm('Xoá nhắc nhở phòng "'+S.deptEvents[gi].name.substring(0,40)+'"?'))return;
+S.deptEvents.splice(gi,1);sv();fbSaveMeta('deptEvents',S.deptEvents.length?S.deptEvents:null);}
+else{if(gi<0||gi>=S.personalTasks.length)return;
 if(!confirm('Xoá nhắc nhở "'+S.personalTasks[gi].name.substring(0,40)+'"?'))return;
-fbSyncing=true;S.personalTasks.splice(gi,1);sv();fbSavePersonalTasks();rCal();toast('Đã xoá nhắc nhở','ok');}
+fbSyncing=true;S.personalTasks.splice(gi,1);sv();fbSavePersonalTasks();}
+rCal();toast('Đã xoá nhắc nhở','ok');}
 function rAll(){updateFormForMode();rTasks();rRpt();uSt();rPend();initExport();initSummary();updateReminders();}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&document.activeElement===document.getElementById('cmdIn')){e.preventDefault();handleCmd();}});
 // Gia hạn session khi user tương tác (click/gõ phím) — reset timeout 2h
