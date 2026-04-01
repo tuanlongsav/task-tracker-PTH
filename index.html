@@ -623,11 +623,14 @@ document.getElementById('pwSub').innerHTML='<strong>'+esc(n)+'</strong><br><span
 document.getElementById('pwI').placeholder='Mật khẩu...';
 document.getElementById('pfgLink').style.display='inline-block';
 document.getElementById('pwO').classList.add('show');setTimeout(()=>document.getElementById('pwI').focus(),80);return;}
+// Kiểm tra nếu đang dùng MK tạm (từ Firebase sync hoặc vừa gán)
+if(S.tempPw&&S.tempPw[n])_pendIsTempPw=true;
 // Hiện form đăng nhập
 document.getElementById('pwI').value='';document.getElementById('pwE').style.display='none';document.getElementById('fgO').style.display='none';
-const isFirst=S.tempPw&&S.tempPw[n]&&S.passwords[n]==='123456@';
+const isFirst=_pendIsTempPw;
 document.getElementById('pwTitle').textContent='🔐 Đăng nhập';
-document.getElementById('pwSub').innerHTML=isFirst?'Lần đầu đăng nhập cho <strong>'+esc(n)+'</strong><br>Mật khẩu mặc định: <code style="background:var(--c3);padding:2px 8px;border-radius:4px;font-size:15px;letter-spacing:1px">123456@</code><br><span style="font-size:10px;color:var(--t3)">Bắt buộc đổi MK sau khi đăng nhập</span>':'Nhập mật khẩu cho <strong>'+esc(n)+'</strong>';
+const isDefault=S.passwords[n]==='123456@';
+document.getElementById('pwSub').innerHTML=isFirst?(isDefault?'Lần đầu đăng nhập cho <strong>'+esc(n)+'</strong><br>Mật khẩu mặc định: <code style="background:var(--c);padding:2px 8px;border-radius:4px;font-size:15px;letter-spacing:1px">123456@</code><br><span style="font-size:10px;color:var(--t3)">Bắt buộc đổi MK sau khi đăng nhập</span>':'Đăng nhập bằng mật khẩu tạm cho <strong>'+esc(n)+'</strong><br><span style="font-size:10px;color:var(--amber)">Bắt buộc đổi MK sau khi đăng nhập</span>'):'Nhập mật khẩu cho <strong>'+esc(n)+'</strong>';
 document.getElementById('pwI').placeholder='Mật khẩu...';
 const recE=S.recEmails[n]||mem?.email;const hasTg=!!(S.tgChats&&S.tgChats[n]);
 document.getElementById('pfgLink').style.display='inline-block';
