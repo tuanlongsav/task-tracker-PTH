@@ -1253,9 +1253,11 @@ srcTasks.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now
 let all=[...srcTasks];
 if(!isP&&fp!=='all')all=all.filter(t=>t.leader===fp||(t.collaborators||[]).includes(fp));
 if(kw)all=all.filter(t=>(t.name||'').toLowerCase().includes(kw)||(t.notes||'').toLowerCase().includes(kw)||(t.product||'').toLowerCase().includes(kw));
-// CV chưa xong: hiện tất cả (chỉ filter keyword/người), CV done: filter theo deadline trong khoảng ngày
+// CV chưa xong: hiện tất cả, CV done: filter theo deadline trong khoảng thời gian TH
 const inc=all.filter(t=>t.status!=='done').sort((a,b)=>{if(a.status==='overdue'&&b.status!=='overdue')return-1;if(b.status==='overdue'&&a.status!=='overdue')return 1;return new Date(a.deadline||'9999')-new Date(b.deadline||'9999');});
-let done=all.filter(t=>t.status==='done');
+const{from:rFrom,to:rTo}=getRptRange();
+let done=all.filter(t=>{if(t.status!=='done')return false;
+const dl=t.deadline?new Date(t.deadline):new Date(t.date);return dl>=rFrom&&dl<=rTo;});
 if(dFrom)done=done.filter(t=>{const dl=t.deadline||t.assignedDate||t.date||'';return dl>=dFrom;});
 if(dTo)done=done.filter(t=>{const dl=t.deadline||t.assignedDate||t.date||'';return dl<=dTo+'T23:59:59';});
 done.sort((a,b)=>new Date(b.completedAt||b.date||0)-new Date(a.completedAt||a.date||0));
