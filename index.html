@@ -547,7 +547,7 @@ if(logoSpan)logoSpan.textContent=S.mode==='personal'?'Công việc cá nhân':'B
 // Ẩn/hiện sections
 const deptOnly=S.mode==='personal';
 document.querySelectorAll('[data-rt="rptMem"]').forEach(el=>el.style.display=deptOnly?'none':'');
-const exportSec=document.getElementById('exportSec');if(exportSec)exportSec.style.display=deptOnly?'none':'';
+// exportSec ẩn/hiện được xử lý bởi initExport() trong rAll()
 // Tab chờ duyệt: ẩn khi personal
 document.querySelectorAll('.tb[data-t="pending"]').forEach(el=>el.style.display=deptOnly?'none':'');
 if(deptOnly&&document.querySelector('.tb[data-t="pending"].on'))sTab('tasks');
@@ -861,14 +861,14 @@ function closeSt(){document.getElementById('stOv').classList.remove('show');}
 function openNt(){document.getElementById('ntOv').classList.add('show');rNt();}
 function closeNt(){document.getElementById('ntOv').classList.remove('show');}
 function buildNotifs(){const now=new Date();const notifs=[];
-if(S.reminders){Object.keys(S.reminders).forEach(key=>{const r=S.reminders[key];
+// Mode phòng: hiện thông báo phòng; Mode cá nhân: hiện thông báo cá nhân
+if(!isPersonal()&&S.reminders){Object.keys(S.reminders).forEach(key=>{const r=S.reminders[key];
 const t=S.tasks.find(x=>String(x.id)===key);if(!t)return;
 const isMyTask=S.adm||t.leader===S.u||(t.collaborators||[]).includes(S.u);
 if(!isMyTask)return;
 const h=Math.abs((new Date(r.deadline)-now)/36e5);
 notifs.push({type:r.type==='overdue'?'overdue':'soon',gi:r.taskIndex,task:t,hours:h,lastNotified:r.lastNotified,personal:false});});}
-// Personal reminders
-if(S.personalReminders){Object.keys(S.personalReminders).forEach(key=>{const r=S.personalReminders[key];
+if(isPersonal()&&S.personalReminders){Object.keys(S.personalReminders).forEach(key=>{const r=S.personalReminders[key];
 const t=S.personalTasks.find(x=>String(x.id)===key);if(!t)return;
 const h=Math.abs((new Date(r.deadline)-now)/36e5);
 notifs.push({type:r.type==='overdue'?'overdue':'soon',gi:r.taskIndex,task:t,hours:h,lastNotified:r.lastNotified,personal:true});});}
@@ -1520,7 +1520,7 @@ function getExRange(){const mode=document.getElementById('exMode').value;const y
 if(mode==='year')return{from:new Date(y,0,1),to:new Date(y,11,31,23,59,59),label:'Năm '+y};
 const q=+document.getElementById('exQ').value;const r=getQRange(q,y);r.label='Q'+q+'/'+y;return r;}
 function initExport(){
-const canExp=canExport();
+const canExp=canExport()&&!isPersonal();
 document.getElementById('exportSec').style.display=canExp?'':'none';
 if(!canExp)return;
 const y=new Date().getFullYear();
