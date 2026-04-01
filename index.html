@@ -524,7 +524,7 @@ tbody td{padding:8px;font-size:12px}
 </div></div></div></div>
 <div class="tabs">
 <button class="tb on" data-t="tasks" onclick="sTab('tasks')">📋 Công việc <span class="cn" id="cT">0</span></button>
-<button class="tb" onclick="toggleSearchPanel()">🔍 Tìm kiếm</button>
+<button class="tb" id="searchTabBtn" onclick="toggleSearchPanel()">🔍 Tìm kiếm</button>
 <button class="tb" data-t="pending" onclick="sTab('pending')">⏳ Chờ duyệt <span class="cn" id="cP">0</span></button>
 </div>
 <div id="t-tasks" class="tc on">
@@ -1251,8 +1251,10 @@ function _rptChart(canvasId,dn,dg,ov){return new Chart(document.getElementById(c
 // === Tìm kiếm CV ===
 let _taskSub='all',_searchActive=false;
 function toggleSearchPanel(){const p=document.getElementById('searchPanel');
-p.style.display=p.style.display==='none'?'':'none';
-if(p.style.display===''){initSearchSelects();}}
+const show=p.style.display==='none';
+p.style.display=show?'':'none';
+document.getElementById('searchTabBtn').classList.toggle('on',show);
+if(show)initSearchSelects();}
 function initSearchSelects(){const y=new Date().getFullYear();
 const fY=document.getElementById('fYear');
 if(!fY.options.length){fY.innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>';}
