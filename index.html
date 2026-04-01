@@ -1725,6 +1725,14 @@ XLSX.writeFile(wb,'BangChamDiem_'+modeTag+'_'+pr.replace(/\s+/g,'_')+'.xlsx');
 toast('Đã xuất báo cáo cho '+pr+' ('+label+')','ok');}
 function rAll(){rTasks();rRpt();uSt();rPend();initExport();initSummary();updateReminders();}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&document.activeElement===document.getElementById('cmdIn')){e.preventDefault();handleCmd();}});
-ld();initQuickLogin();
+ld();
+// Auto-login: nếu đã đăng nhập trước + có MK local hoặc hash Firebase → vào luôn
+(function autoLogin(){const last=localStorage.getItem('lastUser');
+if(!last)return initQuickLogin();
+const mem=S.mem.find(m=>m.name===last);if(!mem)return initQuickLogin();
+const hasPw=S.passwords[last];const hasHash=S.pwHash&&S.pwHash[last];
+const isTmp=S.tempPw&&S.tempPw[last];
+if((hasPw||hasHash)&&!isTmp){loginAs(last,false);}
+else{initQuickLogin();}})();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW:',e));}
 </script></body></html>
