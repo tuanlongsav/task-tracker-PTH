@@ -187,14 +187,21 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.5}
 .ef label{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;display:block}
 .ef input,.ef select,.ef textarea{width:100%;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:9px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none}
 .ef textarea{min-height:60px;resize:vertical}
-@media(max-width:768px){.rnums{grid-template-columns:repeat(2,1fr)}.rnb-tot{grid-column:span 2;flex-direction:row;gap:12px;padding:16px 24px}.rnb-tot .rv{font-size:64px}.rnb-tot .rl{font-size:20px;margin-top:0}.rrow{flex-direction:column}.cw{flex-direction:column}.bsend{width:100%}.main{padding:8px}.acard{padding:20px 14px}.mf,.ef{grid-template-columns:1fr}.pnl{width:100%}.rch{flex:1;max-width:100%}.logo span{display:none}}
+@media(max-width:768px){.rnums{grid-template-columns:repeat(2,1fr)}.rnb-tot{grid-column:span 2;flex-direction:row;gap:12px;padding:16px 24px}.rnb-tot .rv{font-size:64px}.rnb-tot .rl{font-size:20px;margin-top:0}.rrow{flex-direction:column}.cw{flex-direction:column}.bsend{width:100%}.main{padding:8px}.acard{padding:20px 14px}.mf,.ef{grid-template-columns:1fr}.pnl{width:100%}.rch{flex:1;max-width:100%}.logo span{display:none}
+.hdr-in{flex-wrap:wrap;height:auto;padding:8px 0;gap:6px}.hdr-r{flex-wrap:wrap;gap:5px;justify-content:flex-end}
+.mode-btn{font-size:10px;padding:4px 8px}.ub .uname{max-width:80px;overflow:hidden;text-overflow:ellipsis}}
 @media(max-width:420px){
 body{font-size:13px}
-.hdr{padding:0 10px}
-.hdr-in{height:50px}
-.logo-i{width:28px;height:28px;font-size:14px}
-.hb{width:32px;height:32px;font-size:14px}
-.ub{font-size:12px;padding:4px 8px 4px 6px}
+.hdr{padding:0 8px}
+.hdr-in{height:auto;padding:6px 0;gap:4px}
+.logo-i{width:26px;height:26px;font-size:13px}
+.hdr-r{gap:4px}
+.hb{width:30px;height:30px;font-size:13px}
+.mode-btn{font-size:9px;padding:3px 6px;gap:2px}
+.ub{font-size:11px;padding:3px 6px 3px 5px}
+.ub .dot{width:6px;height:6px}
+.rt{font-size:8px;padding:1px 4px}
+.btn-logout{font-size:10px;padding:4px 8px}
 .main{padding:6px}
 .rpt{padding:10px;border-radius:8px}
 .rpt h3{font-size:14px}
@@ -226,6 +233,13 @@ tbody td{padding:8px;font-size:12px}
 .pnl{padding:12px}
 .sx{padding:10px}
 .ebox{padding:16px 14px;max-width:95vw}
+.cal-cell{min-height:40px;padding:4px 1px}
+.cal-cell .cd{font-size:13px}
+.cal-cell .cl{font-size:8px}
+.cal-detail{padding:10px}
+.cal-detail h3{font-size:13px}
+.cal-info{font-size:11px}
+.cal-hd span{font-size:9px;padding:1px 4px}
 }
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .cal-nav button{background:var(--c);border:1px solid var(--b);border-radius:6px;width:32px;height:32px;color:var(--t1);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
@@ -390,7 +404,7 @@ tbody td{padding:8px;font-size:12px}
 <div class="hb" onclick="openNt()" title="Thông báo">🔔<span id="nC" class="bdg hd">0</span></div>
 <button class="mode-btn" id="modeBtn" onclick="toggleMode()" title="Chuyển chế độ Phòng / Cá nhân">👤 Cá nhân</button>
 <div class="ub"><span class="dot"></span><span id="dN">user</span><span id="rT" class="rt a">QTV</span></div>
-<button class="btn btn-s btn-o" onclick="logout()">Thoát</button>
+<button class="btn btn-s btn-o btn-logout" onclick="logout()">Thoát</button>
 </div></div></div>
 <div class="main" id="mainC">
 <div class="rpt">
