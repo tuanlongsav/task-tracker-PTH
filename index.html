@@ -524,6 +524,7 @@ tbody td{padding:8px;font-size:12px}
 </div></div></div></div>
 <div class="tabs">
 <button class="tb on" data-t="tasks" onclick="sTab('tasks')">📋 Công việc <span class="cn" id="cT">0</span></button>
+<button class="tb" onclick="toggleSearchPanel()">🔍 Tìm kiếm</button>
 <button class="tb" data-t="pending" onclick="sTab('pending')">⏳ Chờ duyệt <span class="cn" id="cP">0</span></button>
 </div>
 <div id="t-tasks" class="tc on">
@@ -533,18 +534,27 @@ tbody td{padding:8px;font-size:12px}
 <button class="tb" data-pt="dept" onclick="sTaskSub('dept')">🏢 CV phòng</button>
 <button class="tb" data-pt="pers" onclick="sTaskSub('pers')">👤 CV cá nhân</button>
 </div>
-<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--t2)">
-<span>📅 CV hoàn thành theo:</span><span id="pTimeLabel" style="font-weight:600;color:var(--t1)"></span>
-<span style="color:var(--t3)">(đổi tại Tổng hợp theo dõi)</span>
 </div>
+<div id="searchPanel" style="display:none;margin-bottom:8px;padding:10px;background:var(--c);border:1px solid var(--b);border-radius:8px">
+<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px">
+<input type="text" id="fSearch" placeholder="Tìm nội dung CV..." style="flex:1;min-width:150px;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 10px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"/>
+<select id="fP" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="all">Tất cả người</option></select>
 </div>
-<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;padding:8px 10px;background:var(--c2);border-radius:8px;border:1px solid var(--b)">
-<input type="text" id="fSearch" placeholder="Tìm nội dung CV..." oninput="rAll()" style="flex:1;min-width:150px;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 10px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"/>
-<select id="fP" onchange="syncFilter('fP');rAll()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"><option value="all">Tất cả người</option></select>
-<input type="date" id="fDateFrom" onchange="rAll()" title="Từ ngày" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:5px 8px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"/>
-<span style="font-size:11px;color:var(--t3)">→</span>
-<input type="date" id="fDateTo" onchange="rAll()" title="Đến ngày" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:5px 8px;font-size:11px;color:var(--t1);font-family:inherit;outline:none"/>
-<button class="btn btn-s btn-o" onclick="document.getElementById('fSearch').value='';document.getElementById('fP').value='all';document.getElementById('fDateFrom').value='';document.getElementById('fDateTo').value='';rAll();" style="font-size:10px;padding:5px 8px">Xóa lọc</button>
+<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px">
+<select id="fTimeMode" onchange="onFTimeMode()" style="background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none">
+<option value="all">Tất cả thời gian</option><option value="week">Theo tuần</option><option value="month">Theo tháng</option><option value="quarter">Theo quý</option><option value="year">Theo năm</option><option value="custom">Tự chọn</option></select>
+<select id="fWeek" style="display:none;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"></select>
+<select id="fMonth" style="display:none;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"></select>
+<select id="fQuarter" style="display:none;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select>
+<select id="fYear" style="display:none;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:7px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"></select>
+<input type="date" id="fDateFrom" style="display:none;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"/>
+<span id="fDateDash" style="display:none;font-size:11px;color:var(--t3)">→</span>
+<input type="date" id="fDateTo" style="display:none;background:var(--inp);border:1px solid var(--b);border-radius:5px;padding:6px 8px;font-size:12px;color:var(--t1);font-family:inherit;outline:none"/>
+</div>
+<div style="display:flex;gap:6px">
+<button class="btn btn-p btn-s" onclick="doSearch()">🔍 Tìm kiếm</button>
+<button class="btn btn-o btn-s" onclick="clearSearch()">Xóa lọc</button>
+</div>
 </div>
 <div class="tw"><div class="thb"><h3>⏳ Chưa hoàn thành</h3></div><div class="tsc"><table><thead><tr><th>STT</th><th>Nội dung</th><th>Sản phẩm</th><th>Hệ số</th><th>Phụ trách</th><th>Phối hợp</th><th>Ngày giao</th><th>Hạn HT</th><th>TT</th><th>Ghi chú</th><th>✏️</th></tr></thead><tbody id="tbI"></tbody></table></div></div>
 <div class="tw"><div class="thb"><h3>✅ Đã hoàn thành</h3></div><div class="tsc"><table><thead><tr><th>STT</th><th>Nội dung</th><th>Sản phẩm</th><th>Hệ số</th><th>Phụ trách</th><th>Phối hợp</th><th>Ngày giao</th><th>Ngày HT</th><th>TT</th><th>Ghi chú</th><th>✏️</th></tr></thead><tbody id="tbD"></tbody></table></div></div>
@@ -1238,7 +1248,41 @@ if(rpChartP)rpChartP.destroy();rpChartP=_rptChart('rpCP',pDn,pDg,pOv);}}
 function _rptCards(tot,dn,dg,ov,rate){return'<div class="rnb rnb-tot"><div class="rv" style="color:var(--blue)">'+tot+'</div><div class="rl">Công việc</div></div><div class="rnb"><div class="rv" style="color:var(--green)">'+dn+'</div><div class="rl">Xong</div></div><div class="rnb"><div class="rv" style="color:var(--amber)">'+dg+'</div><div class="rl">Đang làm</div></div><div class="rnb"><div class="rv" style="color:var(--red)">'+ov+'</div><div class="rl">Quá hạn</div></div><div class="rnb"><div class="rv" style="color:var(--purple)">'+rate+'%</div><div class="rl">Tỷ lệ</div></div>';}
 function _rptChart(canvasId,dn,dg,ov){return new Chart(document.getElementById(canvasId),{type:'doughnut',data:{labels:['Xong','Đang làm','Quá hạn'],datasets:[{data:[dn,dg,ov],backgroundColor:['#10b981','#3b82f6','#ef4444'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8b9dc3',font:{size:11},padding:8,boxWidth:12}}}}});}
 // Render tasks
-let _taskSub='all';
+// === Tìm kiếm CV ===
+let _taskSub='all',_searchActive=false;
+function toggleSearchPanel(){const p=document.getElementById('searchPanel');
+p.style.display=p.style.display==='none'?'':'none';
+if(p.style.display===''){initSearchSelects();}}
+function initSearchSelects(){const y=new Date().getFullYear();
+const fY=document.getElementById('fYear');
+if(!fY.options.length){fY.innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>';}
+const fW=document.getElementById('fWeek');
+if(!fW.options.length){const cw=getISOWeek(new Date());for(let i=1;i<=53;i++){const{from,to}=getWeekDates(y,i);fW.innerHTML+=`<option value="${i}"${i===cw?' selected':''}>Tuần ${i} (${p2(from.getDate())}/${p2(from.getMonth()+1)} - ${p2(to.getDate())}/${p2(to.getMonth()+1)})</option>`;}}
+const fM=document.getElementById('fMonth');
+if(!fM.options.length){const cm=new Date().getMonth()+1;for(let i=1;i<=12;i++)fM.innerHTML+=`<option value="${i}"${i===cm?' selected':''}>Tháng ${i}</option>`;}
+document.getElementById('fQuarter').value=Math.ceil((new Date().getMonth()+1)/3);}
+function onFTimeMode(){const m=document.getElementById('fTimeMode').value;
+document.getElementById('fWeek').style.display=m==='week'?'':'none';
+document.getElementById('fMonth').style.display=m==='month'?'':'none';
+document.getElementById('fQuarter').style.display=m==='quarter'?'':'none';
+document.getElementById('fYear').style.display=(m!=='all'&&m!=='custom')?'':'none';
+document.getElementById('fDateFrom').style.display=m==='custom'?'':'none';
+document.getElementById('fDateDash').style.display=m==='custom'?'':'none';
+document.getElementById('fDateTo').style.display=m==='custom'?'':'none';}
+function getSearchRange(){const m=document.getElementById('fTimeMode').value;
+if(m==='all')return null;
+const y=+document.getElementById('fYear').value||new Date().getFullYear();
+if(m==='week'){const w=+document.getElementById('fWeek').value;const{from,to}=getWeekDates(y,w);to.setHours(23,59,59);return{from,to};}
+if(m==='month'){const mo=+document.getElementById('fMonth').value-1;return{from:new Date(y,mo,1),to:new Date(y,mo+1,0,23,59,59)};}
+if(m==='quarter'){const q=+document.getElementById('fQuarter').value;return getQRange(q,y);}
+if(m==='year')return{from:new Date(y,0,1),to:new Date(y,11,31,23,59,59)};
+if(m==='custom'){return{from:new Date(document.getElementById('fDateFrom').value||'2000-01-01'),to:(()=>{const d=new Date(document.getElementById('fDateTo').value||'2099-12-31');d.setHours(23,59,59);return d;})()};}
+return null;}
+function doSearch(){_searchActive=true;rTasks();}
+function clearSearch(){_searchActive=false;
+document.getElementById('fSearch').value='';document.getElementById('fP').value='all';
+document.getElementById('fTimeMode').value='all';onFTimeMode();
+document.getElementById('fDateFrom').value='';document.getElementById('fDateTo').value='';rTasks();}
 function sTaskSub(v){_taskSub=v;document.querySelectorAll('[data-pt]').forEach(b=>b.classList.toggle('on',b.dataset.pt===v));rTasks();}
 function rTasks(){const fp=document.getElementById('fP').value;const now=new Date();
 const kw=(document.getElementById('fSearch').value||'').trim().toLowerCase();
@@ -1259,24 +1303,17 @@ srcTasks.forEach(t=>{if(t.status==='doing'&&t.deadline&&new Date(t.deadline)<now
 let all=[...srcTasks];
 if(!isP&&fp!=='all')all=all.filter(t=>t.leader===fp||(t.collaborators||[]).includes(fp));
 if(kw)all=all.filter(t=>(t.name||'').toLowerCase().includes(kw)||(t.notes||'').toLowerCase().includes(kw)||(t.product||'').toLowerCase().includes(kw));
-// CV chưa xong: hiện tất cả, CV done: filter theo deadline trong khoảng thời gian TH
-const inc=all.filter(t=>t.status!=='done').sort((a,b)=>{if(a.status==='overdue'&&b.status!=='overdue')return-1;if(b.status==='overdue'&&a.status!=='overdue')return 1;return new Date(a.deadline||'9999')-new Date(b.deadline||'9999');});
-const{from:rFrom,to:rTo}=getRptRange();
-let done=all.filter(t=>{if(t.status!=='done')return false;
-const dl=t.deadline?new Date(t.deadline):new Date(t.date);return dl>=rFrom&&dl<=rTo;});
-if(dFrom)done=done.filter(t=>{const dl=t.deadline||t.assignedDate||t.date||'';return dl>=dFrom;});
-if(dTo)done=done.filter(t=>{const dl=t.deadline||t.assignedDate||t.date||'';return dl<=dTo+'T23:59:59';});
+// CV chưa xong: hiện tất cả (hoặc filter nếu tìm kiếm có thời gian)
+let inc=all.filter(t=>t.status!=='done');
+let done=all.filter(t=>t.status==='done');
+const sRange=_searchActive?getSearchRange():null;
+if(sRange){
+inc=inc.filter(t=>{const dl=t.deadline?new Date(t.deadline):new Date(t.date);return dl>=sRange.from&&dl<=sRange.to;});
+done=done.filter(t=>{const dl=t.deadline?new Date(t.deadline):new Date(t.date);return dl>=sRange.from&&dl<=sRange.to;});}
+inc.sort((a,b)=>{if(a.status==='overdue'&&b.status!=='overdue')return-1;if(b.status==='overdue'&&a.status!=='overdue')return 1;return new Date(a.deadline||'9999')-new Date(b.deadline||'9999');});
 done.sort((a,b)=>new Date(b.completedAt||b.date||0)-new Date(a.completedAt||a.date||0));
-document.getElementById('cT').textContent=srcTasks.length;
+document.getElementById('cT').textContent=all.length;
 document.getElementById('fP').style.display=isP?'none':'';
-// Cập nhật label thời gian cho sub-tabs
-const ptl=document.getElementById('pTimeLabel');
-if(ptl&&isP){const m=document.getElementById('rpMode').value;const y=document.getElementById('rpYear').value;
-if(m==='week')ptl.textContent='Tuần '+document.getElementById('rpWeek').value+'/'+y;
-else if(m==='month')ptl.textContent='Tháng '+document.getElementById('rpMonth').value+'/'+y;
-else if(m==='quarter')ptl.textContent='Quý '+document.getElementById('rpQuarter').value+'/'+y;
-else if(m==='year')ptl.textContent='Năm '+y;
-else ptl.textContent=document.getElementById('rpF').value+' → '+document.getElementById('rpT').value;}
 // Render: sub=pers dùng tRP (không cột SP/Hệ số/Phụ trách), sub=dept hoặc all dùng tR
 if(isP&&usePersonalRender){
 document.getElementById('tbI').innerHTML=tRP(inc,false);
