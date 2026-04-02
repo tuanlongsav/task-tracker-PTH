@@ -360,18 +360,18 @@ tbody td{padding:8px;font-size:12px}
 <h2>⚙️ Cài đặt <span class="xp" onclick="closeSt()">✕</span></h2>
 <div class="sx admOnly"><h3>👥 Quản lý tài khoản</h3><p style="font-size:8px;color:var(--t3);margin-bottom:6px">Nhấn vào email để sửa. AI tự nhận tên viết tắt.</p><div id="mW" class="cl" style="flex-direction:column;align-items:stretch;max-height:300px;overflow-y:auto"></div>
 <div class="af" id="aF" style="margin-top:8px;border-top:1px solid var(--b);padding-top:8px"><input type="text" id="mfN" placeholder="Họ tên *"/><select id="mfR"><option>Thành viên</option><option>Phó Trưởng phòng</option><option>Trưởng phòng</option><option>Cá nhân</option><option>Test</option></select><input type="email" id="mfE" placeholder="Email"/><input type="text" id="mfNo" placeholder="Ghi chú"/><button class="btn btn-s btn-p fs" style="width:auto;justify-self:start" onclick="addM()">+ Thêm tài khoản</button></div></div>
-<div class="sx admOnly"><h3>📧 Email thông báo chung</h3>
+<div class="sx admOnly superOnly"><h3>📧 Email thông báo chung</h3>
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t2);cursor:pointer"><input type="checkbox" id="emailReminder" onchange="S.emailReminder=this.checked;sv();fbSaveMeta('emailReminder',S.emailReminder);" style="cursor:pointer"/>Bật nhắc việc qua email (tốn quota EmailJS)</label></div>
 <div id="nL" class="cl"></div><div style="display:flex;gap:4px;margin-top:4px"><input type="email" id="nNE" placeholder="Thêm..." style="flex:1;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:4px 6px;font-size:9px;color:var(--t1);font-family:inherit;outline:none"/><button class="btn btn-s btn-p" onclick="addNE()">+</button></div></div>
-<div class="sx admOnly"><h3>📱 Telegram Bot</h3>
+<div class="sx admOnly superOnly"><h3>📱 Telegram Bot</h3>
 <p style="font-size:10px;color:var(--t3);margin-bottom:6px">Gửi mật khẩu & nhắc việc qua Telegram (miễn phí, không giới hạn). Tạo bot tại @BotFather.</p>
 <input type="text" id="tgBotToken" placeholder="Bot Token (từ @BotFather)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:11px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none;margin-bottom:6px"/>
 <p style="font-size:10px;color:var(--t3);margin-bottom:4px">Nhóm Telegram nhắc việc (thêm bot vào nhóm, lấy Group Chat ID):</p>
 <input type="text" id="tgGroupId" placeholder="Group Chat ID (vd: -1001234567890)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:4px;padding:6px 8px;font-size:11px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none"/>
 </div>
-<div class="sx admOnly"><h3>🔑 Gemini API</h3><input type="password" id="gK" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none;margin-bottom:6px"/>
+<div class="sx admOnly superOnly"><h3>🔑 Gemini API</h3><input type="password" id="gK" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none;margin-bottom:6px"/>
 <h3>🤖 Model</h3><select id="gM" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:6px 8px;font-size:10px;color:var(--t1);font-family:inherit;outline:none"><option value="gemini-2.5-flash">2.5 Flash</option><option value="gemini-2.5-flash-lite">2.5 Flash Lite</option><option value="gemini-2.5-pro">2.5 Pro</option><option value="gemini-3-flash">3 Flash</option></select></div>
-<div class="sx admOnly"><h3>🔥 Firebase Database</h3>
+<div class="sx admOnly superOnly"><h3>🔥 Firebase Database</h3>
 <p style="font-size:10px;color:var(--t2);margin-bottom:6px">Dán cấu hình Firebase để đồng bộ dữ liệu giữa các máy. Lấy từ Firebase Console > Project Settings > Your apps.</p>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
 <input type="text" id="fbKey" placeholder="apiKey" style="background:var(--inp);border:1px solid var(--b);border-radius:3px;padding:5px 7px;font-size:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;outline:none"/>
@@ -382,7 +382,7 @@ tbody td{padding:8px;font-size:12px}
 </div>
 <div style="margin-top:5px;display:flex;gap:4px;align-items:center"><span id="fbStatus" style="font-size:10px;color:var(--t3)">⚪ Chưa kết nối</span></div>
 </div>
-<button class="btn btn-p admOnly" style="margin-top:3px" onclick="saveCfg()">💾 Lưu</button>
+<button class="btn btn-p admOnly superOnly" style="margin-top:3px" onclick="saveCfg()">💾 Lưu</button>
 </div></div>
 
 <div class="eov" id="expOv"><div class="ebox" style="max-width:95vw;width:1200px">
@@ -572,7 +572,7 @@ tbody td{padding:8px;font-size:12px}
 <script>
 const SEED_DATA=[];
 let S={u:null,adm:false,tasks:[],pend:[],hist:[],
-admNames:['Lê Huy Hoằng','Hoàng Tuấn Long'],
+admNames:['Lê Huy Hoằng','Hoàng Tuấn Long'],superAdmNames:['Hoàng Tuấn Long'],
 passwords:{},pwSalt:{},loggedOnce:{},exportPerm:[],
 recEmails:{},
 ne:[],emailReminder:false,tempPw:{},reminders:{},tgBot:'',tgGroup:'',tgChats:{},
@@ -834,16 +834,16 @@ document.getElementById('fgO').textContent='✅ Đã gửi MK tạm qua '+via;do
 document.getElementById('emSub').innerHTML='<strong>'+esc(pendL)+'</strong>, chọn cách nhận lại mật khẩu:';
 document.getElementById('emChoose').style.display='';document.getElementById('emEmailForm').style.display='none';document.getElementById('emTgForm').style.display='none';
 document.getElementById('pwO').classList.remove('show');document.getElementById('emO').classList.add('show');}
-function loginAs(n,forceNewPw){S.u=n;S.adm=S.admNames.includes(n);
+function loginAs(n,forceNewPw){S.u=n;S.adm=S.admNames.includes(n);S.superAdm=S.superAdmNames.includes(n);
 try{localStorage.setItem('lastUser',n);localStorage.setItem('loginTime',Date.now());
 sessionStorage.setItem('appActive','1');}catch(e){}
 if(!S.loggedOnce)S.loggedOnce={};if(!S.loggedOnce[n]){S.loggedOnce[n]=Date.now();sv();fbSaveMeta('loggedOnce',S.loggedOnce);}
 document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('mainC').style.display='block';
 document.getElementById('dN').dataset.full=n;updateHeaderName();
 const rt=document.getElementById('rT');const _pu=isPersonalUser();const _tu=isTestUser();
-rt.textContent=S.adm?'QTV':_tu?'TEST':_pu?'CN':'TV';rt.className=S.adm?'rt a':_tu?'rt ts2':_pu?'rt cn2':'rt m';
+rt.textContent=S.superAdm?'S.QTV':S.adm?'QTV':_tu?'TEST':_pu?'CN':'TV';rt.className=S.superAdm?'rt a':S.adm?'rt a':_tu?'rt ts2':_pu?'rt cn2':'rt m';
 document.getElementById('aF').style.display=S.adm?'grid':'none';
-document.getElementById('stBtn').style.display='flex';
+document.getElementById('stBtn').style.display=S.adm?'flex':'none';
 const _isPU=isPersonalUser();
 if(_isPU){S.mode='personal';document.getElementById('modeBtn').style.display='none';
 }else{S.mode='dept';document.getElementById('modeBtn').style.display='';document.getElementById('modeBtn').textContent='👤 Cá nhân';document.getElementById('modeBtn').classList.remove('personal');}
@@ -906,7 +906,7 @@ document.getElementById('quickLoginBtn').dataset.name=lastUser;
 document.getElementById('quickLogin').style.display='';
 document.getElementById('fullLogin').style.display='none';
 }else{document.getElementById('quickLogin').style.display='none';document.getElementById('fullLogin').style.display='';}}
-function logout(){restoreRealData();S.u=null;S.adm=false;document.getElementById('authScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('ns').value='';document.getElementById('userMenu')?.classList.remove('show');initQuickLogin();}
+function logout(){restoreRealData();S.u=null;S.adm=false;S.superAdm=false;document.getElementById('authScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('ns').value='';document.getElementById('userMenu')?.classList.remove('show');initQuickLogin();}
 function chPw(){const v=document.getElementById('nPw').value.trim();if(!v||v.length<4){toast('≥4 ký tự','er');return;}S.passwords[S.u]=v;if(S.tempPw)delete S.tempPw[S.u];sv();fbSaveTemps();document.getElementById('nPw').value='';toast('Đã đổi MK!','ok');}
 function forceChangePw(n){
 // Xoá popup cũ nếu tồn tại
@@ -951,7 +951,10 @@ function openChTg(){const cur=(S.tgChats&&S.tgChats[S.u])||'';
 _quickPopup('📱 Telegram Chat ID','<p style="font-size:10px;color:var(--t3);margin-bottom:6px">'+(cur?'Hiện tại: '+cur:'Chưa có')+'<br>Nhắn /start cho @PTH_KV1_bot, nhắn @userinfobot để lấy ID</p><input type="text" id="_qTg" placeholder="Chat ID (vd: 123456789)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:14px;color:var(--t1);font-family:JetBrains Mono,monospace;outline:none;margin-bottom:8px"/><button class="btn btn-p" style="width:100%" onclick="chTg2()">Lưu</button>');}
 function chTg2(){const v=document.getElementById('_qTg')?.value.trim();if(!v||!/^\d+$/.test(v)){toast('Chat ID phải là số','er');return;}if(!S.tgChats)S.tgChats={};S.tgChats[S.u]=v;sv();fbSaveMeta('tgChats',S.tgChats);document.getElementById('quickPopup')?.remove();toast('Đã lưu Telegram ID!','ok');}
 document.addEventListener('click',e=>{if(!e.target.closest('.ub'))document.getElementById('userMenu')?.classList.remove('show');});
-function openSt(){document.getElementById('stOv').classList.add('show');document.querySelectorAll('.admOnly').forEach(el=>el.style.display=S.adm?'':'none');rSet();}
+function openSt(){document.getElementById('stOv').classList.add('show');
+document.querySelectorAll('.admOnly').forEach(el=>el.style.display=S.adm?'':'none');
+document.querySelectorAll('.superOnly').forEach(el=>el.style.display=S.superAdm?'':'none');
+rSet();}
 function closeSt(){document.getElementById('stOv').classList.remove('show');}
 function openNt(){document.getElementById('ntOv').classList.add('show');rNt();}
 function closeNt(){document.getElementById('ntOv').classList.remove('show');}
