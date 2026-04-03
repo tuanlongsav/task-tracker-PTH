@@ -922,7 +922,9 @@ S.passwords[S.u]=p1;if(S.tempPw)delete S.tempPw[S.u];sv();fbSaveTemps();
 document.getElementById('forcePwOv').remove();toast('Đã đổi mật khẩu thành công!','ok');}
 function chMyEmail(){const v=document.getElementById('myEmail').value.trim();if(!v||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){toast('Email không hợp lệ','er');return;}const mem=S.mem.find(x=>x.name===S.u);if(mem){mem.email=v;fbSaveMeta('mem',S.mem);}S.recEmails[S.u]=v;sv();fbSaveMeta('recEmails',S.recEmails);document.getElementById('myEmail').value='';document.getElementById('curEmail').textContent='Email hiện tại: '+v;toast('Đã đổi email!','ok');}
 function chMyTg(){const v=document.getElementById('myTgId').value.trim();if(!v||!/^\d+$/.test(v)){toast('Chat ID phải là số','er');return;}if(!S.tgChats)S.tgChats={};S.tgChats[S.u]=v;sv();fbSaveMeta('tgChats',S.tgChats);document.getElementById('myTgId').value='';document.getElementById('curTgId').textContent='Chat ID hiện tại: '+v;toast('Đã lưu Telegram Chat ID!','ok');}
-function sendTg(chatId,message){if(!chatId||!S.tgBot)return;fetch('https://api.telegram.org/bot'+S.tgBot+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:message,parse_mode:'HTML'})}).then(r=>r.json()).then(d=>{if(d.ok)log('[📱] Telegram →'+chatId);else console.error('Telegram err:',d);}).catch(e=>console.error('Telegram err:',e));}
+function sendTg(chatId,message){if(!chatId||!S.tgBot){console.warn('[TG] Skip: chatId='+chatId+' tgBot='+(S.tgBot?'OK':'EMPTY'));return;}
+console.log('[TG] Sending to '+chatId+'...');
+fetch('https://api.telegram.org/bot'+S.tgBot+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:message,parse_mode:'HTML'})}).then(r=>r.json()).then(d=>{if(d.ok){log('[📱] Telegram →'+chatId);console.log('[TG] OK →'+chatId);}else{console.error('[TG] API error:',d.description||d);toast('❌ Telegram: '+(d.description||'Lỗi'),'er');}}).catch(e=>{console.error('[TG] Fetch error:',e);toast('❌ Telegram gửi thất bại','er');});}
 function getPersonTgId(name){return(S.tgChats&&S.tgChats[name])||null;}
 function genTempPw(name){if(!S.adm)return;const pw=genPw();S.passwords[name]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[name]=true;sv();fbSaveTemps();
 const box=document.createElement('div');box.className='pnl-ov show';box.onclick=function(e){if(e.target===box)box.remove();};
@@ -1506,7 +1508,8 @@ if(changed)sv();
 fbSavePersonalReminders();}
 function checkAndNotify(){if(!S.adm)return;
 const today=new Date().toISOString().slice(0,10);
-if(!S.reminders||!Object.keys(S.reminders).length)return;
+console.log('[Notify] Check: reminders='+Object.keys(S.reminders||{}).length+' tgBot='+(S.tgBot?'OK':'EMPTY')+' tgGroup='+(S.tgGroup||'NONE'));
+if(!S.reminders||!Object.keys(S.reminders).length){console.log('[Notify] No reminders');return;}
 let sent=0;
 Object.keys(S.reminders).forEach(key=>{const r=S.reminders[key];
 if(r.lastNotified===today)return;
@@ -1516,6 +1519,7 @@ let subj='',msg='';
 if(r.type==='overdue'){subj='[QUÁ HẠN] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.';}
 else if(r.type==='urgent'){subj='[GẤP] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!';}
 else{subj='[SẮP HẠN] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nCòn '+Math.round(h)+' giờ.';}
+console.log('[Notify] Sending CV#'+r.taskIndex+': '+r.type+' lastNotified='+r.lastNotified+' today='+today);
 notifyTaskPeople(t,subj,msg);r.lastNotified=today;sent++;});
 if(sent){fbSaveMeta('reminders',S.reminders);console.log('[Reminders] Đã gửi '+sent+' thông báo nhắc việc');}
 // Nhắc việc cá nhân: gửi riêng cho user
