@@ -2361,10 +2361,10 @@ h+='<input type="text" id="calEvtNote" placeholder="Ghi chú (tuỳ chọn)" sty
 h+='<button class="btn btn-p btn-s" onclick="addCalEvt()">➕ Thêm nhắc nhở</button></div>';
 // Danh sách nhắc nhở
 const allEvts=[];
-// Nhắc nhở phòng
-if(S.deptEvents){S.deptEvents.forEach((t,i)=>{allEvts.push({...t,_idx:i,_isDept:true});});}
-// Nhắc nhở cá nhân
-S.personalTasks.filter(t=>t.taskType==='event').forEach(t=>{allEvts.push({...t,_idx:S.personalTasks.indexOf(t),_isDept:false});});
+// Nhắc nhở phòng (chỉ tương lai)
+if(S.deptEvents){S.deptEvents.forEach((t,i)=>{if(t.status!=='done'&&t.deadline&&new Date(t.deadline)>now)allEvts.push({...t,_idx:i,_isDept:true});});}
+// Nhắc nhở cá nhân (chỉ tương lai)
+S.personalTasks.filter(t=>t.taskType==='event'&&t.status!=='done'&&t.deadline&&new Date(t.deadline)>now).forEach(t=>{allEvts.push({...t,_idx:S.personalTasks.indexOf(t),_isDept:false});});
 allEvts.sort((a,b)=>new Date(a.deadline||'9999')-new Date(b.deadline||'9999'));
 if(allEvts.length){
 h+='<div style="margin-top:10px"><div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px">⏰ Nhắc nhở ('+allEvts.length+')</div>';
