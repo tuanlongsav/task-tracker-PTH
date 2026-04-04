@@ -1480,10 +1480,12 @@ if(t.status==='done'){if(S.reminders[key])delete S.reminders[key];return;}
 if(!t.deadline)return;
 const dl=new Date(t.deadline),h=(dl-now)/36e5;
 if(h<=0&&t.status!=='overdue'){t.status='overdue';statusChanged=true;fbSaveTask(i);}
+// type: overdue(quá hạn), urgent(≤2h), upcoming(≤24h)
 let type=null;
-if(h<=0)type='overdue';else if(h<=2)type='urgent';else if(h<=12)type='upcoming';
-if(type){const old=S.reminders[key];
-S.reminders[key]={taskIndex:i+1,taskName:t.name,leader:t.leader,deadline:t.deadline,type:type,lastNotified:old?old.lastNotified:null};}
+if(h<=0)type='overdue';else if(h<=2)type='urgent';else if(h<=24)type='upcoming';
+if(type){const old=S.reminders[key]||{};
+S.reminders[key]={taskIndex:i+1,taskName:t.name,leader:t.leader,deadline:t.deadline,type:type,
+lastNotified:old.lastNotified||null,notifyStage:old.notifyStage||0};}
 else{if(S.reminders[key])delete S.reminders[key];}});
 if(statusChanged)sv();
 fbSaveMeta('reminders',Object.keys(S.reminders).length?S.reminders:null);
@@ -1495,22 +1497,25 @@ S.personalTasks.forEach((t,i)=>{const key=String(t.id);
 if(t.status==='done'){if(S.personalReminders[key])delete S.personalReminders[key];return;}
 if(!t.deadline)return;
 const dl=new Date(t.deadline),h=(dl-now)/36e5;
-// Nhắc nhở sự kiện: gửi TG trước khi tự hoàn thành
+// Nhắc nhở sự kiện: nhắc 24h + 1h trước, tự hoàn thành khi đến hạn
 if(t.taskType==='event'){
-if(h<=12&&h>0){// sắp đến hạn → đưa vào reminder để gửi TG
-const old=S.personalReminders[key];
-S.personalReminders[key]={taskIndex:i+1,taskName:t.name,leader:S.u,deadline:t.deadline,type:h<=2?'urgent':'upcoming',lastNotified:old?old.lastNotified:null};}
-if(h<=0){// đến hạn → gửi TG 1 lần rồi complete
-const evtLastDate=S.personalReminders[key]?.lastNotified?new Date(S.personalReminders[key].lastNotified).toISOString().slice(0,10):'';
-if(evtLastDate!==new Date().toISOString().slice(0,10)){const tgId=getPersonTgId(S.u);
+const old=S.personalReminders[key]||{};
+if(h<=24&&h>0){
+S.personalReminders[key]={taskIndex:i+1,taskName:t.name,leader:S.u,deadline:t.deadline,type:h<=1?'urgent':'upcoming',
+lastNotified:old.lastNotified||null,notifyStage:old.notifyStage||0,isEvent:true};}
+if(h<=0){// đến hạn → gửi TG rồi complete
+const evtStage=old.notifyStage||0;
+if(evtStage<3){const tgId=getPersonTgId(S.u);
 if(tgId&&S.tgBot)sendTg(tgId,'<b>[ĐẾN HẠN] '+esc(t.name)+'</b>\n\nThời gian: '+fDLt(t.deadline)+(t.notes?'\nGhi chú: '+t.notes:''));}
 t.status='done';t.completedAt=t.deadline;changed=true;fbSavePersonalTask(i);if(S.personalReminders[key])delete S.personalReminders[key];}
 return;}
+// CV cá nhân thường: nhắc 24h + 2h trước, quá hạn 1 lần/ngày
 if(h<=0&&t.status!=='overdue'){t.status='overdue';changed=true;fbSavePersonalTask(i);}
 let type=null;
-if(h<=0)type='overdue';else if(h<=2)type='urgent';else if(h<=12)type='upcoming';
-if(type){const old=S.personalReminders[key];
-S.personalReminders[key]={taskIndex:i+1,taskName:t.name,leader:S.u,deadline:t.deadline,type:type,lastNotified:old?old.lastNotified:null};}
+if(h<=0)type='overdue';else if(h<=2)type='urgent';else if(h<=24)type='upcoming';
+if(type){const old=S.personalReminders[key]||{};
+S.personalReminders[key]={taskIndex:i+1,taskName:t.name,leader:S.u,deadline:t.deadline,type:type,
+lastNotified:old.lastNotified||null,notifyStage:old.notifyStage||0};}
 else{if(S.personalReminders[key])delete S.personalReminders[key];}});
 if(changed)sv();
 fbSavePersonalReminders();}
@@ -1520,16 +1525,21 @@ let sent=0;const now=new Date();
 Object.keys(S.reminders).forEach(key=>{const r=S.reminders[key];
 const t=S.tasks.find(x=>String(x.id)===key);if(!t)return;
 const h=(new Date(r.deadline)-now)/36e5;
-// Chỉ nhắc 1 lần/ngày
+const stage=r.notifyStage||0;
+// Stage 0→1: nhắc trước 24h; Stage 1→2: nhắc trước 2h; Stage 2→3: quá hạn 1 lần/ngày
+let shouldSend=false,subj='',msg='';
+if(h<=24&&h>2&&stage<1){shouldSend=true;r.notifyStage=1;
+subj='[SẮP HẠN - 24h] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);
+msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nCòn '+Math.round(h)+' giờ.';}
+else if(h<=2&&h>0&&stage<2){shouldSend=true;r.notifyStage=2;
+subj='[GẤP - 2h] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);
+msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!';}
+else if(h<=0){// quá hạn: 1 lần/ngày
 const lastDate=r.lastNotified?new Date(r.lastNotified).toISOString().slice(0,10):'';
-if(lastDate===now.toISOString().slice(0,10))return;
-let subj='',msg='';
-if(r.type==='overdue'){subj='[QUÁ HẠN] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.';}
-else if(r.type==='urgent'){subj='[GẤP] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!';}
-else{subj='[SẮP HẠN] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nCòn '+Math.round(h)+' giờ.';}
-// Set lastNotified TRƯỚC khi gửi (ngăn gửi trùng khi refresh)
-r.lastNotified=now.toISOString();
-notifyTaskPeople(t,subj,msg);sent++;});
+if(lastDate!==now.toISOString().slice(0,10)){shouldSend=true;
+subj='[QUÁ HẠN] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);
+msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.';}}
+if(shouldSend){r.lastNotified=now.toISOString();notifyTaskPeople(t,subj,msg);sent++;}});
 if(sent){fbSaveMeta('reminders',S.reminders);}
 // Nhắc nhở sự kiện phòng
 checkAndNotifyDeptEvents();
@@ -1539,14 +1549,17 @@ function checkAndNotifyDeptEvents(){if(!S.deptEvents||!S.deptEvents.length||!S.t
 const now=new Date();let changed=false;
 S.deptEvents.forEach(evt=>{if(evt.status==='done')return;if(!evt.deadline)return;
 const dl=new Date(evt.deadline),h=(dl-now)/36e5;
-if(h>12||h<-24)return;
-const lastDate=evt.lastNotified?new Date(evt.lastNotified).toISOString().slice(0,10):'';
-if(lastDate===now.toISOString().slice(0,10))return;
-const tag=h<=0?'[ĐẾN HẠN]':h<=2?'[SẮP ĐẾN HẠN]':'[NHẮC NHỞ]';
+if(h>24||h<-24)return;
+const stage=evt.notifyStage||0;
+let shouldSend=false,tag='';
+if(h<=24&&h>1&&stage<1){shouldSend=true;evt.notifyStage=1;tag='[NHẮC NHỞ - 24h]';}
+else if(h<=1&&h>0&&stage<2){shouldSend=true;evt.notifyStage=2;tag='[SẮP ĐẾN HẠN - 1h]';}
+else if(h<=0&&stage<3){shouldSend=true;evt.notifyStage=3;tag='[ĐẾN HẠN]';}
+if(shouldSend){
 const msg='<b>'+tag+' '+esc(evt.name)+'</b>\n\nThời gian: '+fDLt(evt.deadline)+(evt.creator?'\nNgười tạo: '+evt.creator:'')+(evt.notes?'\nGhi chú: '+evt.notes:'');
 evt.lastNotified=now.toISOString();changed=true;
-if(S.tgGroup)sendTg(S.tgGroup,msg);
-if(h<=0){evt.status='done';evt.completedAt=evt.deadline;}});
+if(S.tgGroup)sendTg(S.tgGroup,msg);}
+if(h<=0){evt.status='done';evt.completedAt=evt.deadline;changed=true;}});
 if(changed)fbSaveMeta('deptEvents',S.deptEvents);}
 function checkAndNotifyPersonal(){if(!S.u)return;
 if(!S.personalReminders||!Object.keys(S.personalReminders).length)return;
@@ -1554,14 +1567,21 @@ let sent=0;const now=new Date();
 Object.keys(S.personalReminders).forEach(key=>{const r=S.personalReminders[key];
 const t=S.personalTasks.find(x=>String(x.id)===key);if(!t)return;
 const h=(new Date(r.deadline)-now)/36e5;
-const lastDate=r.lastNotified?new Date(r.lastNotified).toISOString().slice(0,10):'';
-if(lastDate===now.toISOString().slice(0,10))return;
-let subj='',msg='';
-if(r.type==='overdue'){subj='[CÁ NHÂN - QUÁ HẠN] '+r.taskName.substring(0,40);msg='CV cá nhân: '+r.taskName+'\nHạn: '+fDLt(r.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.';}
-else if(r.type==='urgent'){subj='[CÁ NHÂN - GẤP] '+r.taskName.substring(0,40);msg='CV cá nhân: '+r.taskName+'\nHạn: '+fDLt(r.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!';}
-else{subj='[CÁ NHÂN - SẮP HẠN] '+r.taskName.substring(0,40);msg='CV cá nhân: '+r.taskName+'\nHạn: '+fDLt(r.deadline)+'\nCòn '+Math.round(h)+' giờ.';}
-r.lastNotified=now.toISOString();sent++;
-notifyUser(S.u,subj,msg);});
+const stage=r.notifyStage||0;const isEvt=r.isEvent;
+let shouldSend=false,subj='',msg='';
+const prefix=isEvt?'[NHẮC NHỞ]':'[CÁ NHÂN]';
+const urgentH=isEvt?1:2;// event nhắc trước 1h, CV nhắc trước 2h
+if(h<=24&&h>urgentH&&stage<1){shouldSend=true;r.notifyStage=1;
+subj=prefix+' '+r.taskName.substring(0,40);
+msg=(isEvt?'Nhắc nhở: ':'CV cá nhân: ')+r.taskName+'\nHạn: '+fDLt(r.deadline)+'\nCòn '+Math.round(h)+' giờ.';}
+else if(h<=urgentH&&h>0&&stage<2){shouldSend=true;r.notifyStage=2;
+subj=prefix+' [GẤP] '+r.taskName.substring(0,40);
+msg=(isEvt?'Nhắc nhở: ':'CV cá nhân: ')+r.taskName+'\nHạn: '+fDLt(r.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!';}
+else if(h<=0&&!isEvt){const lastDate=r.lastNotified?new Date(r.lastNotified).toISOString().slice(0,10):'';
+if(lastDate!==now.toISOString().slice(0,10)){shouldSend=true;
+subj='[CÁ NHÂN - QUÁ HẠN] '+r.taskName.substring(0,40);
+msg='CV cá nhân: '+r.taskName+'\nHạn: '+fDLt(r.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.';}}
+if(shouldSend){r.lastNotified=now.toISOString();sent++;notifyUser(S.u,subj,msg);}});
 if(sent)fbSavePersonalReminders();}
 function getTaskEmails(t){const emails=[...S.ne];[t.leader,...(t.collaborators||[])].forEach(n=>{const m=S.mem.find(x=>x.name===n);if(m?.email&&!emails.includes(m.email))emails.push(m.email);});return emails;}
 function notifyTaskPeople(t,subject,message){const people=[t.leader,...(t.collaborators||[])];
