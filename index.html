@@ -859,7 +859,7 @@ initRpt();popF();rAll();
 // Kiểm tra MK tạm: ưu tiên tham số truyền vào, fallback check S.tempPw
 const needForce=forceNewPw||(S.tempPw&&S.tempPw[n]);
 if(needForce){setTimeout(()=>forceChangePw(n),300);}
-if(S.adm){setTimeout(()=>{updateReminders();checkAndNotify();},2000);}
+if(S.adm){setTimeout(()=>{updateReminders();if(!window._notifySent){window._notifySent=true;checkAndNotify();}},2000);}
 // Hỏi bật biometric nếu chưa đăng ký VÀ chưa bật
 if(!needForce&&hasBio()&&!getBioEnabled(n)){setTimeout(()=>{if(confirm('Bật đăng nhập bằng vân tay/khuôn mặt cho '+n+'?\n\nLần sau chỉ cần chọn tên → xác thực sinh trắc → vào luôn.')){registerBio(n);}},1500);}}
 // Biometric Authentication (Android native + WebAuthn fallback)
@@ -922,9 +922,8 @@ S.passwords[S.u]=p1;if(S.tempPw)delete S.tempPw[S.u];sv();fbSaveTemps();
 document.getElementById('forcePwOv').remove();toast('Đã đổi mật khẩu thành công!','ok');}
 function chMyEmail(){const v=document.getElementById('myEmail').value.trim();if(!v||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){toast('Email không hợp lệ','er');return;}const mem=S.mem.find(x=>x.name===S.u);if(mem){mem.email=v;fbSaveMeta('mem',S.mem);}S.recEmails[S.u]=v;sv();fbSaveMeta('recEmails',S.recEmails);document.getElementById('myEmail').value='';document.getElementById('curEmail').textContent='Email hiện tại: '+v;toast('Đã đổi email!','ok');}
 function chMyTg(){const v=document.getElementById('myTgId').value.trim();if(!v||!/^\d+$/.test(v)){toast('Chat ID phải là số','er');return;}if(!S.tgChats)S.tgChats={};S.tgChats[S.u]=v;sv();fbSaveMeta('tgChats',S.tgChats);document.getElementById('myTgId').value='';document.getElementById('curTgId').textContent='Chat ID hiện tại: '+v;toast('Đã lưu Telegram Chat ID!','ok');}
-function sendTg(chatId,message,onSuccess){if(!chatId||!S.tgBot){console.warn('[TG] Skip: chatId='+chatId+' tgBot='+(S.tgBot?'OK':'EMPTY'));return;}
-console.log('[TG] Sending to '+chatId+'...');
-fetch('https://api.telegram.org/bot'+S.tgBot+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:message,parse_mode:'HTML'})}).then(r=>r.json()).then(d=>{if(d.ok){log('[📱] Telegram →'+chatId);console.log('[TG] OK →'+chatId);if(onSuccess)onSuccess();}else{console.error('[TG] API error:',d.description||d);}}).catch(e=>{console.error('[TG] Fetch error:',e);});}
+function sendTg(chatId,message){if(!chatId||!S.tgBot)return;
+fetch('https://api.telegram.org/bot'+S.tgBot+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:message,parse_mode:'HTML'})}).then(r=>r.json()).then(d=>{if(d.ok)log('[📱] Telegram →'+chatId);else console.error('[TG] err:',d.description||d);}).catch(e=>console.error('[TG] err:',e));}
 function getPersonTgId(name){return(S.tgChats&&S.tgChats[name])||null;}
 function genTempPw(name){if(!S.adm)return;const pw=genPw();S.passwords[name]=pw;if(!S.tempPw)S.tempPw={};S.tempPw[name]=true;sv();fbSaveTemps();
 const box=document.createElement('div');box.className='pnl-ov show';box.onclick=function(e){if(e.target===box)box.remove();};
@@ -1516,64 +1515,61 @@ else{if(S.personalReminders[key])delete S.personalReminders[key];}});
 if(changed)sv();
 fbSavePersonalReminders();}
 function checkAndNotify(){if(!S.adm)return;
-console.log('[Notify] Check: reminders='+Object.keys(S.reminders||{}).length+' tgBot='+(S.tgBot?'OK':'EMPTY')+' tgGroup='+(S.tgGroup||'NONE'));
-if(!S.reminders||!Object.keys(S.reminders).length){console.log('[Notify] No reminders');return;}
-let sent=0;
+if(!S.reminders||!Object.keys(S.reminders).length)return;
+let sent=0;const now=new Date();
 Object.keys(S.reminders).forEach(key=>{const r=S.reminders[key];
 const t=S.tasks.find(x=>String(x.id)===key);if(!t)return;
-const h=(new Date(r.deadline)-new Date())/36e5;
+const h=(new Date(r.deadline)-now)/36e5;
+// Gap tối thiểu 4h
+const lastMs=r.lastNotified?new Date(r.lastNotified).getTime():0;
+if(now.getTime()-lastMs<4*3600000)return;
 let subj='',msg='';
 if(r.type==='overdue'){subj='[QUÁ HẠN] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.';}
 else if(r.type==='urgent'){subj='[GẤP] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!';}
 else{subj='[SẮP HẠN] CV #'+r.taskIndex+': '+r.taskName.substring(0,40);msg='Công việc: '+r.taskName+'\nPhụ trách: '+r.leader+'\nHạn: '+fDLt(r.deadline)+'\nCòn '+Math.round(h)+' giờ.';}
-const lastMs=r.lastNotified?new Date(r.lastNotified).getTime():0;
-const minGap=4*3600000; // tối thiểu 4 giờ giữa 2 lần nhắc
-if(Date.now()-lastMs<minGap){console.log('[Notify] Skip CV#'+r.taskIndex+': nhắc cách đây '+(Math.round((Date.now()-lastMs)/3600000))+'h');return;}
-console.log('[Notify] Sending CV#'+r.taskIndex+': '+r.type+' last='+r.lastNotified);
-notifyTaskPeople(t,subj,msg,()=>{r.lastNotified=new Date().toISOString();fbSaveMeta('reminders',S.reminders);});sent++;});
-if(sent){console.log('[Reminders] Đang gửi '+sent+' thông báo nhắc việc');}
+// Set lastNotified TRƯỚC khi gửi (ngăn gửi trùng khi refresh)
+r.lastNotified=now.toISOString();
+notifyTaskPeople(t,subj,msg);sent++;});
+if(sent){fbSaveMeta('reminders',S.reminders);}
 // Nhắc nhở sự kiện phòng
 checkAndNotifyDeptEvents();
 // Nhắc việc cá nhân: gửi riêng cho user
 checkAndNotifyPersonal();}
 function checkAndNotifyDeptEvents(){if(!S.deptEvents||!S.deptEvents.length||!S.tgBot)return;
-const now=new Date();
+const now=new Date();let changed=false;
 S.deptEvents.forEach(evt=>{if(evt.status==='done')return;if(!evt.deadline)return;
 const dl=new Date(evt.deadline),h=(dl-now)/36e5;
-if(h>12||h<-24)return;// chỉ nhắc trong khoảng 12h trước → 24h sau hạn
+if(h>12||h<-24)return;
 const lastMs=evt.lastNotified?new Date(evt.lastNotified).getTime():0;
-if(Date.now()-lastMs<4*3600000)return;
+if(now.getTime()-lastMs<4*3600000)return;
 const tag=h<=0?'[ĐẾN HẠN]':h<=2?'[SẮP ĐẾN HẠN]':'[NHẮC NHỞ]';
 const msg='<b>'+tag+' '+esc(evt.name)+'</b>\n\nThời gian: '+fDLt(evt.deadline)+(evt.creator?'\nNgười tạo: '+evt.creator:'')+(evt.notes?'\nGhi chú: '+evt.notes:'');
-// Gửi nhóm Telegram
-if(S.tgGroup){sendTg(S.tgGroup,msg,()=>{evt.lastNotified=new Date().toISOString();fbSaveMeta('deptEvents',S.deptEvents);});}
-// Auto-complete khi đến hạn
-if(h<=0){evt.status='done';evt.completedAt=evt.deadline;fbSaveMeta('deptEvents',S.deptEvents);}
-});}
+evt.lastNotified=now.toISOString();changed=true;
+if(S.tgGroup)sendTg(S.tgGroup,msg);
+if(h<=0){evt.status='done';evt.completedAt=evt.deadline;}});
+if(changed)fbSaveMeta('deptEvents',S.deptEvents);}
 function checkAndNotifyPersonal(){if(!S.u)return;
 if(!S.personalReminders||!Object.keys(S.personalReminders).length)return;
-let sent=0;
+let sent=0;const now=new Date();
 Object.keys(S.personalReminders).forEach(key=>{const r=S.personalReminders[key];
 const t=S.personalTasks.find(x=>String(x.id)===key);if(!t)return;
-const h=(new Date(r.deadline)-new Date())/36e5;
+const h=(new Date(r.deadline)-now)/36e5;
 const lastMs=r.lastNotified?new Date(r.lastNotified).getTime():0;
-if(Date.now()-lastMs<4*3600000)return;
+if(now.getTime()-lastMs<4*3600000)return;
 let subj='',msg='';
 if(r.type==='overdue'){subj='[CÁ NHÂN - QUÁ HẠN] '+r.taskName.substring(0,40);msg='CV cá nhân: '+r.taskName+'\nHạn: '+fDLt(r.deadline)+'\nĐã quá hạn '+Math.abs(Math.round(h))+' giờ.';}
 else if(r.type==='urgent'){subj='[CÁ NHÂN - GẤP] '+r.taskName.substring(0,40);msg='CV cá nhân: '+r.taskName+'\nHạn: '+fDLt(r.deadline)+'\nChỉ còn '+Math.round(h*60)+' phút!';}
 else{subj='[CÁ NHÂN - SẮP HẠN] '+r.taskName.substring(0,40);msg='CV cá nhân: '+r.taskName+'\nHạn: '+fDLt(r.deadline)+'\nCòn '+Math.round(h)+' giờ.';}
-const tgId=getPersonTgId(S.u);
-if(tgId&&S.tgBot){sendTg(tgId,'<b>'+subj+'</b>\n\n'+msg,()=>{r.lastNotified=new Date().toISOString();fbSavePersonalReminders();});}
-else{notifyUser(S.u,subj,msg);r.lastNotified=new Date().toISOString();fbSavePersonalReminders();}
-sent++;});
-if(sent){console.log('[Personal Reminders] Đang gửi '+sent+' thông báo');}}
+r.lastNotified=now.toISOString();sent++;
+notifyUser(S.u,subj,msg);});
+if(sent)fbSavePersonalReminders();}
 function getTaskEmails(t){const emails=[...S.ne];[t.leader,...(t.collaborators||[])].forEach(n=>{const m=S.mem.find(x=>x.name===n);if(m?.email&&!emails.includes(m.email))emails.push(m.email);});return emails;}
-function notifyTaskPeople(t,subject,message,onSuccess){const people=[t.leader,...(t.collaborators||[])];
+function notifyTaskPeople(t,subject,message){const people=[t.leader,...(t.collaborators||[])];
 // Telegram: gửi cho từng người có Chat ID + nhóm
-if(S.tgBot){const sentSet=new Set();let firstSent=false;
+if(S.tgBot){const sentSet=new Set();
 people.forEach(n=>{const tgId=getPersonTgId(n);if(tgId&&!sentSet.has(tgId)){sentSet.add(tgId);
-sendTg(tgId,'<b>'+subject+'</b>\n\n'+message,!firstSent?()=>{firstSent=true;if(onSuccess)onSuccess();}:null);}});
-if(S.tgGroup&&!sentSet.has(S.tgGroup)){sendTg(S.tgGroup,'<b>'+subject+'</b>\n\n'+message,!firstSent?()=>{firstSent=true;if(onSuccess)onSuccess();}:null);}}
+sendTg(tgId,'<b>'+subject+'</b>\n\n'+message);}});
+if(S.tgGroup&&!sentSet.has(S.tgGroup)){sendTg(S.tgGroup,'<b>'+subject+'</b>\n\n'+message);}}
 // Email: chỉ gửi nếu bật emailReminder
 if(S.emailReminder){const emails=getTaskEmails(t);emails.forEach(e=>sendEmail(e,subject,message));}}
 // Settings
