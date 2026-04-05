@@ -419,6 +419,7 @@ tbody td{padding:8px;font-size:12px}
 <div class="um-item" onclick="event.stopPropagation();document.getElementById('userMenu').classList.remove('show');openChPw()">🔐 Đổi mật khẩu</div>
 <div class="um-item" onclick="event.stopPropagation();document.getElementById('userMenu').classList.remove('show');openChEmail()">📧 Đổi email</div>
 <div class="um-item" onclick="event.stopPropagation();document.getElementById('userMenu').classList.remove('show');openChTg()">📱 Telegram ID</div>
+<div class="um-item" id="umBio" onclick="event.stopPropagation();document.getElementById('userMenu').classList.remove('show');toggleBioSetting()">🔑 Sinh trắc học</div>
 </div>
 </div>
 <div class="hb hb-out" onclick="logout()" title="Đăng xuất"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
@@ -850,7 +851,7 @@ if(_isPU){S.mode='personal';document.getElementById('modeBtn').style.display='no
 const lf2=document.querySelector('.logo-full');const ls2=document.getElementById('logoShort');
 if(_isPU){if(lf2)lf2.textContent='CÔNG VIỆC CÁ NHÂN';if(ls2)ls2.textContent='CÔNG VIỆC CÁ NHÂN';}
 else{if(lf2)lf2.textContent='Báo cáo theo dõi tiến độ công việc của Phòng Tổng hợp KTNN khu vực I';if(ls2)ls2.textContent='TIẾN ĐỘ CÔNG VIỆC PHÒNG TỔNG HỢP';}
-applyTestData();initFbPersonal();
+applyTestData();initFbPersonal();updateBioLabel();
 // Auto-sync local personalTasks lên Firebase nếu Firebase trống
 setTimeout(()=>{if(fbPersonalRef&&S.personalTasks.length){
 fbPersonalRef.child('tasks').once('value').then(snap=>{
@@ -940,6 +941,17 @@ const box=document.createElement('div');box.className='pnl-ov show';box.id='quic
 box.onclick=function(e){if(e.target===box)box.remove();};
 box.innerHTML='<div style="background:var(--bg2);border:1px solid var(--b);border-radius:12px;padding:20px;max-width:340px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.6)"><h2 style="font-size:15px;margin-bottom:12px;display:flex;justify-content:space-between">'+title+'<span style="cursor:pointer;color:var(--t3)" onclick="this.closest(\'.pnl-ov\').remove()">✕</span></h2>'+html+'</div>';
 document.body.appendChild(box);}
+function toggleBioSetting(){
+if(!hasBio()){toast('Thiết bị không hỗ trợ sinh trắc học','er');return;}
+const enabled=getBioEnabled(S.u);
+if(enabled){// Tắt
+setBioEnabled(S.u,false);toast('Đã tắt đăng nhập sinh trắc học','ok');updateBioLabel();}
+else{// Bật → đăng ký
+registerBio(S.u).then(()=>updateBioLabel());}}
+function updateBioLabel(){const el=document.getElementById('umBio');if(!el||!S.u)return;
+const supported=hasBio();const enabled=supported&&getBioEnabled(S.u);
+el.textContent=enabled?'🔑 Tắt sinh trắc học':'🔑 Bật sinh trắc học';
+el.style.display=supported?'':'none';}
 function openChPw(){_quickPopup('🔐 Đổi mật khẩu','<input type="password" id="_qPw1" placeholder="Mật khẩu mới (≥4 ký tự)" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:14px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:8px"/><input type="password" id="_qPw2" placeholder="Nhập lại mật khẩu" style="width:100%;background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:10px;font-size:14px;color:var(--t1);font-family:inherit;outline:none;margin-bottom:4px"/><p id="_qPwErr" style="font-size:11px;color:#ef4444;display:none;margin-bottom:6px"></p><button class="btn btn-p" style="width:100%" onclick="chPw2()">Đổi mật khẩu</button>');setTimeout(()=>document.getElementById('_qPw1')?.focus(),100);}
 function chPw2(){const p1=document.getElementById('_qPw1')?.value.trim(),p2=document.getElementById('_qPw2')?.value.trim();const err=document.getElementById('_qPwErr');
 if(!p1||p1.length<4){err.textContent='Mật khẩu phải ≥4 ký tự';err.style.display='block';return;}
